@@ -1,0 +1,33 @@
+{
+  "projectName": "AI 题库工作台新首页",
+  "currentStage": 1,
+  "stages": {
+    "0": {
+      "name": "需求澄清",
+      "status": "completed",
+      "completedAt": "2026-10-22T00:00:00+08:00",
+      "outputs": ["AGENT-HANDOFF.md"]
+    },
+    "1": {
+      "name": "Demo 创作",
+      "status": "in_progress",
+      "startedAt": "2026-10-22T00:00:00+08:00",
+      "iterationCount": 1
+    },
+    "2": {
+      "name": "产品稿文字",
+      "status": "pending"
+    },
+    "3": {
+      "name": "埋点输出",
+      "status": "pending"
+    },
+    "4": {
+      "name": "版本更新",
+      "status": "pending"
+    }
+  },
+  "gitCommits": [],
+  "createdAt": "2026-10-22T00:00:00+08:00",
+  "updatedAt": "2026-10-22T00:00:00+08:00"
+}
