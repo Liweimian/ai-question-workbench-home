@@ -100,7 +100,11 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
     if (action === 'image-search') return MetisMessage.info('图片搜题入口已打开（原型演示）')
     if (action === 'web-search') return MetisMessage.info('联网搜题入口已打开（原型演示）')
     const presets: Record<Exclude<UtilityAction, 'image-search' | 'web-search'>, string> = {
-      heading: '一、选择题',
+      'heading-2': '一、选择题',
+      'heading-3': '（一）单项选择题',
+      'heading-4': '基础题组',
+      table: '姓名：________　班级：________　得分：________',
+      image: '图片占位：点击后上传示意图、材料图或二维码',
       note: '考试说明：请认真审题，并将答案填写在指定位置。',
       divider: '────────────',
       'page-break': '—— 分页符 ——',

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
-import { BookOpenCheck, BrainCircuit, FileImage, FileText, FileUp, GraduationCap, GripVertical, Heading2, Minus, Network, Plus, ScanSearch, School, Sparkles } from 'lucide-react'
+import { BookOpenCheck, BrainCircuit, FileImage, FileText, FileUp, GraduationCap, GripVertical, Heading2, Heading3, Heading4, Image, Minus, Network, Plus, ScanSearch, School, Sparkles, Table2 } from 'lucide-react'
 import type { AddQuestionMode } from '../prototype/types'
 
-export type UtilityAction = 'image-search' | 'web-search' | 'heading' | 'note' | 'divider' | 'page-break'
+export type UtilityAction = 'image-search' | 'web-search' | 'heading-2' | 'heading-3' | 'heading-4' | 'table' | 'image' | 'note' | 'divider' | 'page-break'
 
 interface BlockAddMenuProps {
   empty?: boolean
@@ -27,8 +27,12 @@ const optionGroups = [
     { id: 'create', mode: 'create', title: 'AI 命题', description: '按要求生成原创题目', icon: Sparkles, ai: true },
     { id: 'personalized', mode: 'personalized', title: '个性化练习', description: '结合材料与学情生成练习', icon: GraduationCap, ai: true },
   ] },
-  { title: '试卷结构', items: [
-    { id: 'heading', utility: 'heading', title: '二级标题', description: '插入题型或大题分组标题', icon: Heading2 },
+  { title: '基础内容', items: [
+    { id: 'heading-2', utility: 'heading-2', title: '二级标题', description: '题型或大题分组', icon: Heading2 },
+    { id: 'heading-3', utility: 'heading-3', title: '三级标题', description: '分组下的内容层级', icon: Heading3 },
+    { id: 'heading-4', utility: 'heading-4', title: '四级标题', description: '更细一级的内容层级', icon: Heading4 },
+    { id: 'table', utility: 'table', title: '表格', description: '插入信息栏、评分栏或答题表', icon: Table2 },
+    { id: 'image', utility: 'image', title: '图片', description: '插入示意图、材料图或二维码', icon: Image },
     { id: 'note', utility: 'note', title: '说明文字', description: '插入考试说明、作答要求或导语', icon: FileText },
     { id: 'divider', utility: 'divider', title: '分割线', description: '分隔不同题型或内容区域', icon: Minus },
     { id: 'page-break', utility: 'page-break', title: '分页符', description: '控制打印与 PDF 的分页位置', icon: FileImage },
