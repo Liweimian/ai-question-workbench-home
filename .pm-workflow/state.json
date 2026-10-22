@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 58,
+      "iterationCount": 59,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -73,7 +73,10 @@
         "browser unified home-style Feixiang and school library dialogs",
         "browser shared native-tab resource detail route from picker dialogs",
         "browser embedded legacy resource detail inside library picker dialogs",
-        "browser embedded workbook directory and return-to-list flow"
+        "browser embedded workbook directory and return-to-list flow",
+        "browser home-detail whole-resource-only flow",
+        "browser create-new-document from whole resource flow",
+        "browser embedded picker detail keeps single-question add flow"
       ]
     },
     "2": {
@@ -299,6 +302,11 @@
       "stage": 1,
       "hash": "2788db4",
       "message": "Stage 1: Demo 创作完成 - 迭代 58"
+    },
+    {
+      "stage": 1,
+      "hash": "aaeba99",
+      "message": "Stage 1: Demo 创作完成 - 迭代 59"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
