@@ -51,22 +51,25 @@ export const workbenchRepository: WorkbenchRepository = {
     return sourceRecords.filter((record) => record.sourceType === resourceType)
   },
 
-  async addSource(resourceType: ResourceType, sourceId?: string) {
+  async addSource(resourceType: ResourceType, sourceId?: string, count = 2) {
     await delay(520)
     const labelMap: Record<ResourceType, string> = {
       workbook: '53 天天练',
       paper: '一次函数单元达标卷',
-      list: '一次函数易错题精选',
-      chapter: '章节 / 知识点选题',
+      sync: '一次函数同步题单',
+      special: '一次函数思维进阶专题',
     }
     const selectedSource = sourceRecords.find((record) => record.id === sourceId)
-    return baseQuestions.slice(0, 2).map((question, index) => ({
+    return Array.from({ length: Math.min(12, Math.max(1, count)) }, (_, index) => {
+      const question = baseQuestions[index % baseQuestions.length]
+      return ({
       ...cloneQuestion(question, `${resourceType}-${sourceId ?? Date.now()}-${index}`),
       sourceLabel: selectedSource?.title ?? labelMap[resourceType],
       sourceDetail: selectedSource?.meta ?? question.sourceDetail,
       origin: 'question-bank' as const,
       verifyStatus: '已校验' as const,
-    }))
+      })
+    })
   },
 
   async recognizeUpload() {

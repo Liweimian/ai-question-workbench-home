@@ -1,6 +1,6 @@
 export type EntityId = string
 export type AsyncStatus = 'idle' | 'loading' | 'success' | 'error'
-export type ResourceType = 'workbook' | 'paper' | 'list' | 'chapter'
+export type ResourceType = 'workbook' | 'paper' | 'sync' | 'special'
 export type AddQuestionMode = 'menu' | 'resource' | 'compose' | 'create' | 'upload' | 'manual'
 export type NavigatorView = 'questions' | 'history'
 export type InspectorView = 'info' | 'ai'
@@ -57,6 +57,11 @@ export interface SourceRecord {
   meta: string
   questionCount: number
   highlight?: string
+  description?: string
+  tags?: string[]
+  sourceName?: string
+  updatedAt?: string
+  usageCount?: number
 }
 
 export interface RewriteRequest {
@@ -68,7 +73,7 @@ export interface WorkbenchRepository {
   listHistory(): Promise<HistoryDocumentSummary[]>
   loadDocument(documentId: EntityId): Promise<WorkbenchDocument>
   loadSource(resourceType: ResourceType): Promise<SourceRecord[]>
-  addSource(resourceType: ResourceType, sourceId?: EntityId): Promise<Question[]>
+  addSource(resourceType: ResourceType, sourceId?: EntityId, count?: number): Promise<Question[]>
   recognizeUpload(): Promise<Question[]>
   composeFromBank(prompt: string): Promise<Question[]>
   createQuestions(prompt: string): Promise<Question[]>

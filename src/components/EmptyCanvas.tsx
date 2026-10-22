@@ -1,24 +1,36 @@
 import { MetisButton } from '@yuanfudao/metis-web-component'
-import { FileQuestion, Plus } from 'lucide-react'
+import { BookOpenCheck, BrainCircuit, FileQuestion, FileUp, Sparkles } from 'lucide-react'
+import type { AddQuestionMode } from '../prototype/types'
 
 interface EmptyCanvasProps {
-  onAdd: () => void
+  onOpenAdd: (mode: AddQuestionMode) => void
 }
 
-export function EmptyCanvas({ onAdd }: EmptyCanvasProps) {
+export function EmptyCanvas({ onOpenAdd }: EmptyCanvasProps) {
   return (
     <div className="editor-empty" data-sec="3">
-      <div className="editor-empty-icon"><FileQuestion size={28} /></div>
-      <h1>开始制作一份题单或试卷</h1>
-      <p>所有来源统一从“添加题目”进入，保存时再确定为题单或试卷。</p>
-      <MetisButton
-        type="primary"
-        icon={<Plus size={17} />}
-        onClick={onAdd}
-        data-track="/click/aiQuestionHome/addFirstQuestion | 添加第一道题 | 无"
-      >
-        添加第一道题
-      </MetisButton>
+      <header className="editor-empty-heading">
+        <strong>未命名题单</strong>
+        <span>初中数学 · 八年级上册 · 人教版　·0 道题</span>
+      </header>
+      <div className="editor-empty-content">
+        <div className="editor-empty-icon"><FileQuestion size={28} /></div>
+        <h1>题单还是空的</h1>
+        <p>先从飞象题库选题，也可以让 AI 组题、出题或上传材料录题。</p>
+        <MetisButton
+          type="primary"
+          icon={<BookOpenCheck size={17} />}
+          onClick={() => onOpenAdd('resource')}
+          data-track="/click/aiQuestionHome/openBankFromEmpty | 空题单从题库选题 | 无"
+        >
+          从题库选题
+        </MetisButton>
+        <div className="editor-empty-shortcuts" aria-label="其他添加方式">
+          <button type="button" onClick={() => onOpenAdd('compose')}><BrainCircuit size={15} />AI 组题</button>
+          <button type="button" onClick={() => onOpenAdd('create')}><Sparkles size={15} />AI 出题</button>
+          <button type="button" onClick={() => onOpenAdd('upload')}><FileUp size={15} />上传录题</button>
+        </div>
+      </div>
     </div>
   )
 }

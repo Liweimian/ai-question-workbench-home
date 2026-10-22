@@ -143,7 +143,7 @@ export function useWorkbench() {
   const [inspectorView, setInspectorView] = useState<InspectorView>('info')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [addMode, setAddModeState] = useState<AddQuestionMode>('menu')
-  const [resourceType, setResourceType] = useState<ResourceType>('paper')
+  const [resourceType, setResourceType] = useState<ResourceType>('workbook')
   const [sourceRecords, setSourceRecords] = useState<SourceRecord[]>([])
   const [sourceListStatus, setSourceListStatus] = useState<AsyncStatus>('idle')
   const [sourceAddStatus, setSourceAddStatus] = useState<AsyncStatus>('idle')
@@ -263,11 +263,11 @@ export function useWorkbench() {
     MetisMessage.success(message)
   }, [])
 
-  const addSource = useCallback(async (type: ResourceType, sourceId?: string) => {
+  const addSource = useCallback(async (type: ResourceType, sourceId?: string, count?: number) => {
     if (!beginContentOperation('source-add')) return
     setSourceAddStatus('loading')
     try {
-      const questions = await workbenchRepository.addSource(type, sourceId)
+      const questions = await workbenchRepository.addSource(type, sourceId, count)
       appendQuestions(questions, `已从题库添加 ${questions.length} 道题`)
       setSourceAddStatus('success')
     } catch {

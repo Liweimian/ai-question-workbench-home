@@ -66,7 +66,7 @@ export function WorkbenchHomePage() {
 
             <div className="editor-scroll" ref={editorScrollRef}>
               {workbench.document.questions.length === 0 ? (
-                <EmptyCanvas onAdd={() => workbench.openAdd('menu')} />
+                <EmptyCanvas onOpenAdd={workbench.openAdd} />
               ) : (
                 <DocumentCanvas
                   document={workbench.document}
@@ -112,7 +112,7 @@ export function WorkbenchHomePage() {
               createPreview={workbench.createPreview}
               onModeChange={workbench.setAddMode}
               onResourceTypeChange={(type) => void workbench.loadSources(type)}
-              onAddSource={(type, sourceId) => void workbench.addSource(type, sourceId)}
+              onAddSource={(type, sourceId, count) => void workbench.addSource(type, sourceId, count)}
               onComposePromptChange={workbench.setComposePrompt}
               onCompose={() => void workbench.composeFromBank()}
               onCreatePromptChange={workbench.setCreatePrompt}
