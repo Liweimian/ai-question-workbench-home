@@ -364,8 +364,11 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
   const pickerDetailNav = variant === 'dialog' && detailRecord && pickerDetailNavHost ? createPortal(
     <div className="picker-detail-header-nav">
-      <button type="button" onClick={() => setDetailRecord(null)}><ArrowLeft size={15} />返回资源列表</button>
-      <span>{resourceTypeLabels[detailRecord.sourceType]} / <strong>{detailRecord.title}</strong></span>
+      <button type="button" onClick={() => setDetailRecord(null)}>{props.libraryKind === 'fly' ? '飞象题库' : '校本题库'}</button>
+      <i>/</i>
+      <span>{resourceTypeLabels[detailRecord.sourceType]}</span>
+      <i>/</i>
+      <strong>{detailRecord.title}</strong>
     </div>,
     pickerDetailNavHost,
   ) : null

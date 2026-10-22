@@ -122,7 +122,8 @@ export function SourceDrawer(props: SourceDrawerProps) {
               />
             ) : null}
             <div>
-              {libraryDetailOpen ? <div data-picker-detail-nav /> : <h2>{modeTitles[props.mode]}</h2>}
+              <div data-picker-detail-nav className={libraryDetailOpen ? '' : 'is-hidden'} />
+              {!libraryDetailOpen ? <h2>{modeTitles[props.mode]}</h2> : null}
               {props.mode === 'menu' ? <p>一个入口，选择这次要怎样添加题目</p> : null}
             </div>
           </div>

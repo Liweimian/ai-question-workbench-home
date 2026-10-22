@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 74,
+      "iterationCount": 75,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -100,7 +100,8 @@
         "browser single-function-row insert menu flow",
         "compact insert menu without descriptions or dividers",
         "embedded detail breadcrumb merged into picker header",
-        "workbook detail breadcrumb portal timing regression"
+        "workbook detail breadcrumb portal timing regression",
+        "unified library breadcrumb and lightweight dialog tabs"
       ]
     },
     "2": {

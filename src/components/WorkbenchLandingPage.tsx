@@ -64,7 +64,7 @@ export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
         <main className="landing-content">
           <section className="landing-recent" data-sec="2">
             <div className="landing-section-heading">
-              <div><h1>最近组题</h1><p>继续编辑最近使用的题单或试卷</p></div>
+              <div><h1>最近组题</h1></div>
             </div>
 
             <div className="recent-document-grid">
@@ -109,7 +109,7 @@ export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
 
           <section className="landing-library" data-sec="3">
             <div className="landing-section-heading">
-              <div><h2>精选</h2><p>精选适合当前任教范围的题库资源</p></div>
+              <div><h2>精选</h2></div>
             </div>
             <LibraryPicker
               variant="home"
