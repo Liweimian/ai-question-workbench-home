@@ -1853,46 +1853,27 @@
   font-size: 11px;
 }
 
-.editor-question-number {
+.editor-question-mainline {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--fx-text-tertiary);
-  font-size: 11px;
+  align-items: flex-start;
+  gap: 7px;
 }
 
-.editor-question-number > span {
+.editor-question-number {
+  flex: 0 0 auto;
+  padding-top: 1px;
   color: var(--fx-text-primary);
-  background: transparent;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.editor-question-number em {
-  padding: 3px 6px;
-  border-radius: var(--system-border-radius-s);
-  background: var(--fx-surface-muted);
-  font-style: normal;
-}
-
-.editor-question-number strong {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
-  padding: 3px 7px;
-  border-radius: var(--aiq_radius_pill);
-  color: var(--aiq_tag_text);
-  background: var(--fx-primary-selected);
-  font-size: 10px;
-  font-weight: 500;
+  font-family: "Songti SC", "STSong", serif;
+  font-size: var(--question-font-size, 16px);
+  line-height: var(--question-line-height, 1.7);
 }
 
 .editor-question-stem {
   font-size: var(--question-font-size, 16px);
   line-height: var(--question-line-height, 1.7);
   letter-spacing: var(--question-letter-spacing, 0);
-  margin-top: 12px;
+  flex: 1;
+  min-width: 0;
   color: var(--fx-text-primary);
   font-family: "Songti SC", "STSong", serif;
 }

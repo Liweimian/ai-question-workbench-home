@@ -76,10 +76,10 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
                   <MetisButton type="borderless" icon={<Trash2 size={15} />} onClick={props.onDeleteQuestion} aria-label="删除题目" />
                 </div>
               ) : null}
-              <div className="editor-question-number">
-                <span>{index + 1}</span>
+              <div className="editor-question-mainline">
+                <span className="editor-question-number">{index + 1}.</span>
+                <div className="editor-question-stem">{question.stem}</div>
               </div>
-              <div className="editor-question-stem">{question.stem}</div>
               {question.options ? (
                 <div className="editor-question-options">
                   {question.options.map((option) => <span key={option}>{option}</span>)}
