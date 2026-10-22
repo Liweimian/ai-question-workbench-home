@@ -149,7 +149,6 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
             ))}
           </div>
         </main>
-        <aside className="legacy-composer-rail" aria-label="组题编辑区"><span>{props.selectedQuestionIds.size}</span><strong>组题编辑区</strong></aside>
       </div>
       {props.addStatus === 'loading' ? <div className="legacy-detail-loading">正在加入当前组题…</div> : null}
     </section>
