@@ -27,6 +27,7 @@ type EditorAction =
   | { type: 'load-document'; document: WorkbenchDocument }
   | { type: 'apply-rewrite'; selectedQuestionId: string; preview: Question; mode: 'replace' | 'append' }
   | { type: 'move'; selectedQuestionId: string; direction: -1 | 1 }
+  | { type: 'reorder'; questionIds: string[] }
   | { type: 'delete'; selectedQuestionId: string }
   | { type: 'undo' }
 
@@ -105,6 +106,16 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     if (index < 0 || target < 0 || target >= state.document.questions.length) return state
     const nextQuestions = [...state.document.questions]
     ;[nextQuestions[index], nextQuestions[target]] = [nextQuestions[target], nextQuestions[index]]
+    return {
+      document: { ...state.document, questions: nextQuestions, updatedAt: '刚刚' },
+      undoDocument: cloneDocument(state.document),
+    }
+  }
+
+  if (action.type === 'reorder') {
+    const questionMap = new Map(state.document.questions.map((question) => [question.id, question]))
+    const nextQuestions = action.questionIds.map((id) => questionMap.get(id)).filter((question): question is Question => Boolean(question))
+    if (nextQuestions.length !== state.document.questions.length) return state
     return {
       document: { ...state.document, questions: nextQuestions, updatedAt: '刚刚' },
       undoDocument: cloneDocument(state.document),
@@ -474,6 +485,11 @@ export function useWorkbench() {
     dispatch({ type: 'move', selectedQuestionId, direction })
   }, [selectedQuestionId])
 
+  const reorderQuestions = useCallback((questionIds: string[]) => {
+    dispatch({ type: 'reorder', questionIds })
+    MetisMessage.success('题目顺序已更新，可撤销')
+  }, [])
+
   const deleteQuestion = useCallback(() => {
     if (!selectedQuestionId) return
     const index = document.questions.findIndex((question) => question.id === selectedQuestionId)
@@ -549,6 +565,7 @@ export function useWorkbench() {
     rewrite,
     applyRewrite,
     moveQuestion,
+    reorderQuestions,
     deleteQuestion,
     editQuestion,
     undo,

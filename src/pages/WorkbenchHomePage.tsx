@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { QuestionInspector } from '../components/AiInspector'
+import { QuestionSortPanel } from '../components/QuestionSortPanel'
 import { DocumentCanvas } from '../components/DocumentCanvas'
 import { EmptyCanvas } from '../components/EmptyCanvas'
 import { MyResourcesPanel } from '../components/MyResourcesPanel'
@@ -12,6 +13,7 @@ export function WorkbenchHomePage() {
   const workbench = useWorkbench()
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const [quickAiOpen, setQuickAiOpen] = useState(false)
+  const [sortCollapsed, setSortCollapsed] = useState(false)
   const [workspaceView, setWorkspaceView] = useState<'home' | 'editor' | 'resources'>('home')
   const hasQuestions = workbench.document.questions.length > 0
 
@@ -87,7 +89,17 @@ export function WorkbenchHomePage() {
                 showActions={workspaceView === 'editor'}
               />
 
-              <section className={`workspace-shell${workspaceView === 'editor' && hasQuestions ? ' has-inspector' : ' is-empty'}`} aria-label="AI 题库组题工作区">
+              <section className={`workspace-shell${workspaceView === 'editor' && hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`} aria-label="AI 题库组题工作区">
+                {workspaceView === 'editor' && hasQuestions ? (
+                  <QuestionSortPanel
+                    questions={workbench.document.questions}
+                    selectedQuestionId={workbench.selectedQuestionId}
+                    collapsed={sortCollapsed}
+                    onCollapsedChange={setSortCollapsed}
+                    onSelectQuestion={workbench.selectQuestion}
+                    onReorderQuestions={workbench.reorderQuestions}
+                  />
+                ) : null}
                 <div className={`editor-scroll${workspaceView === 'resources' ? ' is-resources' : hasQuestions ? '' : ' is-empty'}`}>
                   {workspaceView === 'resources' ? <MyResourcesPanel /> : !hasQuestions ? (
                     <EmptyCanvas
