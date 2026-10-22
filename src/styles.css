@@ -2185,6 +2185,18 @@
   width: 30px;
 }
 
+.empty-first-block:has(.empty-block-input:not(:empty)) .block-add-control-row {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.empty-first-block:has(.empty-block-input:not(:empty)):hover .block-add-control-row,
+.empty-first-block:has(.block-add-trigger[aria-expanded="true"]) .block-add-control-row {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .empty-first-block .block-command-menu {
   top: calc(100% + 8px);
   left: 0;
