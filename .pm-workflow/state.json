@@ -44,6 +44,11 @@
       "stage": 0,
       "hash": "7df37b1",
       "message": "Stage 0: 需求澄清完成"
+    },
+    {
+      "stage": 1,
+      "hash": "c0a4ba3",
+      "message": "Stage 1: Demo 创作完成 - 迭代 1"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
