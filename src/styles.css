@@ -2144,7 +2144,8 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 6px 8px;
+  min-height: 48px;
+  padding: 7px 8px;
   border: 0;
   border-radius: var(--fx-radius-control);
   color: var(--fx-text-secondary);

@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 70,
+      "iterationCount": 71,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -96,7 +96,8 @@
         "browser home curated mixed-resource flow without redundant tabs",
         "browser enlarged insert menu typography",
         "browser near-fullscreen compact library picker",
-        "browser single-back embedded resource detail flow"
+        "browser single-back embedded resource detail flow",
+        "browser single-function-row insert menu flow"
       ]
     },
     "2": {

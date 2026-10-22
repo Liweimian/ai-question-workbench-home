@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
-import { BookOpenCheck, FileImage, FileText, GripVertical, Heading2, Heading3, Heading4, Image, Minus, Plus, ScanSearch, School, Sparkles, Table2 } from 'lucide-react'
+import { BookOpen, BookOpenCheck, FileImage, FileSearch, FileText, GraduationCap, GripVertical, Heading2, Heading3, Heading4, Image, ListChecks, Minus, Network, Plus, ScanSearch, School, Sparkles, Table2, WandSparkles } from 'lucide-react'
 import type { AddQuestionMode, OpenAddOptions } from '../prototype/types'
 
 export type UtilityAction = 'image-search' | 'web-search' | 'heading-2' | 'heading-3' | 'heading-4' | 'table' | 'image' | 'note' | 'divider' | 'page-break'
@@ -27,13 +27,31 @@ const optionGroups = [
 ] as const
 
 const libraryGroups = [
-  { id: 'fly', title: '飞象题库', mode: 'resource' as const, icon: BookOpenCheck, items: [
-    ['章节知识点', 'chapter'], ['练习册', 'workbook'], ['试卷', 'paper'], ['专题', 'special'], ['同步练习', 'sync'],
+  { id: 'fly', title: '飞象题库选题', mode: 'resource' as const, items: [
+    { title: '章节知识点选题', description: '按教材章节或知识点逐题选择', view: 'chapter', icon: BookOpenCheck },
+    { title: '练习册', description: '从配套练习册中选择题目', view: 'workbook', icon: BookOpen },
+    { title: '试卷', description: '从月考、期中等试卷中选题', view: 'paper', icon: FileText },
+    { title: '专题', description: '按知识模块或能力专题选题', view: 'special', icon: Sparkles },
+    { title: '同步练习', description: '按教材章节选择同步练习', view: 'sync', icon: ListChecks },
   ] as const },
-  { id: 'school', title: '校本题库', mode: 'school' as const, icon: School, items: [
-    ['章节知识点', 'chapter'], ['练习册', 'workbook'], ['试卷', 'paper'],
+  { id: 'school', title: '校本题库选题', mode: 'school' as const, items: [
+    { title: '章节知识点选题', description: '从校本章节或知识点题库选题', view: 'chapter', icon: School },
+    { title: '练习册', description: '从校本练习册中选择题目', view: 'workbook', icon: BookOpen },
+    { title: '试卷', description: '从学校沉淀的试卷中选题', view: 'paper', icon: FileText },
   ] as const },
 ]
+
+const searchItems = [
+  { id: 'image-search', title: '图片搜题', description: '上传或粘贴图片查找原题', icon: ScanSearch },
+  { id: 'upload', title: 'AI 录题', description: '识别 PDF、Word 或图片中的题目', icon: FileSearch },
+  { id: 'web-search', title: '联网搜题', description: '从公开网络检索可用题目', icon: Network },
+] as const
+
+const aiItems = [
+  { id: 'compose', title: 'AI 组题', description: '从题库智能挑题并组合', icon: Sparkles },
+  { id: 'create', title: 'AI 出题', description: '按要求生成原创题目', icon: WandSparkles },
+  { id: 'personalized', title: '个性化练习', description: '结合材料与学情生成练习', icon: GraduationCap },
+] as const
 
 export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInsertUtility, onOpenAssistant }: BlockAddMenuProps) {
   const [open, setOpen] = useState(false)
@@ -88,42 +106,27 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
         <div className="block-command-menu" role="menu" aria-label="插入内容">
           <div className="block-command-heading"><strong>插入内容</strong><span>按任务分类</span></div>
           <div className="block-command-scroll">
-            <section className="block-command-group block-command-group--expanded">
-              <h4>题库选题</h4>
-              {libraryGroups.map(({ id, title, mode, icon: Icon, items }) => <div className="block-command-expanded" key={id}>
-                <button type="button" className="block-command-parent" onClick={() => { setOpen(false); onOpenAdd(mode) }}>
-                  <span className="block-command-icon"><Icon size={16} /></span><strong>{title}</strong>
-                </button>
-                <div className="block-command-children">
-                  {items.map(([label, libraryView]) => <button type="button" key={libraryView} onClick={() => { setOpen(false); onOpenAdd(mode, { libraryView }) }}>{label}</button>)}
-                </div>
-              </div>)}
-            </section>
-            <section className="block-command-group block-command-group--expanded">
+            {libraryGroups.map(({ id, title, mode, items }) => <section className="block-command-group" key={id}>
+              <h4>{title}</h4>
+              {items.map(({ title: itemTitle, description, view, icon: Icon }) => <button type="button" role="menuitem" key={view} onClick={() => { setOpen(false); onOpenAdd(mode, { libraryView: view }) }}>
+                <span className="block-command-icon"><Icon size={16} /></span><span><strong>{itemTitle}</strong><small>{description}</small></span>
+              </button>)}
+            </section>)}
+            <section className="block-command-group">
               <h4>搜题与导入</h4>
-              <div className="block-command-expanded">
-                <div className="block-command-parent">
-                  <span className="block-command-icon"><ScanSearch size={16} /></span><strong>搜题与导入</strong>
-                </div>
-                <div className="block-command-children">
-                  <button type="button" onClick={() => chooseUtility('image-search')}>图片搜题</button>
-                  <button type="button" onClick={() => { setOpen(false); onOpenAdd('upload') }}>AI 录题</button>
-                  <button type="button" onClick={() => chooseUtility('web-search')}>联网搜题</button>
-                </div>
-              </div>
+              {searchItems.map(({ id, title, description, icon: Icon }) => <button type="button" role="menuitem" key={id} onClick={() => {
+                if (id === 'upload') { setOpen(false); onOpenAdd('upload') }
+                else chooseUtility(id)
+              }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong><small>{description}</small></span></button>)}
             </section>
-            <section className="block-command-group block-command-group--expanded">
+            <section className="block-command-group">
               <h4>飞象 AI</h4>
-              <div className="block-command-expanded is-ai">
-                <button type="button" className="block-command-parent" onClick={() => { setOpen(false); onOpenAssistant ? onOpenAssistant() : onOpenAdd('compose') }}>
-                  <span className="block-command-icon"><Sparkles size={16} /></span><strong>飞象 AI</strong>
-                </button>
-                <div className="block-command-children">
-                  <button type="button" onClick={() => { setOpen(false); onOpenAssistant ? onOpenAssistant('compose') : onOpenAdd('compose') }}>AI 组题</button>
-                  <button type="button" onClick={() => { setOpen(false); onOpenAssistant ? onOpenAssistant('create') : onOpenAdd('create') }}>AI 出题</button>
-                  <button type="button" onClick={() => { setOpen(false); onOpenAdd('personalized') }}>个性化练习</button>
-                </div>
-              </div>
+              {aiItems.map(({ id, title, description, icon: Icon }) => <button type="button" role="menuitem" className="is-ai" key={id} onClick={() => {
+                setOpen(false)
+                if (id === 'personalized') onOpenAdd('personalized')
+                else if (onOpenAssistant) onOpenAssistant(id)
+                else onOpenAdd(id)
+              }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong><small>{description}</small></span></button>)}
             </section>
             {renderFlatGroup(optionGroups[0])}
           </div>
