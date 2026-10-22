@@ -1101,7 +1101,7 @@
 .space-nav-title strong {
   overflow: hidden;
   color: var(--fx-text-primary);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1110,7 +1110,7 @@
 .space-nav-title small {
   overflow: hidden;
   color: var(--fx-text-tertiary);
-  font-size: 10px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1196,7 +1196,7 @@
 
 .space-nav-actions > button span {
   flex: 1;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -1231,7 +1231,7 @@
   height: 30px !important;
   padding-left: 30px !important;
   background: var(--common_bg2_color) !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .space-nav-documents {
@@ -1247,11 +1247,11 @@
   justify-content: space-between;
   padding: 7px 7px 6px;
   color: var(--fx-text-tertiary);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .space-nav-section-title strong {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -1292,7 +1292,7 @@
 .space-document-item strong {
   overflow: hidden;
   color: var(--fx-text-secondary);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1305,7 +1305,7 @@
 .space-document-item small,
 .space-nav-status {
   color: var(--fx-text-tertiary);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .space-nav-status {
