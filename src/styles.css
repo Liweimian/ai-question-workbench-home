@@ -1804,25 +1804,35 @@
 
 .editor-question-toolbar {
   display: flex;
+  width: 100%;
+  box-sizing: border-box;
   align-items: center;
   gap: 1px;
-  align-self: flex-end;
+  justify-content: flex-end;
   padding: 2px 4px;
   border: 1px solid var(--fx-line-strong);
-  border-radius: var(--aiq_radius_pill);
+  border-radius: var(--system-border-radius-s);
   background: var(--common_bg2_color);
   box-shadow: var(--fx-shadow-card);
 }
 
 .editor-question-requirement {
   display: flex;
+  width: 100%;
+  box-sizing: border-box;
   align-items: center;
   height: 34px;
   overflow: hidden;
-  border: 1px solid var(--fx-primary);
+  border: 1px solid var(--fx-line-strong);
   border-radius: var(--system-border-radius-s);
   background: var(--common_bg2_color);
   box-shadow: var(--fx-shadow-card);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.editor-question-requirement:focus-within {
+  border-color: var(--fx-primary);
+  box-shadow: 0 0 0 2px var(--fx-primary-selected);
 }
 
 .editor-question-requirement input {
