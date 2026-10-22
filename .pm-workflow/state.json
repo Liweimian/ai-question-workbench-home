@@ -12,16 +12,16 @@
       "name": "Demo 创作",
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
-      "completedAt": "2026-10-22T13:25:00+08:00",
-      "iterationCount": 5,
+      "completedAt": "2026-10-22T13:32:00+08:00",
+      "iterationCount": 6,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
-        "src/components/QuestionNavigator.tsx",
         "src/components/AiInspector.tsx",
         "src/components/SourceDrawer.tsx",
         "src/components/LibraryPicker.tsx",
         "src/components/BlockAddMenu.tsx",
+        "src/components/WorkspaceSidebar.tsx",
         "src/hooks/useWorkbench.ts",
         "dist/"
       ],
@@ -32,7 +32,9 @@
         "browser history flow",
         "browser create-document and undo flow",
         "browser empty-document and large library picker flow",
-        "browser inline plus and AI-first command flow",
+        "browser inline plus and unified command flow",
+        "browser empty-space AI assistant and conditional inspector flow",
+        "browser inline AI one-submit and first-add auto-close flow",
         "browser AI compose/create/rewrite flows"
       ]
     },
@@ -79,8 +81,13 @@
       "stage": 1,
       "hash": "f71864b",
       "message": "Stage 1: Demo 创作完成 - 迭代 5"
+    },
+    {
+      "stage": 1,
+      "hash": "pending",
+      "message": "Stage 1: Demo 创作完成 - 迭代 6"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
-  "updatedAt": "2026-10-22T13:25:00+08:00"
+  "updatedAt": "2026-10-22T13:32:00+08:00"
 }

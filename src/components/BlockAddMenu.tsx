@@ -14,9 +14,9 @@ const blockOptions: Array<{
   icon: typeof Sparkles
   ai?: boolean
 }> = [
-  { mode: 'create', title: 'AI 出题', description: '描述要求，生成全新题目', icon: Sparkles, ai: true },
-  { mode: 'compose', title: 'AI 组题', description: '从题库智能挑选并组合', icon: BrainCircuit, ai: true },
   { mode: 'resource', title: '从题库选题', description: '浏览练习册、试卷、同步题单和专题', icon: BookOpenCheck },
+  { mode: 'compose', title: 'AI 组题', description: '从题库智能挑选并组合', icon: BrainCircuit, ai: true },
+  { mode: 'create', title: 'AI 出题', description: '描述要求，生成全新题目', icon: Sparkles, ai: true },
   { mode: 'upload', title: '上传录题', description: '识别 PDF、Word 或图片', icon: FileUp },
   { mode: 'manual', title: '手工录入', description: '添加一道空白题', icon: FilePenLine },
 ]
@@ -31,9 +31,11 @@ export function BlockAddMenu({ empty = false, onOpenAdd }: BlockAddMenuProps) {
     }
     const handleKeyboard = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null
-      const isTyping = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable
+      const isInteractive = Boolean(target?.closest('input, textarea, button, a, select, [contenteditable="true"]'))
+      const hasBlockingLayer = Boolean(document.querySelector('[role="dialog"][aria-modal="true"], .inline-ai-dialog'))
+      const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
       if (event.key === 'Escape') setOpen(false)
-      if (event.key === '/' && !isTyping) {
+      if (event.key === '/' && !event.isComposing && !hasModifier && !event.repeat && !isInteractive && !hasBlockingLayer) {
         event.preventDefault()
         setOpen(true)
       }
@@ -64,7 +66,7 @@ export function BlockAddMenu({ empty = false, onOpenAdd }: BlockAddMenuProps) {
 
       {open ? (
         <div className="block-command-menu" role="menu" aria-label="添加题目方式">
-          <div className="block-command-heading"><strong>添加题目</strong><span>AI 优先</span></div>
+          <div className="block-command-heading"><strong>添加题目</strong><span>5 种方式</span></div>
           {blockOptions.map(({ mode, title, description, icon: Icon, ai }) => (
             <button
               type="button"

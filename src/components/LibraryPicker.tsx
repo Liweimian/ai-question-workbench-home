@@ -82,6 +82,10 @@ export function LibraryPicker(props: LibraryPickerProps) {
     setSelectedQuestionIds(new Set())
   }, [props.resourceType])
 
+  useEffect(() => {
+    if (props.addStatus === 'success') setSelectedQuestionIds(new Set())
+  }, [props.addStatus])
+
   const visibleRecords = useMemo(() => {
     const normalized = keyword.trim().toLowerCase()
     const filtered = props.records.filter((record) => (

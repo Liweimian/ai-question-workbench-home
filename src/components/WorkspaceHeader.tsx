@@ -1,20 +1,16 @@
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
-import { ChevronDown, FileDown, FilePlus2, Save, Send, Undo2 } from 'lucide-react'
+import { ChevronDown, FileDown, Save, Send, Undo2 } from 'lucide-react'
 
 interface WorkspaceHeaderProps {
   questionCount: number
   canUndo: boolean
-  contentBusy: boolean
   onUndo: () => void
-  onCreateNew: () => void
 }
 
 export function WorkspaceHeader({
   questionCount,
   canUndo,
-  contentBusy,
   onUndo,
-  onCreateNew,
 }: WorkspaceHeaderProps) {
   const hasQuestions = questionCount > 0
   const output = (action: string) => {
@@ -52,15 +48,6 @@ export function WorkspaceHeader({
           data-track="/click/aiQuestionHome/undo | 撤销上一步 | 无"
         >
           撤销
-        </MetisButton>
-        <MetisButton
-          type="borderless"
-          icon={<FilePlus2 size={17} />}
-          disabled={contentBusy}
-          onClick={onCreateNew}
-          data-track="/click/aiQuestionHome/createDocument | 新建空白题单 | 无"
-        >
-          新建题单
         </MetisButton>
         <span className="header-action-divider" />
         <MetisButton

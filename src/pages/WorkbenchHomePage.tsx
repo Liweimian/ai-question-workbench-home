@@ -1,23 +1,19 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AppSider } from '../components/AppSider'
 import { QuestionInspector } from '../components/AiInspector'
 import { DocumentCanvas } from '../components/DocumentCanvas'
 import { EmptyCanvas } from '../components/EmptyCanvas'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
+import { WorkspaceSidebar } from '../components/WorkspaceSidebar'
 import { useWorkbench } from '../hooks/useWorkbench'
 
 export function WorkbenchHomePage() {
   const workbench = useWorkbench()
-  const editorScrollRef = useRef<HTMLDivElement>(null)
   const previousQuestionCount = useRef(workbench.document.questions.length)
-
-  const revealQuestion = useCallback((questionId: string) => {
-    workbench.selectQuestion(questionId)
-    window.requestAnimationFrame(() => {
-      document.getElementById(`question-${questionId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    })
-  }, [workbench])
+  const [spaceCollapsed, setSpaceCollapsed] = useState(false)
+  const [quickAiOpen, setQuickAiOpen] = useState(false)
+  const hasQuestions = workbench.document.questions.length > 0
 
   useEffect(() => {
     if (workbench.document.questions.length > previousQuestionCount.current && workbench.selectedQuestionId) {
@@ -27,6 +23,10 @@ export function WorkbenchHomePage() {
     }
     previousQuestionCount.current = workbench.document.questions.length
   }, [workbench.document.questions.length, workbench.selectedQuestionId])
+
+  useEffect(() => {
+    if (hasQuestions) setQuickAiOpen(false)
+  }, [hasQuestions])
 
   const questionNumber = workbench.selectedQuestion
     ? workbench.document.questions.findIndex((question) => question.id === workbench.selectedQuestion?.id) + 1
@@ -40,15 +40,58 @@ export function WorkbenchHomePage() {
           <WorkspaceHeader
             questionCount={workbench.document.questions.length}
             canUndo={workbench.canUndo}
-            contentBusy={workbench.isContentBusy}
             onUndo={workbench.undo}
-            onCreateNew={workbench.createNewDocument}
           />
 
-          <section className="workspace-shell" aria-label="AI 题库组题工作台">
-            <div className="editor-scroll" ref={editorScrollRef}>
-              {workbench.document.questions.length === 0 ? (
-                <EmptyCanvas onOpenAdd={workbench.openAdd} />
+          <section className={`workspace-shell${spaceCollapsed ? ' is-space-collapsed' : ''}${hasQuestions ? ' has-inspector' : ' is-empty'}`} aria-label="AI 题库组题工作台">
+            <WorkspaceSidebar
+              collapsed={spaceCollapsed}
+              document={workbench.document}
+              histories={workbench.historyDocuments}
+              historyStatus={workbench.historyStatus}
+              query={workbench.historyQuery}
+              contentBusy={workbench.isContentBusy}
+              onCollapsedChange={setSpaceCollapsed}
+              onQueryChange={workbench.setHistoryQuery}
+              onCreateNew={() => {
+                setQuickAiOpen(false)
+                workbench.createNewDocument()
+              }}
+              onOpenAi={() => {
+                if (hasQuestions) workbench.openAdd('compose')
+                else setQuickAiOpen(true)
+              }}
+              onOpenDocument={(documentId) => {
+                setQuickAiOpen(false)
+                void workbench.openHistoryDocument(documentId)
+              }}
+              onReload={() => void workbench.reloadHistory()}
+            />
+
+            <div className={`editor-scroll${hasQuestions ? '' : ' is-empty'}`}>
+              {!hasQuestions ? (
+                <EmptyCanvas
+                  document={workbench.document}
+                  aiOpen={quickAiOpen}
+                  aiStatus={workbench.composeStatus}
+                  aiError={workbench.composeError}
+                  onTitleChange={workbench.setTitle}
+                  onAiOpen={() => setQuickAiOpen(true)}
+                  onAiClose={() => setQuickAiOpen(false)}
+                  onStartAi={(mode, prompt) => {
+                    if (mode === 'compose') {
+                      void workbench.composeFromBank(prompt)
+                      return
+                    }
+                    setQuickAiOpen(false)
+                    workbench.setCreatePrompt(prompt)
+                    workbench.openAdd('create')
+                  }}
+                  onOpenAdd={(mode) => {
+                    setQuickAiOpen(false)
+                    workbench.openAdd(mode)
+                  }}
+                />
               ) : (
                 <DocumentCanvas
                   document={workbench.document}
@@ -64,17 +107,19 @@ export function WorkbenchHomePage() {
               )}
             </div>
 
-            <QuestionInspector
-              document={workbench.document}
-              question={workbench.selectedQuestion}
-              questionNumber={questionNumber}
-              view={workbench.inspectorView}
-              status={workbench.rewriteStatus}
-              preview={workbench.rewritePreview}
-              onViewChange={workbench.setInspectorView}
-              onRewrite={(instruction) => void workbench.rewrite(instruction)}
-              onApply={workbench.applyRewrite}
-            />
+            {hasQuestions ? (
+              <QuestionInspector
+                document={workbench.document}
+                question={workbench.selectedQuestion}
+                questionNumber={questionNumber}
+                view={workbench.inspectorView}
+                status={workbench.rewriteStatus}
+                preview={workbench.rewritePreview}
+                onViewChange={workbench.setInspectorView}
+                onRewrite={(instruction) => void workbench.rewrite(instruction)}
+                onApply={workbench.applyRewrite}
+              />
+            ) : null}
           </section>
 
           {workbench.isAddOpen ? (

@@ -6,7 +6,6 @@ import type {
   AsyncStatus,
   HistoryDocumentSummary,
   InspectorView,
-  NavigatorView,
   Question,
   ResourceType,
   RewriteRequest,
@@ -139,7 +138,6 @@ export function useWorkbench() {
     undoDocument: null,
   })
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(recentDocument.questions[0]?.id ?? null)
-  const [navigatorView, setNavigatorView] = useState<NavigatorView>('questions')
   const [inspectorView, setInspectorView] = useState<InspectorView>('info')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [addMode, setAddModeState] = useState<AddQuestionMode>('menu')
@@ -256,12 +254,13 @@ export function useWorkbench() {
 
   const appendQuestions = useCallback((questions: Question[], message: string) => {
     if (questions.length === 0) return
+    const wasEmpty = document.questions.length === 0
     dispatch({ type: 'append', questions })
     setSelectedQuestionId(questions[0].id)
-    setNavigatorView('questions')
     setInspectorView('info')
+    if (wasEmpty) closeAdd()
     MetisMessage.success(message)
-  }, [])
+  }, [closeAdd, document.questions.length])
 
   const addSource = useCallback(async (type: ResourceType, sourceId?: string, count?: number) => {
     if (!beginContentOperation('source-add')) return
@@ -293,8 +292,8 @@ export function useWorkbench() {
     }
   }, [appendQuestions, beginContentOperation, finishContentOperation])
 
-  const composeFromBank = useCallback(async () => {
-    const value = composePrompt.trim()
+  const composeFromBank = useCallback(async (promptOverride?: string) => {
+    const value = (promptOverride ?? composePrompt).trim()
     if (!value) {
       setComposeError('请描述知识点、题量或难度要求')
       return
@@ -366,7 +365,6 @@ export function useWorkbench() {
       return
     }
     if (document.questions.length === 0 && document.title.trim() === '未命名题单') {
-      setNavigatorView('questions')
       MetisMessage.info('当前已经是一份空白题单')
       return
     }
@@ -382,7 +380,6 @@ export function useWorkbench() {
     rewriteRequestIdRef.current += 1
     dispatch({ type: 'load-document', document: nextDocument })
     setSelectedQuestionId(null)
-    setNavigatorView('questions')
     setInspectorView('info')
     setIsAddOpen(false)
     setAddModeState('menu')
@@ -394,7 +391,6 @@ export function useWorkbench() {
 
   const openHistoryDocument = useCallback(async (documentId: string) => {
     if (document.id === documentId) {
-      setNavigatorView('questions')
       MetisMessage.info('这份题单已经打开')
       return
     }
@@ -407,7 +403,6 @@ export function useWorkbench() {
         : await workbenchRepository.loadDocument(documentId)
       dispatch({ type: 'load-document', document: nextDocument })
       setSelectedQuestionId(nextDocument.questions[0]?.id ?? null)
-      setNavigatorView('questions')
       setInspectorView('info')
       MetisMessage.success(`已打开“${nextDocument.title}”，上一份草稿可撤销`)
     } catch {
@@ -493,8 +488,6 @@ export function useWorkbench() {
     setTitle: (title: string) => dispatch({ type: 'set-title', title }),
     selectedQuestion,
     selectedQuestionId,
-    navigatorView,
-    setNavigatorView,
     inspectorView,
     setInspectorView,
     isAddOpen,
