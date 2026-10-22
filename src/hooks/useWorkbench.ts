@@ -265,13 +265,13 @@ export function useWorkbench() {
     setCreatePreview([])
   }, [])
 
-  const appendQuestions = useCallback((questions: Question[], message: string) => {
+  const appendQuestions = useCallback((questions: Question[], message: string, closeWhenEmpty = true) => {
     if (questions.length === 0) return
     const wasEmpty = document.questions.length === 0
     dispatch({ type: 'append', questions })
     setSelectedQuestionId(questions[0].id)
     setInspectorView('info')
-    if (wasEmpty) closeAdd()
+    if (wasEmpty && closeWhenEmpty) closeAdd()
     MetisMessage.success(message)
   }, [closeAdd, document.questions.length])
 
@@ -280,7 +280,7 @@ export function useWorkbench() {
     setSourceAddStatus('loading')
     try {
       const questions = await workbenchRepository.addSource(type, sourceId, count)
-      appendQuestions(questions, `已从题库添加 ${questions.length} 道题`)
+      appendQuestions(questions, `已从题库添加 ${questions.length} 道题，可继续选题`, false)
       setSourceAddStatus('success')
       return true
     } catch {

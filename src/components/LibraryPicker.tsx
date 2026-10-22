@@ -9,6 +9,7 @@ import {
   Eye,
   FileText,
   LayoutGrid,
+  ListTree,
   ListChecks,
   Search,
   SlidersHorizontal,
@@ -89,6 +90,12 @@ const workbookDirectory = [
   },
   { title: '第五章 二元一次方程组', lessons: [] },
   { title: '第六章 数据的分析', lessons: [] },
+]
+
+const chapterKnowledgeTree = [
+  { title: '第四章 一次函数', items: ['4.1 函数', '4.2 一次函数与正比例函数', '4.3 一次函数的图象', '4.4 一次函数的应用'] },
+  { title: '第五章 二元一次方程组', items: ['5.1 认识二元一次方程组', '5.2 求解二元一次方程组'] },
+  { title: '知识点选题', items: ['一次函数概念', '图象与性质', '待定系数法', '实际应用'] },
 ]
 
 function getResourceCardTags(record: SourceRecord) {
@@ -202,7 +209,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                         <span>知识点：{question.knowledgePoint}</span>
                         <div>
                           <button type="button">纠错</button><button type="button"><Star size={14} />收藏</button><button type="button">解析</button><button type="button">相似题</button>
-                          {props.embedded ? <button type="button" className="is-add" disabled={props.contentBusy} onClick={() => props.onToggleQuestion(question.id)}>{selected ? '已添加' : '＋ 添加'}</button> : null}
+                          {props.embedded ? <button type="button" className="is-add" disabled={props.contentBusy || selected} onClick={() => props.onToggleQuestion(question.id)}>{selected ? '已添加' : '＋ 添加'}</button> : null}
                         </div>
                       </footer>
                     </article>
@@ -221,11 +228,13 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
 export function LibraryPicker(props: LibraryPickerProps) {
   const variant = props.variant ?? 'dialog'
   const [dialogShowAll, setDialogShowAll] = useState(true)
-  const isAll = variant === 'home' ? props.showAll === true : dialogShowAll
+  const [dialogChapter, setDialogChapter] = useState(false)
+  const isAll = variant === 'home' ? props.showAll === true : dialogShowAll && !dialogChapter
   const detailResourceId = variant === 'home' ? new URLSearchParams(window.location.search).get('resource') : null
   const [keyword, setKeyword] = useState('')
   const [sort, setSort] = useState<'recommended' | 'latest'>('recommended')
   const [category, setCategory] = useState('全部资源')
+  const [chapterNode, setChapterNode] = useState('4.1 函数')
   const [detailRecord, setDetailRecord] = useState<SourceRecord | null>(() => (
     detailResourceId ? allSourceRecords.find((record) => record.id === detailResourceId) ?? null : null
   ))
@@ -243,12 +252,11 @@ export function LibraryPicker(props: LibraryPickerProps) {
   }, [detailResourceId, isAll, props.libraryKind, props.resourceType])
 
   useEffect(() => {
-    if (variant === 'dialog') setDialogShowAll(true)
+    if (variant === 'dialog') {
+      setDialogShowAll(true)
+      setDialogChapter(false)
+    }
   }, [props.libraryKind, variant])
-
-  useEffect(() => {
-    if (variant === 'dialog' && props.addStatus === 'success') setSelectedQuestionIds(new Set())
-  }, [props.addStatus, variant])
 
   useEffect(() => {
     if (variant !== 'home' || !detailRecord) return undefined
@@ -297,6 +305,11 @@ export function LibraryPicker(props: LibraryPickerProps) {
     id: `${detailRecord?.id ?? 'preview'}-${index}`,
   })), [detailRecord])
 
+  const chapterQuestions = useMemo(() => Array.from({ length: 8 }, (_, index) => ({
+    ...baseQuestions[index % baseQuestions.length],
+    id: `chapter-${chapterNode}-${index}`,
+  })), [chapterNode])
+
   const toggleSetValue = (setter: Dispatch<SetStateAction<Set<string>>>, value: string) => {
     setter((current) => {
       const next = new Set(current)
@@ -329,11 +342,14 @@ export function LibraryPicker(props: LibraryPickerProps) {
         }}
         onToggleAnswers={() => setShowAnswers((current) => !current)}
         onToggleQuestion={(questionId) => {
-          const wasSelected = selectedQuestionIds.has(questionId)
-          toggleSetValue(setSelectedQuestionIds, questionId)
-          if (!wasSelected) props.onAddSource(detailRecord.sourceType, detailRecord.id, 1)
+          if (selectedQuestionIds.has(questionId)) return
+          setSelectedQuestionIds((current) => new Set(current).add(questionId))
+          props.onAddSource(detailRecord.sourceType, detailRecord.id, 1)
         }}
-        onUseAll={() => props.onAddSource(detailRecord.sourceType, detailRecord.id, previewQuestions.length)}
+        onUseAll={() => {
+          if (variant === 'dialog') setSelectedQuestionIds(new Set(previewQuestions.map((question) => question.id)))
+          props.onAddSource(detailRecord.sourceType, detailRecord.id, previewQuestions.length)
+        }}
       />
     )
   }
@@ -354,7 +370,10 @@ export function LibraryPicker(props: LibraryPickerProps) {
           disabled={props.contentBusy}
           onClick={() => {
             if (variant === 'home') props.onShowAllChange?.(true)
-            else setDialogShowAll(true)
+            else {
+              setDialogShowAll(true)
+              setDialogChapter(false)
+            }
           }}
           data-track="/click/aiQuestionHome/switchResourceTab | 切换全部资源 | 无"
         >
@@ -362,7 +381,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
         </button>
         {visibleSourceOptions.map((option) => {
           const Icon = resourceIcons[option.type]
-          const isActive = !isAll && props.resourceType === option.type
+          const isActive = !isAll && !dialogChapter && props.resourceType === option.type
           return (
             <button
               type="button"
@@ -373,7 +392,10 @@ export function LibraryPicker(props: LibraryPickerProps) {
               disabled={props.contentBusy}
               onClick={() => {
                 if (variant === 'home') props.onShowAllChange?.(false)
-                else setDialogShowAll(false)
+                else {
+                  setDialogShowAll(false)
+                  setDialogChapter(false)
+                }
                 props.onResourceTypeChange(option.type)
               }}
               data-track="/click/aiQuestionHome/switchResourceTab | 切换题库资源类型 | resourceType#STRING"
@@ -382,9 +404,53 @@ export function LibraryPicker(props: LibraryPickerProps) {
             </button>
           )
         })}
+        {variant === 'dialog' ? (
+          <button
+            type="button"
+            className={dialogChapter ? 'is-active' : ''}
+            role="tab"
+            aria-selected={dialogChapter}
+            disabled={props.contentBusy}
+            onClick={() => {
+              setDialogShowAll(false)
+              setDialogChapter(true)
+            }}
+            data-track="/click/aiQuestionHome/switchResourceTab | 切换章节知识点选题 | 无"
+          >
+            <ListTree size={17} /><span><strong>章节知识点选题</strong></span>
+          </button>
+        ) : null}
       </nav>
 
-      <div className={`library-browser${hasSidebar ? ' has-sidebar' : ''}`}>
+      {dialogChapter ? (
+        <div className="chapter-picker-browser">
+          <aside className="chapter-picker-tree" aria-label="教材章节与知识点">
+            <div className="library-textbook-switch"><BookOpenCheck size={15} /><span>人教版 / 八年级上册</span><ChevronDown size={14} /></div>
+            {chapterKnowledgeTree.map((group) => (
+              <section key={group.title}>
+                <h4><ChevronDown size={13} />{group.title}</h4>
+                {group.items.map((item) => <button type="button" key={item} className={chapterNode === item ? 'is-active' : ''} onClick={() => setChapterNode(item)}>{item}</button>)}
+              </section>
+            ))}
+          </aside>
+          <main className="chapter-picker-results">
+            <div className="chapter-picker-heading"><div><h3>{chapterNode}</h3><p>按教材章节或知识点逐题选择</p></div><div className="library-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索题目关键词" /></div></div>
+            <div className="chapter-question-list">
+              {chapterQuestions.filter((question) => !keyword.trim() || question.stem.includes(keyword.trim())).map((question, index) => {
+                const added = selectedQuestionIds.has(question.id)
+                return (
+                  <article key={question.id} className={added ? 'is-added' : ''}>
+                    <div className="chapter-question-meta"><span>{question.type} / {question.difficulty} / {question.estimatedMinutes}分钟</span></div>
+                    <div className="chapter-question-stem"><b>{index + 1}.</b><p>{question.stem}</p></div>
+                    {question.options ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
+                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className="is-add" disabled={props.contentBusy || added} onClick={() => { setSelectedQuestionIds((current) => new Set(current).add(question.id)); props.onAddSource('sync', question.id, 1) }}>{added ? '已添加' : '＋ 添加'}</button></div></footer>
+                  </article>
+                )
+              })}
+            </div>
+          </main>
+        </div>
+      ) : <div className={`library-browser${hasSidebar ? ' has-sidebar' : ''}`}>
         {hasSidebar ? (
           <aside className="library-category-sidebar" aria-label={`${visibleSourceOptions.find((item) => item.type === props.resourceType)?.title}分类`}>
             {props.resourceType === 'sync' ? <div className="library-textbook-switch"><BookOpenCheck size={15} /><span>人教版 / 八年级上册</span><ChevronDown size={14} /></div> : null}
@@ -447,7 +513,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
             ) : null}
           </div>
         </main>
-      </div>
+      </div>}
     </div>
   )
 }
