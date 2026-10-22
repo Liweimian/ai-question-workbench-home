@@ -44,6 +44,7 @@ export function WorkbenchHomePage() {
       <main className={`fx-content workbench-page${spaceCollapsed ? ' is-space-collapsed' : ''}`}>
         <div className="fx-zoom-area workbench-zoom-area">
           <WorkspaceHeader
+            documentTitle={workbench.document.title}
             questionCount={workbench.document.questions.length}
             canUndo={workbench.canUndo}
             onUndo={workbench.undo}

@@ -76,11 +76,12 @@
   top: 0;
   right: 0;
   left: var(--workspace-space-width);
-  height: 92px;
-  padding: 0 32px;
+  width: auto;
+  height: 60px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 24px;
   border-bottom: 1px solid var(--fx-line-strong);
   background: var(--common_bg2_color);
@@ -91,6 +92,29 @@
   left: var(--workspace-space-collapsed-width);
 }
 
+.header-document-path {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+  color: var(--fx-text-tertiary);
+  font-size: 13px;
+}
+
+.header-document-path strong {
+  max-width: 360px;
+  overflow: hidden;
+  color: var(--fx-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-document-divider {
+  color: var(--common_level5_base_color);
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -98,11 +122,45 @@
   white-space: nowrap;
 }
 
-.header-action-divider {
-  width: 1px;
-  height: 22px;
-  margin: 0 3px;
-  background: var(--fx-line-strong);
+.header-more { position: relative; }
+
+.header-more-menu {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 156px;
+  padding: 6px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-control);
+  background: var(--common_bg2_color);
+  box-shadow: var(--fx-shadow-card);
+}
+
+.header-more-menu button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--system-border-radius-s);
+  color: var(--fx-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+}
+
+.header-more-menu button:hover:not(:disabled) {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.header-more-menu button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .workspace-stage {
@@ -1053,7 +1111,7 @@
 }
 
 .question-inspector {
-  margin-top: 92px;
+  margin-top: 60px;
   border-left: 1px solid var(--fx-line-strong);
 }
 
@@ -1072,7 +1130,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  height: 92px;
+  height: 60px;
   padding: 0 10px 0 12px;
   flex: 0 0 auto;
   border-bottom: 1px solid var(--fx-line-strong);
@@ -1637,7 +1695,7 @@
 .editor-scroll {
   min-width: 0;
   min-height: 0;
-  margin-top: 92px;
+  margin-top: 60px;
   padding: 28px 16px 72px;
   overflow: auto;
   background: var(--fx-surface-muted);
