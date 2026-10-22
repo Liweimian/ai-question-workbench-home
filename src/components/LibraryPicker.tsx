@@ -202,7 +202,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                         <span>知识点：{question.knowledgePoint}</span>
                         <div>
                           <button type="button">纠错</button><button type="button"><Star size={14} />收藏</button><button type="button">解析</button><button type="button">相似题</button>
-                          <button type="button" className="is-add" disabled={props.contentBusy} onClick={() => props.onToggleQuestion(question.id)}>{selected ? '已添加' : '＋ 添加'}</button>
+                          {props.embedded ? <button type="button" className="is-add" disabled={props.contentBusy} onClick={() => props.onToggleQuestion(question.id)}>{selected ? '已添加' : '＋ 添加'}</button> : null}
                         </div>
                       </footer>
                     </article>

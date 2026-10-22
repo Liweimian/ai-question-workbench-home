@@ -74,7 +74,16 @@ export function WorkbenchHomePage() {
               onReloadHistory={() => void workbench.reloadHistory()}
               onResourceTypeChange={(type) => void workbench.loadSources(type)}
               onAddSource={(type, sourceId, count) => {
-                void workbench.addSource(type, sourceId, count)
+                workbench.createNewDocument()
+                void workbench.addSource(type, sourceId, count).then((success) => {
+                  if (!success) return
+                  const editorUrl = new URL(window.location.href)
+                  editorUrl.searchParams.delete('resource')
+                  editorUrl.searchParams.delete('resourceType')
+                  editorUrl.searchParams.delete('libraryKind')
+                  window.history.replaceState({}, '', editorUrl)
+                  setWorkspaceView('editor')
+                })
               }}
             />
           ) : (
