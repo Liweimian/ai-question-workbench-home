@@ -227,9 +227,8 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
 
 export function LibraryPicker(props: LibraryPickerProps) {
   const variant = props.variant ?? 'dialog'
-  const [dialogShowAll, setDialogShowAll] = useState(true)
   const [dialogChapter, setDialogChapter] = useState(false)
-  const isAll = variant === 'home' ? props.showAll === true : dialogShowAll && !dialogChapter
+  const isAll = variant === 'home' && props.showAll === true
   const detailResourceId = variant === 'home' ? new URLSearchParams(window.location.search).get('resource') : null
   const [keyword, setKeyword] = useState('')
   const [sort, setSort] = useState<'recommended' | 'latest'>('recommended')
@@ -253,8 +252,10 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
   useEffect(() => {
     if (variant === 'dialog') {
-      setDialogShowAll(true)
       setDialogChapter(false)
+      if (props.libraryKind === 'school' && props.resourceType !== 'paper' && props.resourceType !== 'workbook') {
+        props.onResourceTypeChange('paper')
+      }
     }
   }, [props.libraryKind, variant])
 
@@ -357,28 +358,26 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const hasSidebar = props.resourceType !== 'workbook'
     && (variant === 'dialog' || props.resourceType === 'sync' || props.resourceType === 'special')
   const groups = props.resourceType === 'workbook' ? [] : categoryGroups[props.resourceType]
-  const visibleSourceOptions = sourceOptions
+  const visibleSourceOptions = variant === 'dialog' && props.libraryKind === 'school'
+    ? sourceOptions.filter((option) => option.type === 'paper' || option.type === 'workbook')
+    : sourceOptions
 
   return (
     <div className="library-picker is-home">
       <nav className="library-resource-tabs" aria-label="题库资源类型" role="tablist">
-        <button
-          type="button"
-          className={isAll ? 'is-active' : ''}
-          role="tab"
-          aria-selected={isAll}
-          disabled={props.contentBusy}
-          onClick={() => {
-            if (variant === 'home') props.onShowAllChange?.(true)
-            else {
-              setDialogShowAll(true)
-              setDialogChapter(false)
-            }
-          }}
-          data-track="/click/aiQuestionHome/switchResourceTab | 切换全部资源 | 无"
-        >
-          <LayoutGrid size={17} /><span><strong>全部</strong></span>
-        </button>
+        {variant === 'home' ? (
+          <button
+            type="button"
+            className={isAll ? 'is-active' : ''}
+            role="tab"
+            aria-selected={isAll}
+            disabled={props.contentBusy}
+            onClick={() => props.onShowAllChange?.(true)}
+            data-track="/click/aiQuestionHome/switchResourceTab | 切换全部资源 | 无"
+          >
+            <LayoutGrid size={17} /><span><strong>全部</strong></span>
+          </button>
+        ) : null}
         {visibleSourceOptions.map((option) => {
           const Icon = resourceIcons[option.type]
           const isActive = !isAll && !dialogChapter && props.resourceType === option.type
@@ -393,7 +392,6 @@ export function LibraryPicker(props: LibraryPickerProps) {
               onClick={() => {
                 if (variant === 'home') props.onShowAllChange?.(false)
                 else {
-                  setDialogShowAll(false)
                   setDialogChapter(false)
                 }
                 props.onResourceTypeChange(option.type)
@@ -412,7 +410,6 @@ export function LibraryPicker(props: LibraryPickerProps) {
             aria-selected={dialogChapter}
             disabled={props.contentBusy}
             onClick={() => {
-              setDialogShowAll(false)
               setDialogChapter(true)
             }}
             data-track="/click/aiQuestionHome/switchResourceTab | 切换章节知识点选题 | 无"
