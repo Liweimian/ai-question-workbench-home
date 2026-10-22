@@ -36,7 +36,7 @@ export function WorkspaceSidebar(props: WorkspaceSidebarProps) {
     return (
       <aside className="workspace-space-nav is-collapsed" aria-label="组题空间导航">
         <button type="button" aria-label="展开组题空间" onClick={() => props.onCollapsedChange(false)}><ChevronsRight size={17} /></button>
-        <button type="button" className="is-primary" aria-label="新建题单" disabled={props.contentBusy} onClick={props.onCreateNew}><span className="space-nav-create-icon"><FilePlus2 size={15} /></span></button>
+        <button type="button" className="is-primary" aria-label="新建题单" disabled={props.contentBusy} onClick={props.onCreateNew}><span className="space-nav-create-icon"><FilePlus2 size={12} /></span></button>
         <button type="button" aria-label="我的资源" disabled={props.contentBusy} onClick={props.onOpenMyResources}><FolderHeart size={17} /></button>
       </aside>
     )
@@ -54,7 +54,7 @@ export function WorkspaceSidebar(props: WorkspaceSidebarProps) {
       </header>
 
       <nav className="space-nav-actions" aria-label="组题空间操作">
-        <button type="button" className="is-primary" disabled={props.contentBusy} onClick={props.onCreateNew}><span className="space-nav-create-icon"><FilePlus2 size={15} /></span><span>新建题单</span></button>
+        <button type="button" className="is-primary" disabled={props.contentBusy} onClick={props.onCreateNew}><span className="space-nav-create-icon"><FilePlus2 size={12} /></span><span>新建题单</span></button>
         <button type="button" disabled={props.contentBusy} onClick={props.onOpenMyResources}><FolderHeart size={16} /><span>我的资源</span></button>
       </nav>
 
