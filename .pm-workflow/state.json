@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 69,
+      "iterationCount": 70,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -92,7 +92,11 @@
         "browser three-row Feixiang AI quick-start layout",
         "browser quick-start hide-after-content flow",
         "browser expanded plus-menu parent and direct-child flow",
-        "browser AI question-generation rename and preset flow"
+        "browser AI question-generation rename and preset flow",
+        "browser home curated mixed-resource flow without redundant tabs",
+        "browser enlarged insert menu typography",
+        "browser near-fullscreen compact library picker",
+        "browser single-back embedded resource detail flow"
       ]
     },
     "2": {

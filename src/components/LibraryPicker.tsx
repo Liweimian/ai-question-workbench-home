@@ -9,7 +9,6 @@ import {
   Clock3,
   Eye,
   FileText,
-  LayoutGrid,
   ListTree,
   ListChecks,
   Search,
@@ -31,6 +30,7 @@ interface LibraryPickerProps {
   contentBusy: boolean
   showAll?: boolean
   onShowAllChange?: (showAll: boolean) => void
+  onDetailChange?: (open: boolean) => void
   onResourceTypeChange: (type: ResourceType) => void
   onAddSource: (type: ResourceType, sourceId: string, count: number) => void
 }
@@ -280,6 +280,10 @@ export function LibraryPicker(props: LibraryPickerProps) {
     return () => { document.title = previousTitle }
   }, [detailRecord, variant])
 
+  useEffect(() => {
+    props.onDetailChange?.(Boolean(detailRecord))
+  }, [detailRecord, props.onDetailChange])
+
   const visibleRecords = useMemo(() => {
     const normalized = keyword.trim().toLowerCase()
     const source = isAll ? allSourceRecords : props.records
@@ -402,21 +406,8 @@ export function LibraryPicker(props: LibraryPickerProps) {
     : sourceOptions
 
   return (
-    <div className="library-picker is-home">
-      <nav className="library-resource-tabs" aria-label="题库资源类型" role="tablist">
-        {variant === 'home' ? (
-          <button
-            type="button"
-            className={isAll ? 'is-active' : ''}
-            role="tab"
-            aria-selected={isAll}
-            disabled={props.contentBusy}
-            onClick={() => props.onShowAllChange?.(true)}
-            data-track="/click/aiQuestionHome/switchResourceTab | 切换全部资源 | 无"
-          >
-            <LayoutGrid size={17} /><span><strong>全部</strong></span>
-          </button>
-        ) : null}
+    <div className={`library-picker ${variant === 'home' ? 'is-home' : 'is-dialog'}`}>
+      {variant === 'dialog' ? <nav className="library-resource-tabs" aria-label="题库资源类型" role="tablist">
         {visibleSourceOptions.map((option) => {
           const Icon = resourceIcons[option.type]
           const isActive = !isAll && !dialogChapter && props.resourceType === option.type
@@ -429,10 +420,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
               aria-selected={isActive}
               disabled={props.contentBusy}
               onClick={() => {
-                if (variant === 'home') props.onShowAllChange?.(false)
-                else {
-                  setDialogChapter(false)
-                }
+                setDialogChapter(false)
                 props.onResourceTypeChange(option.type)
               }}
               data-track="/click/aiQuestionHome/switchResourceTab | 切换题库资源类型 | resourceType#STRING"
@@ -456,7 +444,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
             <ListTree size={17} /><span><strong>章节知识点选题</strong></span>
           </button>
         ) : null}
-      </nav>
+      </nav> : null}
 
       {pickerBatchAction}
 
@@ -513,13 +501,13 @@ export function LibraryPicker(props: LibraryPickerProps) {
             <div className="library-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder={isAll ? '搜索全部资源名称或关键词' : `搜索${visibleSourceOptions.find((item) => item.type === props.resourceType)?.title ?? '资源'}名称或关键词`} /></div>
           </div>
 
-          <div className="library-list-heading">
+          {variant === 'dialog' ? <div className="library-list-heading">
             <h3>{isAll ? '全部资源' : category === '全部资源' ? listHeadings[props.resourceType] : category}</h3>
             <div role="tablist" aria-label="资源排序">
               <button type="button" className={sort === 'recommended' ? 'is-active' : ''} onClick={() => setSort('recommended')}>推荐</button>
               <button type="button" className={sort === 'latest' ? 'is-active' : ''} onClick={() => setSort('latest')}>最新</button>
             </div>
-          </div>
+          </div> : null}
 
           <div className="library-record-scroll">
             {props.listStatus === 'loading' ? <div className="library-loading"><span /><span /><span /><span /></div> : null}

@@ -109,7 +109,7 @@ export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
 
           <section className="landing-library" data-sec="3">
             <div className="landing-section-heading">
-              <div><h2>飞象题库</h2><p>浏览资源并选题，内容会加入当前组题</p></div>
+              <div><h2>精选</h2><p>精选适合当前任教范围的题库资源</p></div>
             </div>
             <LibraryPicker
               variant="home"

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { MetisButton } from '@yuanfudao/metis-web-component'
 import {
   ArrowLeft,
@@ -82,6 +82,10 @@ const modeTitles: Record<AddQuestionMode, string> = {
 }
 
 export function SourceDrawer(props: SourceDrawerProps) {
+  const [libraryDetailOpen, setLibraryDetailOpen] = useState(false)
+
+  useEffect(() => { setLibraryDetailOpen(false) }, [props.mode])
+
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -109,7 +113,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
       >
         <header className="add-question-header">
           <div className="add-question-title">
-            {props.mode !== 'menu' ? (
+            {props.mode !== 'menu' && !libraryDetailOpen ? (
               <MetisButton
                 type="borderless"
                 icon={<ArrowLeft size={18} />}
@@ -119,7 +123,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
             ) : null}
             <div>
               <h2>{modeTitles[props.mode]}</h2>
-              <p>{props.mode === 'menu' ? '一个入口，选择这次要怎样添加题目' : '结果都会加入当前题单，不会覆盖已有内容'}</p>
+              {props.mode === 'menu' ? <p>一个入口，选择这次要怎样添加题目</p> : null}
             </div>
           </div>
           <div className="add-question-header-actions">
@@ -158,6 +162,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
               listStatus={props.listStatus}
               addStatus={props.addStatus}
               contentBusy={props.contentBusy}
+              onDetailChange={setLibraryDetailOpen}
               onResourceTypeChange={props.onResourceTypeChange}
               onAddSource={(type, sourceId, count) => props.onAddSource(type, sourceId, count)}
             />

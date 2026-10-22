@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
-import { BookOpenCheck, FileImage, FileScan, FileText, GripVertical, Heading2, Heading3, Heading4, Image, Minus, Network, Plus, ScanSearch, School, Sparkles, Table2 } from 'lucide-react'
+import { BookOpenCheck, FileImage, FileText, GripVertical, Heading2, Heading3, Heading4, Image, Minus, Plus, ScanSearch, School, Sparkles, Table2 } from 'lucide-react'
 import type { AddQuestionMode, OpenAddOptions } from '../prototype/types'
 
 export type UtilityAction = 'image-search' | 'web-search' | 'heading-2' | 'heading-3' | 'heading-4' | 'table' | 'image' | 'note' | 'divider' | 'page-break'
@@ -14,11 +14,6 @@ interface BlockAddMenuProps {
 }
 
 const optionGroups = [
-  { title: '搜题与导入', items: [
-    { id: 'image-search', utility: 'image-search', title: '图片搜题', description: '上传或粘贴题目图片查找原题', icon: ScanSearch },
-    { id: 'recording', mode: 'upload', title: 'AI 录题', description: '识别 PDF、Word 或图片中的题目', icon: FileScan },
-    { id: 'web-search', utility: 'web-search', title: '联网搜题', description: '从公开网络检索可用题目', icon: Network },
-  ] },
   { title: '基础内容', items: [
     { id: 'heading-2', utility: 'heading-2', title: '二级标题', description: '题型或大题分组', icon: Heading2 },
     { id: 'heading-3', utility: 'heading-3', title: '三级标题', description: '分组下的内容层级', icon: Heading3 },
@@ -74,11 +69,9 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
     <section className="block-command-group" key={group.title}>
       <h4>{group.title}</h4>
       {group.items.map(({ id, title, description, icon: Icon, ...item }) => {
-        const mode = 'mode' in item ? item.mode : undefined
         const utility = 'utility' in item ? item.utility : undefined
         return <button type="button" role="menuitem" key={id} onClick={() => {
-          if (mode) { setOpen(false); onOpenAdd(mode) }
-          else if (utility) chooseUtility(utility)
+          if (utility) chooseUtility(utility)
         }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong><small>{description}</small></span></button>
       })}
     </section>
@@ -106,7 +99,19 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
                 </div>
               </div>)}
             </section>
-            {renderFlatGroup(optionGroups[0])}
+            <section className="block-command-group block-command-group--expanded">
+              <h4>搜题与导入</h4>
+              <div className="block-command-expanded">
+                <div className="block-command-parent">
+                  <span className="block-command-icon"><ScanSearch size={16} /></span><strong>搜题与导入</strong>
+                </div>
+                <div className="block-command-children">
+                  <button type="button" onClick={() => chooseUtility('image-search')}>图片搜题</button>
+                  <button type="button" onClick={() => { setOpen(false); onOpenAdd('upload') }}>AI 录题</button>
+                  <button type="button" onClick={() => chooseUtility('web-search')}>联网搜题</button>
+                </div>
+              </div>
+            </section>
             <section className="block-command-group block-command-group--expanded">
               <h4>飞象 AI</h4>
               <div className="block-command-expanded is-ai">
@@ -120,7 +125,7 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
                 </div>
               </div>
             </section>
-            {renderFlatGroup(optionGroups[1])}
+            {renderFlatGroup(optionGroups[0])}
           </div>
           <div className="block-command-tip">输入 / 快速唤起 · Esc 关闭</div>
         </div>
