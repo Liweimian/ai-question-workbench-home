@@ -2327,19 +2327,22 @@
 .inline-ai-dialog {
   width: min(100%, 720px);
   margin: 12px 0 0 46px;
-  padding: 14px;
-  border: 1px solid var(--theme_primary1_selected2_color);
-  border-radius: 14px;
-  background: var(--common_bg2_color);
-  box-shadow: 0 14px 42px var(--common-shadow-color);
+  padding: 0;
+  background: transparent;
   animation: panel-in 180ms ease both;
 }
 
 .inline-ai-capabilities {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 5px;
+  width: 390px;
+  margin-top: 8px;
+  padding: 9px 12px 7px;
+  border: 1px solid var(--fx-line-subtle);
+  border-radius: 14px;
+  background: var(--common_bg2_color);
+  box-shadow: 0 14px 42px var(--common-shadow-color);
 }
 
 .inline-ai-capabilities > span,
@@ -2352,15 +2355,14 @@
   display: flex;
   overflow: hidden;
   flex-direction: column;
-  border: 1px solid var(--fx-line-subtle);
-  border-radius: var(--fx-radius-control);
+  margin-top: 0;
 }
 
 .inline-ai-capabilities button {
   display: flex;
   min-width: 0;
-  min-height: 46px;
-  padding: 8px 12px;
+  min-height: 36px;
+  padding: 6px 10px;
   align-items: center;
   gap: 9px;
   border: 0;
@@ -2383,9 +2385,10 @@
 .inline-ai-capabilities button > span {
   display: flex;
   min-width: 0;
-  flex-direction: column;
+  align-items: baseline;
   flex: 1;
-  gap: 3px;
+  gap: 9px;
+  white-space: nowrap;
 }
 
 .inline-ai-capabilities button strong {
@@ -2395,9 +2398,11 @@
 }
 
 .inline-ai-capabilities button small {
+  overflow: hidden;
   color: var(--fx-text-tertiary);
   font-size: 9px;
-  line-height: 1.35;
+  line-height: 1.2;
+  text-overflow: ellipsis;
 }
 
 .inline-ai-dialog > header {
@@ -2452,13 +2457,38 @@
 
 .inline-ai-input {
   display: flex;
-  gap: 8px;
-  margin-top: 14px;
+  align-items: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 5px 6px 5px 12px;
+  border: 1px solid var(--fx-primary);
+  border-radius: var(--fx-radius-control);
+  background: var(--common_bg2_color);
+  box-shadow: 0 10px 30px var(--common_shadow3_color);
 }
 
 .inline-ai-input > span,
 .inline-ai-input > div {
   flex: 1;
+}
+
+.inline-ai-input > .inline-ai-input-prefix {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  color: var(--fx-primary);
+}
+
+.inline-ai-input-prefix strong {
+  color: var(--fx-text-primary);
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.inline-ai-input input {
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .inline-ai-suggestions {

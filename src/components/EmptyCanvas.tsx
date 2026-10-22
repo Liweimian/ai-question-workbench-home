@@ -44,12 +44,6 @@ const quickStartGroups: Array<{
   },
 ]
 
-const promptSuggestions = [
-  '组一份 20 分钟的一次函数随堂练习',
-  '从题库找 8 道一次函数基础题',
-  '根据班级错题生成一份分层练习',
-]
-
 const inlineAiCapabilities = [
   { title: 'AI 组题', description: '从题库挑选并组合', icon: BrainCircuit, action: 'compose' as const },
   { title: 'AI 组卷', description: '按考试要求组织试卷', icon: Layers3, action: 'paper' as const },
@@ -60,6 +54,7 @@ const inlineAiCapabilities = [
 
 export function EmptyCanvas(props: EmptyCanvasProps) {
   const [prompt, setPrompt] = useState('')
+  const [inlineAiMode, setInlineAiMode] = useState<'compose' | 'create'>('compose')
   const [blockIds, setBlockIds] = useState(['initial'])
   const [activeBlockId, setActiveBlockId] = useState('initial')
   const [addMenuRequests, setAddMenuRequests] = useState<Record<string, number>>({})
@@ -230,28 +225,24 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
 
         {props.aiOpen ? (
           <section className="inline-ai-dialog" aria-label="AI 助手">
-            <header>
-              <span><Sparkles size={17} /></span>
-              <div><strong>AI 助手</strong><small>组题、组卷、命题、个性化练习与录题，都可以直接告诉我</small></div>
-              <button type="button" aria-label="关闭 AI 助手" onClick={closeAi}><X size={16} /></button>
-            </header>
             <div className="inline-ai-input">
+              <span className="inline-ai-input-prefix"><Sparkles size={17} /><strong>{inlineAiMode === 'create' ? 'AI 命题' : '飞象 AI'}</strong><ChevronDown size={14} /></span>
               <MetisInput
                 autoFocus
                 value={prompt}
                 disabled={props.aiStatus === 'loading'}
                 onChange={(event) => setPrompt(event.target.value)}
-                placeholder="描述年级、知识点、难度、题量或作答时长"
+                placeholder="告诉 AI 你想怎么组题、组卷或命题…"
                 aria-label="AI 组题要求"
                 onKeyDown={(event) => {
                   if (event.key === 'Escape') closeAi()
-                  if (event.key === 'Enter' && props.aiStatus !== 'loading' && !event.nativeEvent.isComposing && prompt.trim()) props.onStartAi('compose', prompt.trim())
+                  if (event.key === 'Enter' && props.aiStatus !== 'loading' && !event.nativeEvent.isComposing && prompt.trim()) props.onStartAi(inlineAiMode, prompt.trim())
                 }}
               />
-              <MetisButton type="primary" icon={<Send size={15} />} loading={props.aiStatus === 'loading'} disabled={!prompt.trim()} onClick={() => props.onStartAi('compose', prompt.trim())}>发送</MetisButton>
+              <MetisButton type="primary" icon={<Send size={15} />} loading={props.aiStatus === 'loading'} disabled={!prompt.trim()} aria-label="发送 AI 要求" onClick={() => props.onStartAi(inlineAiMode, prompt.trim())} />
             </div>
             <div className="inline-ai-capabilities" aria-label="AI 助手能力">
-              <span>选择一项能力</span>
+              <span>教学快捷能力</span>
               <div>
                 {inlineAiCapabilities.map(({ title, description, icon: Icon, action }) => (
                   <button type="button" key={title} onClick={() => {
@@ -259,24 +250,25 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                       props.onOpenAdd(action)
                       return
                     }
-                    if (action === 'paper') setPrompt('按八年级上册教学范围，组一份包含题型与分值配置的试卷')
-                    if (action === 'compose') setPrompt('从题库组一份一次函数练习，包含基础题和提升题')
-                    if (action === 'create') setPrompt('围绕一次函数知识点生成一组原创题目')
+                    if (action === 'paper') {
+                      setInlineAiMode('compose')
+                      setPrompt('按八年级上册教学范围，组一份包含题型与分值配置的试卷')
+                    }
+                    if (action === 'compose') {
+                      setInlineAiMode('compose')
+                      setPrompt('从题库组一份一次函数练习，包含基础题和提升题')
+                    }
+                    if (action === 'create') {
+                      setInlineAiMode('create')
+                      setPrompt('围绕一次函数知识点生成一组原创题目')
+                    }
                   }}>
                     <Icon size={16} /><span><strong>{title}</strong><small>{description}</small></span><ChevronRight size={14} />
                   </button>
                 ))}
               </div>
             </div>
-            <div className="inline-ai-suggestions">
-              <span>示例要求</span>
-              {promptSuggestions.map((suggestion) => <button type="button" key={suggestion} disabled={props.aiStatus === 'loading'} onClick={() => setPrompt(suggestion)}>{suggestion}</button>)}
-            </div>
             {props.aiError ? <p className="inline-ai-error" role="alert">{props.aiError}</p> : null}
-            <footer>
-              <span>Enter 发送 · Esc 关闭</span>
-              <button type="button" disabled={!prompt.trim() || props.aiStatus === 'loading'} onClick={() => props.onStartAi('create', prompt.trim())}><Sparkles size={13} />转为 AI 命题</button>
-            </footer>
           </section>
         ) : null}
 
