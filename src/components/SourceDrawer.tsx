@@ -122,7 +122,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
               />
             ) : null}
             <div>
-              <h2>{modeTitles[props.mode]}</h2>
+              {libraryDetailOpen ? <div data-picker-detail-nav /> : <h2>{modeTitles[props.mode]}</h2>}
               {props.mode === 'menu' ? <p>一个入口，选择这次要怎样添加题目</p> : null}
             </div>
           </div>

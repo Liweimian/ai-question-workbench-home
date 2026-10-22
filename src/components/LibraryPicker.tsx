@@ -134,12 +134,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
 
   return (
     <section className={`legacy-detail-workspace${props.embedded ? ' is-embedded' : ''}`} aria-label={props.record.title}>
-      {props.embedded ? (
-        <header className="legacy-detail-embedded-nav">
-          <button type="button" onClick={props.onReturnHome}><ArrowLeft size={15} />返回资源列表</button>
-          <span>{resourceTypeLabels[props.record.sourceType]} / <strong>{props.record.title}</strong></span>
-        </header>
-      ) : <header className="legacy-detail-topbar">
+      {!props.embedded ? <header className="legacy-detail-topbar">
         <div className="legacy-detail-brand">
           <span><Sparkles size={16} /></span>
           <div><strong>飞象 AI 组题工作台</strong><small>初中数学 · 八年级上</small></div>
@@ -152,7 +147,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
           <strong>{props.record.title}</strong>
         </nav>
         <button type="button" className="legacy-detail-home-action" onClick={props.onReturnHome}><ArrowLeft size={15} />返回首页</button>
-      </header>}
+      </header> : null}
       <div className={`legacy-detail-stage${props.record.sourceType === 'workbook' ? ' has-directory' : ''}`}>
         {props.record.sourceType === 'workbook' ? (
           <aside className="legacy-workbook-directory" aria-label={`${props.record.title}目录`}>
@@ -248,6 +243,9 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const [pinned, setPinned] = useState<Set<string>>(new Set())
   const pickerActionHost = variant === 'dialog'
     ? document.querySelector<HTMLElement>('[data-picker-selection-actions]')
+    : null
+  const pickerDetailNavHost = variant === 'dialog'
+    ? document.querySelector<HTMLElement>('[data-picker-detail-nav]')
     : null
 
   useEffect(() => {
@@ -355,10 +353,19 @@ export function LibraryPicker(props: LibraryPickerProps) {
     pickerActionHost,
   ) : null
 
+  const pickerDetailNav = variant === 'dialog' && detailRecord && pickerDetailNavHost ? createPortal(
+    <div className="picker-detail-header-nav">
+      <button type="button" onClick={() => setDetailRecord(null)}><ArrowLeft size={15} />返回资源列表</button>
+      <span>{resourceTypeLabels[detailRecord.sourceType]} / <strong>{detailRecord.title}</strong></span>
+    </div>,
+    pickerDetailNavHost,
+  ) : null
+
   if (detailRecord) {
     return (
       <>
       {pickerBatchAction}
+      {pickerDetailNav}
       <LegacyResourceDetail
         record={detailRecord}
         embedded={variant === 'dialog'}
