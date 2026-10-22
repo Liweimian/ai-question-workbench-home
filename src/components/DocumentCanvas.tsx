@@ -78,8 +78,6 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
               ) : null}
               <div className="editor-question-number">
                 <span>{index + 1}</span>
-                <em>{question.type}</em>
-                {question.origin === 'ai-original' ? <strong><Sparkles size={12} />AI 原创 · 待校验</strong> : null}
               </div>
               <div className="editor-question-stem">{question.stem}</div>
               {question.options ? (

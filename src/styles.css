@@ -3094,6 +3094,45 @@
   line-height: 18px;
 }
 
+.inspector-source-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 18px 16px;
+  flex-direction: column;
+  border-bottom: 1px solid var(--fx-line-strong);
+}
+
+.inspector-source-summary > strong {
+  color: var(--fx-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.inspector-source-summary > p {
+  margin: -3px 0 2px;
+  color: var(--fx-text-tertiary);
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.inspector-meta-line {
+  color: var(--fx-text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.inspector-detail-line {
+  color: var(--fx-text-secondary);
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.inspector-detail-line span {
+  color: var(--fx-text-tertiary);
+}
+
 .origin-badge,
 .verify-status {
   display: inline-flex;

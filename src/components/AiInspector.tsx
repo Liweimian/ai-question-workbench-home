@@ -89,38 +89,17 @@ export function QuestionInspector(props: QuestionInspectorProps) {
         </div>
       ) : props.view === 'info' ? (
         <div className="inspector-scroll">
-          <div className="inspector-question-heading">
-            <span>第 {props.questionNumber} 题 · {props.question.type}</span>
-            <strong>{props.question.stem}</strong>
-          </div>
-
-          <section className="inspector-section">
-            <h3>基础属性</h3>
-            <div className="property-grid">
-              <span><small>难度</small><strong>{props.question.difficulty}</strong></span>
-              <span><small>预计用时</small><strong>{props.question.estimatedMinutes} 分钟</strong></span>
-              <span><small>建议分值</small><strong>{props.question.score} 分</strong></span>
-              <span><small>使用次数</small><strong>{props.question.usageCount ?? 0} 次</strong></span>
-            </div>
-            <div className="knowledge-block">
-              <small>知识点</small>
-              <strong>{props.question.knowledgePoint}</strong>
-            </div>
-          </section>
-
-          <section className="inspector-section">
-            <h3>来源信息</h3>
-            <div className="source-detail-card">
-              <span className={`origin-badge origin-badge--${props.question.origin}`}>
-                {props.question.origin === 'ai-original' ? <Sparkles size={13} /> : <BookOpenCheck size={13} />}
-                {originLabel[props.question.origin]}
-              </span>
-              <strong>{props.question.sourceLabel}</strong>
-              <p>{props.question.sourceDetail ?? '暂无更多出处信息'}</p>
-              {props.question.verifyStatus ? (
-                <span className="verify-status"><CheckCircle2 size={13} />{props.question.verifyStatus}</span>
-              ) : null}
-            </div>
+          <section className="inspector-source-summary">
+            <span className={`origin-badge origin-badge--${props.question.origin}`}>
+              {props.question.origin === 'ai-original' ? <Sparkles size={13} /> : <BookOpenCheck size={13} />}
+              {originLabel[props.question.origin]}
+            </span>
+            <strong>{props.question.sourceLabel}</strong>
+            <p>{props.question.sourceDetail ?? '当前组题资源'}</p>
+            <div className="inspector-meta-line">初中 / 数学 / {props.question.type} / {props.question.difficulty} / {props.question.estimatedMinutes} 分钟</div>
+            <div className="inspector-detail-line"><span>知识点：</span>{props.question.knowledgePoint}</div>
+            <div className="inspector-detail-line"><span>核心素养：</span>运算能力、模型观念</div>
+            {props.question.verifyStatus ? <span className="verify-status"><CheckCircle2 size={13} />{props.question.verifyStatus}</span> : null}
           </section>
 
           <section className="inspector-section answer-section">
