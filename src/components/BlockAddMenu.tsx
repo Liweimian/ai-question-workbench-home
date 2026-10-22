@@ -72,7 +72,7 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
       <div className="block-add-control-row">
         <button type="button" className="block-add-trigger" aria-expanded={open} aria-label="插入内容" onClick={() => setOpen((current) => !current)}><Plus size={18} /></button>
         <button type="button" className="block-drag-handle" draggable aria-label="拖动内容块"><GripVertical size={18} /></button>
-        {!empty ? <button type="button" className="block-add-trigger-copy" onClick={() => setOpen((current) => !current)}><strong>继续添加内容</strong><small>添加题目、素材或试卷结构，也可以输入 /</small></button> : null}
+        {!empty ? <button type="button" className="block-add-trigger-copy" onClick={() => setOpen((current) => !current)}>按 Space（空格）以启用 AI，或按“/”启用命令</button> : null}
       </div>
       {open ? (
         <div className="block-command-menu" role="menu" aria-label="插入内容">
