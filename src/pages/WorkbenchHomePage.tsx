@@ -72,9 +72,7 @@ export function WorkbenchHomePage() {
               onReloadHistory={() => void workbench.reloadHistory()}
               onResourceTypeChange={(type) => void workbench.loadSources(type)}
               onAddSource={(type, sourceId, count) => {
-                void workbench.addSource(type, sourceId, count).then((success) => {
-                  if (success) setWorkspaceView('editor')
-                })
+                void workbench.addSource(type, sourceId, count)
               }}
             />
           ) : (

@@ -7,6 +7,7 @@ import {
   Check,
   ChevronDown,
   Clock3,
+  Eye,
   FileText,
   LayoutGrid,
   ListChecks,
@@ -14,9 +15,10 @@ import {
   SlidersHorizontal,
   Sparkles,
   Star,
+  X,
 } from 'lucide-react'
 import { baseQuestions, sourceOptions, sourceRecords as allSourceRecords } from '../data/workbenchData'
-import type { AsyncStatus, ResourceType, SourceRecord } from '../prototype/types'
+import type { AsyncStatus, Question, ResourceType, SourceRecord } from '../prototype/types'
 
 interface LibraryPickerProps {
   variant?: 'dialog' | 'home'
@@ -86,6 +88,87 @@ function getResourceCardTags(record: SourceRecord) {
   return [record.highlight || resourceTypeLabels[record.sourceType], secondaryTag].slice(0, 2)
 }
 
+interface LegacyResourceDetailProps {
+  record: SourceRecord
+  questions: Question[]
+  selectedQuestionIds: Set<string>
+  showAnswers: boolean
+  contentBusy: boolean
+  addStatus: AsyncStatus
+  onClose: () => void
+  onBackToList: () => void
+  onToggleAnswers: () => void
+  onToggleQuestion: (questionId: string) => void
+  onUseAll: () => void
+}
+
+function LegacyResourceDetail(props: LegacyResourceDetailProps) {
+  const sectionOrder = ['选择题', '填空题', '解答题']
+  const sectionNames = ['一、单项选择题', '二、填空题', '三、解答题']
+  const groupedQuestions = sectionOrder.map((type, index) => ({
+    title: sectionNames[index],
+    questions: props.questions.filter((question) => question.type === type),
+  })).filter((section) => section.questions.length > 0)
+
+  return (
+    <section className="legacy-detail-workspace" aria-label={props.record.title}>
+      <nav className="legacy-workspace-tabs" aria-label="已打开的页面" role="tablist">
+        <button type="button" className="legacy-subject-tab">初中数学<ChevronDown size={13} /></button>
+        <button type="button" role="tab" onClick={props.onClose}>首页</button>
+        <button type="button" role="tab" onClick={props.onBackToList}>{resourceTypeLabels[props.record.sourceType]}</button>
+        <button type="button" role="tab" aria-selected="true" className="is-active legacy-detail-tab">
+          <FileText size={15} /><span>{props.record.title}</span>
+          <span role="button" tabIndex={0} aria-label={`关闭 ${props.record.title}`} onClick={(event) => { event.stopPropagation(); props.onClose() }}><X size={13} /></span>
+        </button>
+      </nav>
+
+      <div className="legacy-detail-stage">
+        <main className="legacy-detail-panel">
+          <header className="legacy-detail-header">
+            <h2>{props.record.title}</h2>
+            <div>
+              <button type="button" onClick={props.onToggleAnswers}><Eye size={15} />{props.showAnswers ? '隐藏答案' : '显示答案'}</button>
+              <button type="button" className="is-primary" disabled={props.contentBusy} onClick={props.onUseAll}><FileText size={15} />使用整卷<ChevronDown size={13} /></button>
+            </div>
+          </header>
+
+          <div className="legacy-detail-scroll">
+            {groupedQuestions.map((section) => (
+              <section className="legacy-question-section" key={section.title} aria-label={section.title}>
+                <h3>{section.title}</h3>
+                {section.questions.map((question) => {
+                  const selected = props.selectedQuestionIds.has(question.id)
+                  const number = props.questions.findIndex((item) => item.id === question.id) + 1
+                  return (
+                    <article className={`legacy-question-card${selected ? ' is-selected' : ''}`} key={question.id} aria-label={`第 ${number} 题`}>
+                      <div className="legacy-question-meta">
+                        {number === 1 ? <><em>AI批改</em><em>AI赋分</em></> : null}
+                        <span>{question.type === '选择题' ? '单项选择题' : question.type} / {question.difficulty} / {question.estimatedMinutes}分钟</span>
+                      </div>
+                      <div className="legacy-question-stem"><span>{number}</span><p>{question.stem}</p></div>
+                      {question.options ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
+                      {props.showAnswers ? <div className="legacy-question-answer"><strong>答案：</strong>{question.answer}　<strong>解析：</strong>{question.analysis}</div> : null}
+                      <footer>
+                        <span>知识点：{question.knowledgePoint}</span>
+                        <div>
+                          <button type="button">纠错</button><button type="button"><Star size={14} />收藏</button><button type="button">解析</button><button type="button">相似题</button>
+                          <button type="button" className="is-add" disabled={props.contentBusy} onClick={() => props.onToggleQuestion(question.id)}>{selected ? '已添加' : '＋ 添加'}</button>
+                        </div>
+                      </footer>
+                    </article>
+                  )
+                })}
+              </section>
+            ))}
+          </div>
+        </main>
+        <aside className="legacy-composer-rail" aria-label="组题编辑区"><span>{props.selectedQuestionIds.size}</span><strong>组题编辑区</strong></aside>
+      </div>
+      {props.addStatus === 'loading' ? <div className="legacy-detail-loading">正在加入当前组题…</div> : null}
+    </section>
+  )
+}
+
 export function LibraryPicker(props: LibraryPickerProps) {
   const variant = props.variant ?? 'dialog'
   const isAll = variant === 'home' && props.showAll === true
@@ -93,6 +176,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const [sort, setSort] = useState<'recommended' | 'latest'>('recommended')
   const [category, setCategory] = useState('全部资源')
   const [detailRecord, setDetailRecord] = useState<SourceRecord | null>(null)
+  const [showAnswers, setShowAnswers] = useState(false)
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set())
   const [favorites, setFavorites] = useState<Set<string>>(new Set(['paper-2']))
   const [pinned, setPinned] = useState<Set<string>>(new Set())
@@ -101,12 +185,13 @@ export function LibraryPicker(props: LibraryPickerProps) {
     setKeyword('')
     setCategory('全部资源')
     setDetailRecord(null)
+    setShowAnswers(false)
     setSelectedQuestionIds(new Set())
   }, [isAll, props.libraryKind, props.resourceType])
 
   useEffect(() => {
-    if (props.addStatus === 'success') setSelectedQuestionIds(new Set())
-  }, [props.addStatus])
+    if (variant === 'dialog' && props.addStatus === 'success') setSelectedQuestionIds(new Set())
+  }, [props.addStatus, variant])
 
   const visibleRecords = useMemo(() => {
     const normalized = keyword.trim().toLowerCase()
@@ -134,8 +219,8 @@ export function LibraryPicker(props: LibraryPickerProps) {
     setDetailRecord(record)
   }
 
-  const previewQuestions = useMemo(() => baseQuestions.map((question, index) => ({
-    ...question,
+  const previewQuestions = useMemo(() => Array.from({ length: 7 }, (_, index) => ({
+    ...baseQuestions[index % baseQuestions.length],
     id: `${detailRecord?.id ?? 'preview'}-${index}`,
   })), [detailRecord])
 
@@ -150,8 +235,29 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
   if (detailRecord) {
     const allSelected = selectedQuestionIds.size === previewQuestions.length
+    if (variant === 'home') {
+      return (
+        <LegacyResourceDetail
+          record={detailRecord}
+          questions={previewQuestions}
+          selectedQuestionIds={selectedQuestionIds}
+          showAnswers={showAnswers}
+          contentBusy={props.contentBusy}
+          addStatus={props.addStatus}
+          onClose={() => setDetailRecord(null)}
+          onBackToList={() => setDetailRecord(null)}
+          onToggleAnswers={() => setShowAnswers((current) => !current)}
+          onToggleQuestion={(questionId) => {
+            const wasSelected = selectedQuestionIds.has(questionId)
+            toggleSetValue(setSelectedQuestionIds, questionId)
+            if (!wasSelected) props.onAddSource(detailRecord.sourceType, detailRecord.id, 1)
+          }}
+          onUseAll={() => props.onAddSource(detailRecord.sourceType, detailRecord.id, previewQuestions.length)}
+        />
+      )
+    }
     return (
-      <div className={`library-detail-view${variant === 'home' ? ' is-home' : ''}`}>
+      <div className="library-detail-view">
         <div className="library-detail-toolbar">
           <button type="button" onClick={() => setDetailRecord(null)}><ArrowLeft size={16} />返回资源列表</button>
           <div><span>{detailRecord.highlight}</span><strong>{detailRecord.title}</strong><small>{detailRecord.meta} · {detailRecord.questionCount} 题</small></div>
