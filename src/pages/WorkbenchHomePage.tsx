@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { AppSider } from '../components/AppSider'
 import { QuestionInspector } from '../components/AiInspector'
 import { DocumentCanvas } from '../components/DocumentCanvas'
 import { EmptyCanvas } from '../components/EmptyCanvas'
+import { MyResourcesPanel } from '../components/MyResourcesPanel'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { WorkspaceSidebar } from '../components/WorkspaceSidebar'
@@ -13,6 +13,7 @@ export function WorkbenchHomePage() {
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const [spaceCollapsed, setSpaceCollapsed] = useState(false)
   const [quickAiOpen, setQuickAiOpen] = useState(false)
+  const [myResourcesOpen, setMyResourcesOpen] = useState(false)
   const hasQuestions = workbench.document.questions.length > 0
 
   useEffect(() => {
@@ -32,9 +33,14 @@ export function WorkbenchHomePage() {
     ? workbench.document.questions.findIndex((question) => question.id === workbench.selectedQuestion?.id) + 1
     : 0
 
+  const openAdd = (mode: Parameters<typeof workbench.openAdd>[0] = 'menu') => {
+    setMyResourcesOpen(false)
+    setQuickAiOpen(false)
+    workbench.openAdd(mode)
+  }
+
   return (
     <div className="fx-app metis-theme-aiq">
-      <AppSider />
       <main className="fx-content workbench-page">
         <div className="fx-zoom-area workbench-zoom-area">
           <WorkspaceHeader
@@ -43,7 +49,7 @@ export function WorkbenchHomePage() {
             onUndo={workbench.undo}
           />
 
-          <section className={`workspace-shell${spaceCollapsed ? ' is-space-collapsed' : ''}${hasQuestions ? ' has-inspector' : ' is-empty'}`} aria-label="AI 题库组题工作台">
+          <section className={`workspace-shell${spaceCollapsed ? ' is-space-collapsed' : ''}${hasQuestions ? ' has-inspector' : ' is-empty'}`} aria-label="AI 题库题单编辑">
             <WorkspaceSidebar
               collapsed={spaceCollapsed}
               document={workbench.document}
@@ -57,9 +63,10 @@ export function WorkbenchHomePage() {
                 setQuickAiOpen(false)
                 workbench.createNewDocument()
               }}
-              onOpenAi={() => {
-                if (hasQuestions) workbench.openAdd('compose')
-                else setQuickAiOpen(true)
+              onOpenMyResources={() => {
+                setQuickAiOpen(false)
+                workbench.closeAdd()
+                setMyResourcesOpen(true)
               }}
               onOpenDocument={(documentId) => {
                 setQuickAiOpen(false)
@@ -85,12 +92,9 @@ export function WorkbenchHomePage() {
                     }
                     setQuickAiOpen(false)
                     workbench.setCreatePrompt(prompt)
-                    workbench.openAdd('create')
+                    openAdd('create')
                   }}
-                  onOpenAdd={(mode) => {
-                    setQuickAiOpen(false)
-                    workbench.openAdd(mode)
-                  }}
+                  onOpenAdd={openAdd}
                 />
               ) : (
                 <DocumentCanvas
@@ -102,7 +106,7 @@ export function WorkbenchHomePage() {
                   onMoveQuestion={workbench.moveQuestion}
                   onDeleteQuestion={workbench.deleteQuestion}
                   onEditQuestion={workbench.editQuestion}
-                  onAdd={workbench.openAdd}
+                  onAdd={openAdd}
                 />
               )}
             </div>
@@ -146,10 +150,13 @@ export function WorkbenchHomePage() {
               onCreate={() => void workbench.createQuestions()}
               onAddCreated={workbench.addCreatedQuestions}
               onUpload={() => void workbench.recognizeUpload()}
+              onPersonalize={() => void workbench.personalizeFromUpload()}
               onAddManual={() => void workbench.addManualQuestion()}
               onClose={workbench.closeAdd}
             />
           ) : null}
+
+          {myResourcesOpen ? <MyResourcesPanel onClose={() => setMyResourcesOpen(false)} /> : null}
         </div>
       </main>
     </div>

@@ -83,6 +83,19 @@ export const workbenchRepository: WorkbenchRepository = {
     }))
   },
 
+  async personalizeFromUpload() {
+    await delay(980)
+    return baseQuestions.slice(0, 3).map((question, index) => ({
+      ...cloneQuestion(question, `personalized-${Date.now()}-${index}`),
+      stem: `${question.stem}（结合上传材料生成的个性化变式）`,
+      sourceLabel: 'AI 个性化练习',
+      sourceDetail: '基于学情材料与教师上传文件生成',
+      origin: 'ai-original' as const,
+      verifyStatus: '待校验' as const,
+      usageCount: 0,
+    }))
+  },
+
   async composeFromBank(prompt: string) {
     await delay(820)
     if (prompt.includes('模拟失败')) throw new Error('题库检索服务暂时不可用，请稍后重试')
@@ -102,7 +115,7 @@ export const workbenchRepository: WorkbenchRepository = {
 
   async createQuestions(prompt: string) {
     await delay(960)
-    if (prompt.includes('模拟失败')) throw new Error('AI 出题服务暂时不可用，请稍后重试')
+    if (prompt.includes('模拟失败')) throw new Error('AI 命题服务暂时不可用，请稍后重试')
     const plan = getRequestedQuestionPlan(prompt)
     return Array.from({ length: plan.count }, (_, index) => {
       const question = baseQuestions[(index + 1) % baseQuestions.length]

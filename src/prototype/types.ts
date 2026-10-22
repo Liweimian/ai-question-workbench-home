@@ -1,7 +1,7 @@
 export type EntityId = string
 export type AsyncStatus = 'idle' | 'loading' | 'success' | 'error'
 export type ResourceType = 'workbook' | 'paper' | 'sync' | 'special'
-export type AddQuestionMode = 'menu' | 'resource' | 'compose' | 'create' | 'upload' | 'manual'
+export type AddQuestionMode = 'menu' | 'resource' | 'school' | 'compose' | 'create' | 'upload' | 'personalized' | 'manual'
 export type InspectorView = 'info' | 'ai'
 export type Difficulty = '基础' | '中等' | '提升'
 export type QuestionOrigin = 'question-bank' | 'ai-original' | 'upload' | 'manual'
@@ -74,6 +74,7 @@ export interface WorkbenchRepository {
   loadSource(resourceType: ResourceType): Promise<SourceRecord[]>
   addSource(resourceType: ResourceType, sourceId?: EntityId, count?: number): Promise<Question[]>
   recognizeUpload(): Promise<Question[]>
+  personalizeFromUpload(): Promise<Question[]>
   composeFromBank(prompt: string): Promise<Question[]>
   createQuestions(prompt: string): Promise<Question[]>
   createManualQuestion(): Promise<Question>

@@ -18,6 +18,7 @@ import { baseQuestions, sourceOptions } from '../data/workbenchData'
 import type { AsyncStatus, ResourceType, SourceRecord } from '../prototype/types'
 
 interface LibraryPickerProps {
+  libraryKind: 'fly' | 'school'
   resourceType: ResourceType
   records: SourceRecord[]
   listStatus: AsyncStatus
@@ -80,7 +81,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
     setCategory('全部资源')
     setDetailRecord(null)
     setSelectedQuestionIds(new Set())
-  }, [props.resourceType])
+  }, [props.libraryKind, props.resourceType])
 
   useEffect(() => {
     if (props.addStatus === 'success') setSelectedQuestionIds(new Set())
@@ -173,11 +174,18 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
   const hasSidebar = props.resourceType !== 'workbook'
   const groups = props.resourceType === 'workbook' ? [] : categoryGroups[props.resourceType]
+  const visibleSourceOptions = props.libraryKind === 'school'
+    ? sourceOptions
+      .filter((option) => option.type !== 'special')
+      .map((option) => option.type === 'sync'
+        ? { ...option, title: '章节知识点', description: '按本校教材章节浏览' }
+        : option)
+    : sourceOptions
 
   return (
     <div className="library-picker">
       <nav className="library-resource-tabs" aria-label="题库资源类型">
-        {sourceOptions.map((option) => {
+        {visibleSourceOptions.map((option) => {
           const Icon = resourceIcons[option.type]
           return (
             <button
@@ -195,7 +203,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
       <div className={`library-browser${hasSidebar ? ' has-sidebar' : ''}`}>
         {hasSidebar ? (
-          <aside className="library-category-sidebar" aria-label={`${sourceOptions.find((item) => item.type === props.resourceType)?.title}分类`}>
+          <aside className="library-category-sidebar" aria-label={`${visibleSourceOptions.find((item) => item.type === props.resourceType)?.title}分类`}>
             {props.resourceType === 'sync' ? <div className="library-textbook-switch"><BookOpenCheck size={15} /><span>人教版 / 八年级上册</span><ChevronDown size={14} /></div> : null}
             {groups.map((group, groupIndex) => (
               <section key={`${group.title ?? 'root'}-${groupIndex}`}>

@@ -27,7 +27,7 @@ export function WorkspaceHeader({
         <div className="breadcrumb-row">
           <span>AI 题库</span>
           <span className="breadcrumb-divider">/</span>
-          <strong>组题工作台</strong>
+          <strong>题单编辑</strong>
         </div>
         <button
           className="scope-switch"

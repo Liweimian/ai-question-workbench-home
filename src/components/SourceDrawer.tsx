@@ -4,8 +4,11 @@ import {
   ArrowLeft,
   BrainCircuit,
   FilePenLine,
+  Files,
   FileUp,
+  GraduationCap,
   Plus,
+  School,
   Search,
   Sparkles,
   UploadCloud,
@@ -44,6 +47,7 @@ interface SourceDrawerProps {
   onCreate: () => void
   onAddCreated: () => void
   onUpload: () => void
+  onPersonalize: () => void
   onAddManual: () => void
   onClose: () => void
 }
@@ -55,19 +59,23 @@ const commandOptions: Array<{
   tag: string
   icon: typeof Search
 }> = [
-  { mode: 'resource', title: '从题库选题', description: '浏览练习册、试卷、同步题单和专题', tag: '已有题目', icon: Search },
-  { mode: 'compose', title: 'AI 组题', description: '根据要求从题库智能挑选，保留真实来源', tag: '题库智能筛选', icon: BrainCircuit },
-  { mode: 'create', title: 'AI 出题', description: '生成全新题目，先预览再加入当前题单', tag: '原创 · 待校验', icon: Sparkles },
-  { mode: 'upload', title: '上传录题', description: '识别 PDF、Word 或图片中的题目', tag: '本地材料', icon: FileUp },
+  { mode: 'resource', title: '飞象题库选题', description: '浏览练习册、试卷、同步题单和专题', tag: '平台资源', icon: Search },
+  { mode: 'school', title: '校本题库选题', description: '浏览本校沉淀的试卷、练习册和章节题目', tag: '本校资源', icon: School },
+  { mode: 'upload', title: '上传文件 AI 录题', description: '识别 PDF、Word 或图片中的原题', tag: '材料转题目', icon: FileUp },
+  { mode: 'compose', title: 'AI 组题', description: '根据要求从题库智能挑选，保留真实来源', tag: 'AI 对话能力', icon: BrainCircuit },
+  { mode: 'create', title: 'AI 命题', description: '生成全新题目，先预览再加入当前题单', tag: '原创 · 待校验', icon: Sparkles },
+  { mode: 'personalized', title: '上传材料生成个性化练习', description: '结合上传材料与学情生成针对性练习', tag: 'AI 个性化', icon: GraduationCap },
   { mode: 'manual', title: '手工录入', description: '添加一道空白题并继续编辑', tag: '空白题', icon: FilePenLine },
 ]
 
 const modeTitles: Record<AddQuestionMode, string> = {
   menu: '添加题目',
-  resource: '从题库选题',
+  resource: '从飞象题库选题',
+  school: '从校本题库选题',
   compose: 'AI 组题',
-  create: 'AI 出题',
-  upload: '上传录题',
+  create: 'AI 命题',
+  upload: '上传文件 AI 录题',
+  personalized: '上传材料生成个性化练习',
   manual: '手工录入',
 }
 
@@ -78,7 +86,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
         props.onClose()
         return
       }
-      if (props.mode === 'menu' && !props.contentBusy && /^[1-5]$/.test(event.key)) {
+      if (props.mode === 'menu' && !props.contentBusy && /^[1-7]$/.test(event.key)) {
         const option = commandOptions[Number(event.key) - 1]
         if (option) props.onModeChange(option.mode)
       }
@@ -90,7 +98,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
   return (
     <div className="add-question-layer" onMouseDown={props.onClose}>
       <section
-        className={`add-question-panel${props.mode === 'resource' ? ' add-question-panel--library' : ''}`}
+        className={`add-question-panel${props.mode === 'resource' || props.mode === 'school' ? ' add-question-panel--library' : ''}`}
         data-sec="5"
         role="dialog"
         aria-modal="true"
@@ -136,8 +144,9 @@ export function SourceDrawer(props: SourceDrawerProps) {
             </div>
           ) : null}
 
-          {props.mode === 'resource' ? (
+          {props.mode === 'resource' || props.mode === 'school' ? (
             <LibraryPicker
+              libraryKind={props.mode === 'school' ? 'school' : 'fly'}
               resourceType={props.resourceType}
               records={props.records}
               listStatus={props.listStatus}
@@ -226,6 +235,27 @@ export function SourceDrawer(props: SourceDrawerProps) {
                 </MetisButton>
               </div>
               <div className="upload-steps"><span>1. 识别题目</span><span>2. 加入题单</span><span>3. 人工校验</span></div>
+            </div>
+          ) : null}
+
+          {props.mode === 'personalized' ? (
+            <div className="add-mode-content upload-panel personalized-panel">
+              <div className="upload-dropzone">
+                <div className="upload-icon"><Files size={28} /></div>
+                <h3>上传材料，生成针对性练习</h3>
+                <p>支持导入学生错题、课堂讲义或作业文件，AI 会提取薄弱点并生成一份个性化练习。</p>
+                <MetisButton
+                  type="primary"
+                  icon={<GraduationCap size={17} />}
+                  loading={props.addStatus === 'loading'}
+                  disabled={props.contentBusy}
+                  onClick={props.onPersonalize}
+                  data-track="/click/aiQuestionHome/personalizeFromFile | 上传材料生成个性化练习 | 无"
+                >
+                  选择材料并生成练习
+                </MetisButton>
+              </div>
+              <div className="upload-steps"><span>1. 解析材料</span><span>2. 识别薄弱点</span><span>3. 生成练习</span></div>
             </div>
           ) : null}
 

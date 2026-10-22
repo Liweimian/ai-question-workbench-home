@@ -14,7 +14,7 @@ import type {
 } from '../prototype/types'
 import { workbenchRepository } from '../services/workbenchRepository'
 
-type ContentOperation = 'source-add' | 'upload' | 'compose' | 'create' | 'manual' | 'history-load'
+type ContentOperation = 'source-add' | 'upload' | 'personalized' | 'compose' | 'create' | 'manual' | 'history-load'
 
 interface EditorState {
   document: WorkbenchDocument
@@ -238,7 +238,10 @@ export function useWorkbench() {
     setSourceAddStatus('idle')
     setComposeError('')
     setCreateError('')
-    if (mode === 'resource') void loadSources(resourceType)
+    if (mode === 'resource' || mode === 'school') {
+      const nextType = mode === 'school' && resourceType === 'special' ? 'paper' : resourceType
+      void loadSources(nextType)
+    }
   }, [loadSources, resourceType])
 
   const openAdd = useCallback((mode: AddQuestionMode = 'menu') => {
@@ -289,6 +292,21 @@ export function useWorkbench() {
       MetisMessage.error('材料识别失败，请重试')
     } finally {
       finishContentOperation('upload')
+    }
+  }, [appendQuestions, beginContentOperation, finishContentOperation])
+
+  const personalizeFromUpload = useCallback(async () => {
+    if (!beginContentOperation('personalized')) return
+    setSourceAddStatus('loading')
+    try {
+      const questions = await workbenchRepository.personalizeFromUpload()
+      appendQuestions(questions, `已根据上传材料生成 ${questions.length} 道个性化练习，请校验`)
+      setSourceAddStatus('success')
+    } catch {
+      setSourceAddStatus('error')
+      MetisMessage.error('个性化练习生成失败，请重试')
+    } finally {
+      finishContentOperation('personalized')
     }
   }, [appendQuestions, beginContentOperation, finishContentOperation])
 
@@ -520,6 +538,7 @@ export function useWorkbench() {
     loadSources,
     addSource,
     recognizeUpload,
+    personalizeFromUpload,
     composeFromBank,
     createQuestions,
     addCreatedQuestions,

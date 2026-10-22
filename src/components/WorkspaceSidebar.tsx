@@ -1,5 +1,5 @@
 import { MetisInput } from '@yuanfudao/metis-web-component'
-import { ChevronsLeft, ChevronsRight, FilePlus2, FileText, LoaderCircle, Search, Sparkles } from 'lucide-react'
+import { ChevronsLeft, ChevronsRight, FilePlus2, FileText, FolderHeart, LoaderCircle, Search, Sparkles } from 'lucide-react'
 import type { AsyncStatus, HistoryDocumentSummary, WorkbenchDocument } from '../prototype/types'
 
 interface WorkspaceSidebarProps {
@@ -12,7 +12,7 @@ interface WorkspaceSidebarProps {
   onCollapsedChange: (collapsed: boolean) => void
   onQueryChange: (value: string) => void
   onCreateNew: () => void
-  onOpenAi: () => void
+  onOpenMyResources: () => void
   onOpenDocument: (documentId: string) => void
   onReload: () => void
 }
@@ -36,8 +36,8 @@ export function WorkspaceSidebar(props: WorkspaceSidebarProps) {
     return (
       <aside className="workspace-space-nav is-collapsed" aria-label="组题空间导航">
         <button type="button" aria-label="展开组题空间" onClick={() => props.onCollapsedChange(false)}><ChevronsRight size={17} /></button>
-        <button type="button" aria-label="新建题单" disabled={props.contentBusy} onClick={props.onCreateNew}><FilePlus2 size={17} /></button>
-        <button type="button" aria-label="AI 组题助手" disabled={props.contentBusy} onClick={props.onOpenAi}><Sparkles size={17} /></button>
+        <button type="button" className="is-primary" aria-label="新建题单" disabled={props.contentBusy} onClick={props.onCreateNew}><FilePlus2 size={17} /></button>
+        <button type="button" aria-label="我的资源" disabled={props.contentBusy} onClick={props.onOpenMyResources}><FolderHeart size={17} /></button>
       </aside>
     )
   }
@@ -51,8 +51,8 @@ export function WorkspaceSidebar(props: WorkspaceSidebarProps) {
       </header>
 
       <nav className="space-nav-actions" aria-label="组题空间操作">
-        <button type="button" disabled={props.contentBusy} onClick={props.onCreateNew}><FilePlus2 size={16} /><span>新建题单</span></button>
-        <button type="button" disabled={props.contentBusy} onClick={props.onOpenAi}><Sparkles size={16} /><span>AI 组题助手</span><em>AI</em></button>
+        <button type="button" className="is-primary" disabled={props.contentBusy} onClick={props.onCreateNew}><FilePlus2 size={16} /><span>新建题单</span></button>
+        <button type="button" disabled={props.contentBusy} onClick={props.onOpenMyResources}><FolderHeart size={16} /><span>我的资源</span></button>
       </nav>
 
       <div className="space-nav-search">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisInput } from '@yuanfudao/metis-web-component'
-import { BookOpenCheck, BrainCircuit, FilePenLine, FileUp, Send, Sparkles, X } from 'lucide-react'
+import { BookOpenCheck, BrainCircuit, FileUp, GraduationCap, School, Send, Sparkles, X } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 
@@ -16,23 +16,38 @@ interface EmptyCanvasProps {
   onOpenAdd: (mode: AddQuestionMode) => void
 }
 
-const quickStarts: Array<{
-  mode: Exclude<AddQuestionMode, 'menu'>
-  label: string
-  icon: typeof Sparkles
-  primary?: boolean
+const quickStartGroups: Array<{
+  title: string
+  items: Array<{
+    mode: Exclude<AddQuestionMode, 'menu' | 'manual'>
+    label: string
+    description: string
+    icon: typeof Sparkles
+    primary?: boolean
+  }>
 }> = [
-  { mode: 'resource', label: '从题库选题', icon: BookOpenCheck, primary: true },
-  { mode: 'compose', label: 'AI 智能组题', icon: BrainCircuit },
-  { mode: 'create', label: 'AI 出题', icon: Sparkles },
-  { mode: 'upload', label: '上传录题', icon: FileUp },
-  { mode: 'manual', label: '手工录入', icon: FilePenLine },
+  {
+    title: '添加已有内容',
+    items: [
+      { mode: 'resource', label: '飞象题库选题', description: '平台题库', icon: BookOpenCheck, primary: true },
+      { mode: 'school', label: '校本题库选题', description: '本校资源', icon: School },
+      { mode: 'upload', label: '上传文件 AI 录题', description: '材料转题目', icon: FileUp },
+    ],
+  },
+  {
+    title: 'AI 创作',
+    items: [
+      { mode: 'compose', label: 'AI 组题', description: '从题库智能挑题', icon: BrainCircuit },
+      { mode: 'create', label: 'AI 命题', description: '生成全新题目', icon: Sparkles },
+      { mode: 'personalized', label: '生成个性化练习', description: '上传材料与学情', icon: GraduationCap },
+    ],
+  },
 ]
 
 const promptSuggestions = [
   '组一份 20 分钟的一次函数随堂练习',
   '从题库找 8 道一次函数基础题',
-  '按基础 6 题、提升 4 题做分层作业',
+  '根据班级错题生成一份分层练习',
 ]
 
 export function EmptyCanvas(props: EmptyCanvasProps) {
@@ -81,11 +96,11 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         </div>
 
         {props.aiOpen ? (
-          <section className="inline-ai-dialog" aria-label="AI 组题助手">
+          <section className="inline-ai-dialog" aria-label="AI 助手">
             <header>
               <span><Sparkles size={17} /></span>
-              <div><strong>AI 组题助手</strong><small>优先使用题库原题，并保留来源</small></div>
-              <button type="button" aria-label="关闭 AI 组题助手" onClick={closeAi}><X size={16} /></button>
+              <div><strong>AI 助手</strong><small>默认从题库组题，也可以继续进入 AI 命题</small></div>
+              <button type="button" aria-label="关闭 AI 助手" onClick={closeAi}><X size={16} /></button>
             </header>
             <div className="inline-ai-input">
               <MetisInput
@@ -108,16 +123,25 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             {props.aiError ? <p className="inline-ai-error" role="alert">{props.aiError}</p> : null}
             <footer>
               <span>Enter 发送 · Esc 关闭</span>
-              <button type="button" disabled={!prompt.trim() || props.aiStatus === 'loading'} onClick={() => props.onStartAi('create', prompt.trim())}><Sparkles size={13} />改为 AI 原创出题</button>
+              <button type="button" disabled={!prompt.trim() || props.aiStatus === 'loading'} onClick={() => props.onStartAi('create', prompt.trim())}><Sparkles size={13} />转为 AI 命题</button>
             </footer>
           </section>
         ) : null}
 
         <section className="empty-quick-start" aria-label="快速开始">
-          <span>快速开始</span>
-          <div>
-            {quickStarts.map(({ mode, label, icon: Icon, primary }) => (
-              <button type="button" key={mode} className={primary ? 'is-primary' : ''} onClick={() => props.onOpenAdd(mode)}><Icon size={15} />{label}</button>
+          <div className="quick-start-heading"><strong>快速开始</strong><span>也可以直接选择一种方式开始</span></div>
+          <div className="quick-start-groups">
+            {quickStartGroups.map((group) => (
+              <div className="quick-start-group" key={group.title}>
+                <span>{group.title}</span>
+                <div>
+                  {group.items.map(({ mode, label, description, icon: Icon, primary }) => (
+                    <button type="button" key={mode} className={primary ? 'is-primary' : ''} onClick={() => props.onOpenAdd(mode)}>
+                      <Icon size={16} /><span><strong>{label}</strong><small>{description}</small></span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </section>
