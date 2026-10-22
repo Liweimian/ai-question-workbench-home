@@ -1,7 +1,11 @@
 export type EntityId = string
 export type AsyncStatus = 'idle' | 'loading' | 'success' | 'error'
-export type SourceType = 'workbook' | 'paper' | 'list' | 'chapter' | 'recording' | 'generate'
+export type ResourceType = 'workbook' | 'paper' | 'list' | 'chapter'
+export type AddQuestionMode = 'menu' | 'resource' | 'compose' | 'create' | 'upload' | 'manual'
+export type NavigatorView = 'questions' | 'history'
+export type InspectorView = 'info' | 'ai'
 export type Difficulty = '基础' | '中等' | '提升'
+export type QuestionOrigin = 'question-bank' | 'ai-original' | 'upload' | 'manual'
 
 export interface Question {
   id: EntityId
@@ -13,7 +17,12 @@ export interface Question {
   knowledgePoint: string
   difficulty: Difficulty
   estimatedMinutes: number
+  score: number
   sourceLabel: string
+  sourceDetail?: string
+  origin: QuestionOrigin
+  verifyStatus?: '待校验' | '已校验'
+  usageCount?: number
 }
 
 export interface WorkbenchDocument {
@@ -24,8 +33,18 @@ export interface WorkbenchDocument {
   updatedAt: string
 }
 
+export interface HistoryDocumentSummary {
+  id: EntityId
+  title: string
+  gradeSubject: string
+  questionCount: number
+  updatedAt: string
+  status: '草稿' | '已保存' | '已布置'
+  origin: 'AI 组题' | '手工组题' | '上传录题'
+}
+
 export interface SourceOption {
-  type: SourceType
+  type: ResourceType
   title: string
   description: string
   eyebrow: string
@@ -33,7 +52,7 @@ export interface SourceOption {
 
 export interface SourceRecord {
   id: EntityId
-  sourceType: SourceType
+  sourceType: ResourceType
   title: string
   meta: string
   questionCount: number
@@ -46,9 +65,13 @@ export interface RewriteRequest {
 }
 
 export interface WorkbenchRepository {
-  loadRecent(): Promise<WorkbenchDocument>
-  loadSource(sourceType: SourceType): Promise<SourceRecord[]>
-  addSource(sourceType: SourceType, sourceId?: EntityId): Promise<Question[]>
-  generate(prompt: string): Promise<Question[]>
+  listHistory(): Promise<HistoryDocumentSummary[]>
+  loadDocument(documentId: EntityId): Promise<WorkbenchDocument>
+  loadSource(resourceType: ResourceType): Promise<SourceRecord[]>
+  addSource(resourceType: ResourceType, sourceId?: EntityId): Promise<Question[]>
+  recognizeUpload(): Promise<Question[]>
+  composeFromBank(prompt: string): Promise<Question[]>
+  createQuestions(prompt: string): Promise<Question[]>
+  createManualQuestion(): Promise<Question>
   rewrite(question: Question, request: RewriteRequest): Promise<Question>
 }

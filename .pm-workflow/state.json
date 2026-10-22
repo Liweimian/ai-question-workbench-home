@@ -12,18 +12,22 @@
       "name": "Demo 创作",
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
-      "completedAt": "2026-10-22T12:24:09+08:00",
-      "iterationCount": 1,
+      "completedAt": "2026-10-22T12:45:30+08:00",
+      "iterationCount": 2,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
+        "src/components/QuestionNavigator.tsx",
+        "src/components/AiInspector.tsx",
+        "src/components/SourceDrawer.tsx",
         "src/hooks/useWorkbench.ts",
         "dist/"
       ],
       "verification": [
         "npm run typecheck",
         "npm run build",
-        "browser 1280x720",
-        "browser 1440x900"
+        "browser three-column visual inspection",
+        "browser history flow",
+        "browser AI compose/create/rewrite flows"
       ]
     },
     "2": {
@@ -52,5 +56,5 @@
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
-  "updatedAt": "2026-10-22T12:24:09+08:00"
+  "updatedAt": "2026-10-22T12:45:30+08:00"
 }

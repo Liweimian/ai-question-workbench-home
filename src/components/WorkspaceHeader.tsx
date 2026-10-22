@@ -22,9 +22,9 @@ export function WorkspaceHeader({ questionCount, canUndo, onUndo, onAdd }: Works
     <header className="fx-page-header workspace-header" data-sec="1">
       <div className="header-identity">
         <div className="breadcrumb-row">
-          <span>首页</span>
+          <span>AI 题库</span>
           <span className="breadcrumb-divider">/</span>
-          <strong>AI 题库工作台</strong>
+          <strong>组题工作台</strong>
         </div>
         <button
           className="scope-switch"
@@ -50,9 +50,9 @@ export function WorkspaceHeader({ questionCount, canUndo, onUndo, onAdd }: Works
           type="bordered"
           icon={<Plus size={17} />}
           onClick={onAdd}
-          data-track="/click/aiQuestionHome/openAddContent | 打开添加内容 | 无"
+          data-track="/click/aiQuestionHome/openAddQuestion | 打开添加题目 | 无"
         >
-          添加内容
+          添加题目
         </MetisButton>
         <span className="header-action-divider" />
         <MetisButton

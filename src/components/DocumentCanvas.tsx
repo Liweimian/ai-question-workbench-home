@@ -1,5 +1,5 @@
 import { MetisButton, MetisInput } from '@yuanfudao/metis-web-component'
-import { ArrowDown, ArrowUp, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, GripVertical, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
 import type { WorkbenchDocument } from '../prototype/types'
 
 interface DocumentCanvasProps {
@@ -18,29 +18,30 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
   const totalMinutes = props.document.questions.reduce((sum, question) => sum + question.estimatedMinutes, 0)
 
   return (
-    <article className="paper-canvas" data-sec="4" aria-label="题单编辑画布">
-      <header className="paper-heading">
+    <article className="editor-document" data-sec="3" aria-label="题单编辑区">
+      <header className="editor-document-heading">
         <MetisInput
           value={props.document.title}
           onChange={(event) => props.onTitleChange(event.target.value)}
-          className="paper-title-input"
-          aria-label="文档标题"
+          className="editor-title-input"
+          aria-label="题单标题"
         />
         <p>{props.document.gradeSubject}</p>
-        <div className="paper-summary">
+        <div className="editor-document-summary">
           <span>{props.document.questions.length} 道题</span>
           <span>预计 {totalMinutes} 分钟</span>
-          <span>本地演示草稿 · {props.document.updatedAt}</span>
+          <span>自动保存 · {props.document.updatedAt}</span>
         </div>
       </header>
 
-      <div className="question-list">
+      <div className="editor-question-list">
         {props.document.questions.map((question, index) => {
           const selected = question.id === props.selectedQuestionId
           return (
             <section
+              id={`question-${question.id}`}
               key={question.id}
-              className={`question-card${selected ? ' is-selected' : ''}`}
+              className={`editor-question${selected ? ' is-selected' : ''}`}
               onClick={() => props.onSelectQuestion(question.id)}
               onKeyDown={(event) => {
                 if (event.target !== event.currentTarget) return
@@ -54,7 +55,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
               aria-label={`第 ${index + 1} 题`}
             >
               {selected ? (
-                <div className="question-toolbar" onClick={(event) => event.stopPropagation()}>
+                <div className="editor-question-toolbar" onClick={(event) => event.stopPropagation()}>
                   <MetisButton type="borderless" icon={<Sparkles size={15} />} onClick={props.onOpenAi}>AI 改编</MetisButton>
                   <MetisButton type="borderless" icon={<Pencil size={15} />} onClick={props.onEditQuestion}>编辑</MetisButton>
                   <MetisButton type="borderless" icon={<ArrowUp size={15} />} onClick={() => props.onMoveQuestion(-1)} aria-label="上移" />
@@ -63,30 +64,26 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
                   <MetisButton type="borderless" icon={<Trash2 size={15} />} onClick={props.onDeleteQuestion} aria-label="删除题目" />
                 </div>
               ) : null}
-              <div className="question-meta">
-                <span className="question-index">{index + 1}</span>
-                <span>{question.type}</span>
-                <span>{question.difficulty}</span>
-                <span>{question.knowledgePoint}</span>
-                <span className="question-source">来自：{question.sourceLabel}</span>
+              <div className="editor-question-number">
+                <GripVertical size={15} />
+                <span>{index + 1}</span>
+                <em>{question.type}</em>
+                {question.origin === 'ai-original' ? <strong><Sparkles size={12} />AI 原创 · 待校验</strong> : null}
               </div>
-              <div className="question-stem">{question.stem}</div>
+              <div className="editor-question-stem">{question.stem}</div>
               {question.options ? (
-                <div className="question-options">
+                <div className="editor-question-options">
                   {question.options.map((option) => <span key={option}>{option}</span>)}
                 </div>
               ) : null}
-              <div className="question-answer">
-                <strong>答案</strong><span>{question.answer}</span>
-                <strong>解析</strong><span>{question.analysis}</span>
-              </div>
+              <div className="editor-question-hint">答案与解析请查看右侧题目信息</div>
             </section>
           )
         })}
       </div>
 
-      <div className="paper-add-row">
-        <MetisButton type="borderless" icon={<Plus size={16} />} onClick={props.onAdd}>继续添加内容</MetisButton>
+      <div className="editor-add-row">
+        <MetisButton type="borderless" icon={<Plus size={16} />} onClick={props.onAdd}>继续添加题目</MetisButton>
       </div>
     </article>
   )

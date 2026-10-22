@@ -1,7 +1,13 @@
-import { baseQuestions, recentDocument, sourceRecords } from '../data/workbenchData'
-import type { Question, SourceType, WorkbenchRepository } from '../prototype/types'
+import {
+  baseQuestions,
+  historyDocuments,
+  historySummaries,
+  sourceRecords,
+} from '../data/workbenchData'
+import type { Difficulty, Question, ResourceType, WorkbenchRepository } from '../prototype/types'
 
 const delay = (duration: number) => new Promise((resolve) => window.setTimeout(resolve, duration))
+
 const cloneQuestion = (question: Question, suffix: string): Question => ({
   ...question,
   id: `${question.id}-${suffix}`,
@@ -19,61 +25,124 @@ function getRequestedQuestionPlan(prompt: string) {
   return { count: Math.min(12, Math.max(1, requested)), basic: null }
 }
 
+function plannedDifficulty(index: number, fallback: Difficulty, basic: number | null): Difficulty {
+  if (basic === null) return fallback
+  return index < basic ? '基础' : '提升'
+}
+
 export const workbenchRepository: WorkbenchRepository = {
-  async loadRecent() {
+  async listHistory() {
+    await delay(280)
+    return historySummaries.map((summary) => ({ ...summary }))
+  },
+
+  async loadDocument(documentId) {
     await delay(420)
+    const document = historyDocuments.find((item) => item.id === documentId)
+    if (!document) throw new Error('未找到该历史题单')
     return {
-      ...recentDocument,
-      questions: recentDocument.questions.map((question) => cloneQuestion(question, 'recent')),
+      ...document,
+      questions: document.questions.map((question, index) => cloneQuestion(question, `${documentId}-${index}`)),
     }
   },
 
-  async loadSource(sourceType: SourceType) {
+  async loadSource(resourceType: ResourceType) {
     await delay(260)
-    return sourceRecords.filter((record) => record.sourceType === sourceType)
+    return sourceRecords.filter((record) => record.sourceType === resourceType)
   },
 
-  async addSource(sourceType: SourceType, sourceId?: string) {
-    await delay(sourceType === 'recording' ? 900 : 520)
-    const labelMap: Record<SourceType, string> = {
+  async addSource(resourceType: ResourceType, sourceId?: string) {
+    await delay(520)
+    const labelMap: Record<ResourceType, string> = {
       workbook: '53 天天练',
       paper: '一次函数单元达标卷',
       list: '一次函数易错题精选',
       chapter: '章节 / 知识点选题',
-      recording: 'AI 录题 · 上传文件',
-      generate: 'AI 组题',
     }
     const selectedSource = sourceRecords.find((record) => record.id === sourceId)
-    return baseQuestions.slice(0, sourceType === 'recording' ? 3 : 2).map((question, index) => ({
-      ...cloneQuestion(question, `${sourceType}-${sourceId ?? Date.now()}-${index}`),
-      sourceLabel: selectedSource?.title ?? labelMap[sourceType],
+    return baseQuestions.slice(0, 2).map((question, index) => ({
+      ...cloneQuestion(question, `${resourceType}-${sourceId ?? Date.now()}-${index}`),
+      sourceLabel: selectedSource?.title ?? labelMap[resourceType],
+      sourceDetail: selectedSource?.meta ?? question.sourceDetail,
+      origin: 'question-bank' as const,
+      verifyStatus: '已校验' as const,
     }))
   },
 
-  async generate(prompt: string) {
-    await delay(850)
-    if (prompt.includes('模拟失败')) throw new Error('AI 服务暂时不可用，请稍后重试')
+  async recognizeUpload() {
+    await delay(900)
+    return baseQuestions.slice(1, 3).map((question, index) => ({
+      ...cloneQuestion(question, `upload-${Date.now()}-${index}`),
+      sourceLabel: 'AI 录题 · 教辅扫描件',
+      sourceDetail: '八年级数学教辅.pdf · 第 12—13 页',
+      origin: 'upload' as const,
+      verifyStatus: '待校验' as const,
+    }))
+  },
+
+  async composeFromBank(prompt: string) {
+    await delay(820)
+    if (prompt.includes('模拟失败')) throw new Error('题库检索服务暂时不可用，请稍后重试')
     const plan = getRequestedQuestionPlan(prompt)
     return Array.from({ length: plan.count }, (_, index) => {
       const question = baseQuestions[index % baseQuestions.length]
-      const variantRound = Math.floor(index / baseQuestions.length)
       return {
-        ...cloneQuestion(question, `generated-${Date.now()}-${index}`),
-        sourceLabel: 'AI 组题',
-        difficulty: plan.basic === null ? question.difficulty : index < plan.basic ? '基础' as const : '提升' as const,
-        stem: index === 0
-          ? `根据“${prompt}”生成：${question.stem}`
-          : variantRound > 0
-            ? `${question.stem}（同考点变式 ${variantRound + 1}）`
-            : question.stem,
+        ...cloneQuestion(question, `composed-${Date.now()}-${index}`),
+        difficulty: plannedDifficulty(index, question.difficulty, plan.basic),
+        sourceLabel: question.sourceLabel,
+        sourceDetail: `AI 组题命中 · ${question.sourceDetail ?? '飞象题库'}`,
+        origin: 'question-bank' as const,
+        verifyStatus: '已校验' as const,
       }
     })
+  },
+
+  async createQuestions(prompt: string) {
+    await delay(960)
+    if (prompt.includes('模拟失败')) throw new Error('AI 出题服务暂时不可用，请稍后重试')
+    const plan = getRequestedQuestionPlan(prompt)
+    return Array.from({ length: plan.count }, (_, index) => {
+      const question = baseQuestions[(index + 1) % baseQuestions.length]
+      const round = Math.floor(index / baseQuestions.length) + 1
+      return {
+        ...cloneQuestion(question, `created-${Date.now()}-${index}`),
+        stem: index === 0
+          ? `根据“${prompt}”原创：${question.stem}`
+          : `${question.stem}（AI 原创变式 ${round}）`,
+        difficulty: plannedDifficulty(index, question.difficulty, plan.basic),
+        sourceLabel: 'AI 原创',
+        sourceDetail: '根据教师要求实时生成',
+        origin: 'ai-original' as const,
+        verifyStatus: '待校验' as const,
+        usageCount: 0,
+      }
+    })
+  },
+
+  async createManualQuestion() {
+    await delay(280)
+    return {
+      ...cloneQuestion(baseQuestions[1], `manual-${Date.now()}`),
+      stem: '请在此补充手工录入的题目内容。',
+      options: undefined,
+      answer: '待填写',
+      analysis: '待填写',
+      sourceLabel: '手工录入',
+      sourceDetail: '李老师 · 刚刚创建',
+      origin: 'manual',
+      verifyStatus: '待校验',
+      usageCount: 0,
+    }
   },
 
   async rewrite(question, request) {
     await delay(620)
     const rewritten = cloneQuestion(question, `rewrite-${Date.now()}`)
     rewritten.id = question.id
+    rewritten.sourceLabel = 'AI 改编'
+    rewritten.sourceDetail = `基于“${question.sourceLabel}”改编`
+    rewritten.origin = 'ai-original'
+    rewritten.verifyStatus = '待校验'
     if (request.instruction === '换生活情境') {
       rewritten.stem = '某共享单车按骑行时长计费，起步价为 3 元，此后每 10 分钟增加 2 元。请写出费用 y（元）与计费时段 x（个）之间的函数关系式。'
       rewritten.type = '解答题'

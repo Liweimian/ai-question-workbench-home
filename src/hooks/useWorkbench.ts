@@ -1,19 +1,21 @@
-import { useCallback, useMemo, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
 import { recentDocument } from '../data/workbenchData'
 import type {
+  AddQuestionMode,
   AsyncStatus,
+  HistoryDocumentSummary,
+  InspectorView,
+  NavigatorView,
   Question,
+  ResourceType,
   RewriteRequest,
   SourceRecord,
-  SourceType,
   WorkbenchDocument,
 } from '../prototype/types'
 import { workbenchRepository } from '../services/workbenchRepository'
 
-type ActivePanel = 'source' | 'ai' | null
-type SourceMode = 'resource' | 'upload' | 'generate'
-type ContentOperation = 'source-add' | 'generate' | 'recent'
+type ContentOperation = 'source-add' | 'upload' | 'compose' | 'create' | 'manual' | 'history-load'
 
 interface EditorState {
   document: WorkbenchDocument
@@ -29,20 +31,13 @@ type EditorAction =
   | { type: 'delete'; selectedQuestionId: string }
   | { type: 'undo' }
 
-const emptyDocument: WorkbenchDocument = {
-  id: 'draft-new',
-  title: '未命名',
-  gradeSubject: '初中数学 · 八年级上册 · 人教版',
-  questions: [],
-  updatedAt: '刚刚',
-}
-
 const cloneQuestion = (question: Question): Question => ({
   ...question,
   options: question.options ? [...question.options] : undefined,
 })
 
 const cloneQuestions = (questions: Question[]) => questions.map(cloneQuestion)
+
 const cloneDocument = (document: WorkbenchDocument): WorkbenchDocument => ({
   ...document,
   questions: cloneQuestions(document.questions),
@@ -51,8 +46,8 @@ const cloneDocument = (document: WorkbenchDocument): WorkbenchDocument => ({
 function editorReducer(state: EditorState, action: EditorAction): EditorState {
   if (action.type === 'set-title') {
     return {
-      document: { ...state.document, title: action.title },
-      undoDocument: state.undoDocument ? { ...state.undoDocument, title: action.title } : null,
+      document: { ...state.document, title: action.title, updatedAt: '刚刚' },
+      undoDocument: state.undoDocument,
     }
   }
 
@@ -60,7 +55,7 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     return {
       document: {
         ...state.document,
-        title: state.document.title === '未命名' ? '八年级数学练习' : state.document.title,
+        title: state.document.title === '未命名' ? '新建题单' : state.document.title,
         questions: [...state.document.questions, ...cloneQuestions(action.questions)],
         updatedAt: '刚刚',
       },
@@ -126,23 +121,35 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
 }
 
 export function useWorkbench() {
-  const [editor, dispatch] = useReducer(editorReducer, { document: emptyDocument, undoDocument: null })
-  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null)
-  const [activePanel, setActivePanel] = useState<ActivePanel>(null)
-  const [sourceMode, setSourceModeState] = useState<SourceMode>('resource')
-  const [resourceType, setResourceType] = useState<SourceType>('paper')
+  const [editor, dispatch] = useReducer(editorReducer, {
+    document: cloneDocument(recentDocument),
+    undoDocument: null,
+  })
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(recentDocument.questions[0]?.id ?? null)
+  const [navigatorView, setNavigatorView] = useState<NavigatorView>('questions')
+  const [inspectorView, setInspectorView] = useState<InspectorView>('info')
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [addMode, setAddModeState] = useState<AddQuestionMode>('menu')
+  const [resourceType, setResourceType] = useState<ResourceType>('paper')
   const [sourceRecords, setSourceRecords] = useState<SourceRecord[]>([])
   const [sourceListStatus, setSourceListStatus] = useState<AsyncStatus>('idle')
   const [sourceAddStatus, setSourceAddStatus] = useState<AsyncStatus>('idle')
-  const [recentStatus, setRecentStatus] = useState<AsyncStatus>('idle')
-  const [prompt, setPrompt] = useState('')
-  const [promptError, setPromptError] = useState('')
-  const [generateStatus, setGenerateStatus] = useState<AsyncStatus>('idle')
+  const [historyStatus, setHistoryStatus] = useState<AsyncStatus>('idle')
+  const [historyDocuments, setHistoryDocuments] = useState<HistoryDocumentSummary[]>([])
+  const [historyQuery, setHistoryQuery] = useState('')
+  const [composePrompt, setComposePrompt] = useState('')
+  const [composeError, setComposeError] = useState('')
+  const [composeStatus, setComposeStatus] = useState<AsyncStatus>('idle')
+  const [createPrompt, setCreatePrompt] = useState('')
+  const [createError, setCreateError] = useState('')
+  const [createStatus, setCreateStatus] = useState<AsyncStatus>('idle')
+  const [createPreview, setCreatePreview] = useState<Question[]>([])
   const [rewriteStatus, setRewriteStatus] = useState<AsyncStatus>('idle')
   const [rewritePreview, setRewritePreview] = useState<Question | null>(null)
   const [contentOperation, setContentOperation] = useState<ContentOperation | null>(null)
   const contentOperationRef = useRef<ContentOperation | null>(null)
   const sourceRequestIdRef = useRef(0)
+  const historyRequestIdRef = useRef(0)
   const rewriteRequestIdRef = useRef(0)
 
   const document = editor.document
@@ -167,7 +174,25 @@ export function useWorkbench() {
     setContentOperation(null)
   }, [])
 
-  const loadSources = useCallback(async (type: SourceType) => {
+  const loadHistoryList = useCallback(async () => {
+    const requestId = historyRequestIdRef.current + 1
+    historyRequestIdRef.current = requestId
+    setHistoryStatus('loading')
+    try {
+      const summaries = await workbenchRepository.listHistory()
+      if (historyRequestIdRef.current !== requestId) return
+      setHistoryDocuments(summaries)
+      setHistoryStatus('success')
+    } catch {
+      if (historyRequestIdRef.current === requestId) setHistoryStatus('error')
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadHistoryList()
+  }, [loadHistoryList])
+
+  const loadSources = useCallback(async (type: ResourceType) => {
     const requestId = sourceRequestIdRef.current + 1
     sourceRequestIdRef.current = requestId
     setResourceType(type)
@@ -182,100 +207,158 @@ export function useWorkbench() {
     }
   }, [])
 
-  const setSourceMode = useCallback((mode: SourceMode) => {
-    setSourceModeState(mode)
+  const setAddMode = useCallback((mode: AddQuestionMode) => {
+    setAddModeState(mode)
     setSourceAddStatus('idle')
-  }, [])
-
-  const openSourcePanel = useCallback((mode: SourceMode = 'resource') => {
-    rewriteRequestIdRef.current += 1
-    setActivePanel('source')
-    setSourceModeState(mode)
-    setSourceAddStatus('idle')
-    setRewriteStatus('idle')
-    setRewritePreview(null)
+    setComposeError('')
+    setCreateError('')
     if (mode === 'resource') void loadSources(resourceType)
   }, [loadSources, resourceType])
 
-  const openAiPanel = useCallback(() => {
-    if (!selectedQuestionId) return
-    setActivePanel('ai')
-    setRewriteStatus('idle')
-    setRewritePreview(null)
-  }, [selectedQuestionId])
+  const openAdd = useCallback((mode: AddQuestionMode = 'menu') => {
+    setIsAddOpen(true)
+    setAddMode(mode)
+  }, [setAddMode])
 
-  const closePanel = useCallback(() => {
-    rewriteRequestIdRef.current += 1
-    setActivePanel(null)
-    setRewriteStatus('idle')
-    setRewritePreview(null)
+  const closeAdd = useCallback(() => {
+    setIsAddOpen(false)
+    setAddModeState('menu')
+    setCreatePreview([])
   }, [])
 
   const appendQuestions = useCallback((questions: Question[], message: string) => {
+    if (questions.length === 0) return
     dispatch({ type: 'append', questions })
+    setSelectedQuestionId(questions[0].id)
+    setNavigatorView('questions')
+    setInspectorView('info')
     MetisMessage.success(message)
   }, [])
 
-  const addSource = useCallback(async (type: SourceType, sourceId?: string) => {
+  const addSource = useCallback(async (type: ResourceType, sourceId?: string) => {
     if (!beginContentOperation('source-add')) return
     setSourceAddStatus('loading')
     try {
       const questions = await workbenchRepository.addSource(type, sourceId)
-      appendQuestions(questions, `已添加 ${questions.length} 道题，可继续添加或完成`)
+      appendQuestions(questions, `已从题库添加 ${questions.length} 道题`)
       setSourceAddStatus('success')
     } catch {
       setSourceAddStatus('error')
-      MetisMessage.error(type === 'recording' ? '材料识别失败，请重试' : '内容添加失败，请重试')
+      MetisMessage.error('题目添加失败，请重试')
     } finally {
       finishContentOperation('source-add')
     }
   }, [appendQuestions, beginContentOperation, finishContentOperation])
 
-  const generate = useCallback(async () => {
-    const value = prompt.trim()
+  const recognizeUpload = useCallback(async () => {
+    if (!beginContentOperation('upload')) return
+    setSourceAddStatus('loading')
+    try {
+      const questions = await workbenchRepository.recognizeUpload()
+      appendQuestions(questions, `已识别并添加 ${questions.length} 道题，请校验`)
+      setSourceAddStatus('success')
+    } catch {
+      setSourceAddStatus('error')
+      MetisMessage.error('材料识别失败，请重试')
+    } finally {
+      finishContentOperation('upload')
+    }
+  }, [appendQuestions, beginContentOperation, finishContentOperation])
+
+  const composeFromBank = useCallback(async () => {
+    const value = composePrompt.trim()
     if (!value) {
-      setPromptError('请先描述希望生成的题目')
+      setComposeError('请描述知识点、题量或难度要求')
       return
     }
-    if (!beginContentOperation('generate')) return
-    setPromptError('')
-    setGenerateStatus('loading')
+    if (!beginContentOperation('compose')) return
+    setComposeError('')
+    setComposeStatus('loading')
     try {
-      const questions = await workbenchRepository.generate(value)
-      appendQuestions(questions, `AI 已生成并添加 ${questions.length} 道题`)
-      setPrompt('')
-      setGenerateStatus('success')
+      const questions = await workbenchRepository.composeFromBank(value)
+      appendQuestions(questions, `AI 已从题库挑选并添加 ${questions.length} 道题`)
+      setComposePrompt('')
+      setComposeStatus('success')
     } catch (error) {
-      setPromptError(error instanceof Error ? error.message : '生成失败，请稍后重试')
-      setGenerateStatus('error')
+      setComposeError(error instanceof Error ? error.message : '组题失败，请稍后重试')
+      setComposeStatus('error')
     } finally {
-      finishContentOperation('generate')
+      finishContentOperation('compose')
     }
-  }, [appendQuestions, beginContentOperation, finishContentOperation, prompt])
+  }, [appendQuestions, beginContentOperation, composePrompt, finishContentOperation])
 
-  const continueRecent = useCallback(async () => {
-    if (!beginContentOperation('recent')) return
-    setRecentStatus('loading')
-    try {
-      const nextDocument = await workbenchRepository.loadRecent()
-      dispatch({ type: 'load-document', document: nextDocument })
-      setRecentStatus('success')
-      MetisMessage.success(`已继续编辑：${recentDocument.title}`)
-    } catch {
-      setRecentStatus('error')
-      MetisMessage.error('最近文档加载失败，请重试')
-    } finally {
-      finishContentOperation('recent')
+  const createQuestions = useCallback(async () => {
+    const value = createPrompt.trim()
+    if (!value) {
+      setCreateError('请描述希望 AI 原创的题目')
+      return
     }
-  }, [beginContentOperation, finishContentOperation])
+    if (!beginContentOperation('create')) return
+    setCreateError('')
+    setCreateStatus('loading')
+    setCreatePreview([])
+    try {
+      const questions = await workbenchRepository.createQuestions(value)
+      setCreatePreview(questions)
+      setCreateStatus('success')
+    } catch (error) {
+      setCreateError(error instanceof Error ? error.message : '出题失败，请稍后重试')
+      setCreateStatus('error')
+    } finally {
+      finishContentOperation('create')
+    }
+  }, [beginContentOperation, createPrompt, finishContentOperation])
+
+  const addCreatedQuestions = useCallback(() => {
+    if (createPreview.length === 0) return
+    appendQuestions(createPreview, `已加入 ${createPreview.length} 道 AI 原创题，请校验`)
+    setCreatePreview([])
+    setCreatePrompt('')
+  }, [appendQuestions, createPreview])
+
+  const addManualQuestion = useCallback(async () => {
+    if (!beginContentOperation('manual')) return
+    setSourceAddStatus('loading')
+    try {
+      const question = await workbenchRepository.createManualQuestion()
+      appendQuestions([question], '已添加一道空白题，可继续编辑')
+      setSourceAddStatus('success')
+      closeAdd()
+    } catch {
+      setSourceAddStatus('error')
+      MetisMessage.error('空白题创建失败，请重试')
+    } finally {
+      finishContentOperation('manual')
+    }
+  }, [appendQuestions, beginContentOperation, closeAdd, finishContentOperation])
+
+  const openHistoryDocument = useCallback(async (documentId: string) => {
+    if (document.id === documentId) {
+      setNavigatorView('questions')
+      MetisMessage.info('这份题单已经打开')
+      return
+    }
+    if (!beginContentOperation('history-load')) return
+    try {
+      const nextDocument = await workbenchRepository.loadDocument(documentId)
+      dispatch({ type: 'load-document', document: nextDocument })
+      setSelectedQuestionId(nextDocument.questions[0]?.id ?? null)
+      setNavigatorView('questions')
+      setInspectorView('info')
+      MetisMessage.success(`已打开“${nextDocument.title}”，上一份草稿可撤销`)
+    } catch {
+      MetisMessage.error('历史题单加载失败，请重试')
+    } finally {
+      finishContentOperation('history-load')
+    }
+  }, [beginContentOperation, document.id, finishContentOperation])
 
   const selectQuestion = useCallback((questionId: string) => {
     rewriteRequestIdRef.current += 1
     setSelectedQuestionId(questionId)
-    if (activePanel === 'ai') setActivePanel(null)
     setRewriteStatus('idle')
     setRewritePreview(null)
-  }, [activePanel])
+  }, [])
 
   const rewrite = useCallback(async (instruction: RewriteRequest['instruction']) => {
     if (!selectedQuestion) return
@@ -303,6 +386,7 @@ export function useWorkbench() {
     if (!rewritePreview || !selectedQuestionId) return
     dispatch({ type: 'apply-rewrite', selectedQuestionId, preview: rewritePreview, mode })
     setRewritePreview(null)
+    setInspectorView('info')
     MetisMessage.success(mode === 'replace' ? '已替换原题，可撤销' : '已新增到原题下方')
   }, [rewritePreview, selectedQuestionId])
 
@@ -313,28 +397,31 @@ export function useWorkbench() {
 
   const deleteQuestion = useCallback(() => {
     if (!selectedQuestionId) return
+    const index = document.questions.findIndex((question) => question.id === selectedQuestionId)
+    const nextSelection = document.questions[index + 1]?.id ?? document.questions[index - 1]?.id ?? null
     rewriteRequestIdRef.current += 1
     dispatch({ type: 'delete', selectedQuestionId })
-    setSelectedQuestionId(null)
-    setActivePanel(null)
+    setSelectedQuestionId(nextSelection)
+    setInspectorView('info')
     setRewriteStatus('idle')
     setRewritePreview(null)
     MetisMessage.success('已删除题目，可撤销')
-  }, [selectedQuestionId])
+  }, [document.questions, selectedQuestionId])
 
   const undo = useCallback(() => {
     if (!editor.undoDocument) return
     rewriteRequestIdRef.current += 1
+    const restored = editor.undoDocument
     dispatch({ type: 'undo' })
-    setSelectedQuestionId(null)
-    setActivePanel(null)
+    setSelectedQuestionId(restored.questions[0]?.id ?? null)
+    setInspectorView('info')
     setRewriteStatus('idle')
     setRewritePreview(null)
     MetisMessage.success('已撤销上一步操作')
   }, [editor.undoDocument])
 
   const editQuestion = useCallback(() => {
-    MetisMessage.info('题目编辑已进入演示流程，本轮暂不保存正文修改')
+    MetisMessage.info('已进入题目编辑演示，正文修改暂不写入服务端')
   }, [])
 
   return {
@@ -342,29 +429,45 @@ export function useWorkbench() {
     setTitle: (title: string) => dispatch({ type: 'set-title', title }),
     selectedQuestion,
     selectedQuestionId,
-    activePanel,
-    sourceMode,
-    setSourceMode,
+    navigatorView,
+    setNavigatorView,
+    inspectorView,
+    setInspectorView,
+    isAddOpen,
+    addMode,
+    setAddMode,
     resourceType,
     sourceRecords,
     sourceListStatus,
     sourceAddStatus,
-    recentStatus,
-    prompt,
-    setPrompt,
-    promptError,
-    generateStatus,
+    historyStatus,
+    historyDocuments,
+    historyQuery,
+    setHistoryQuery,
+    composePrompt,
+    setComposePrompt,
+    composeError,
+    composeStatus,
+    createPrompt,
+    setCreatePrompt,
+    createError,
+    createStatus,
+    createPreview,
     rewriteStatus,
     rewritePreview,
     isContentBusy: contentOperation !== null,
     canUndo: Boolean(editor.undoDocument),
-    openSourcePanel,
-    openAiPanel,
-    closePanel,
+    openAdd,
+    closeAdd,
     loadSources,
     addSource,
-    generate,
-    continueRecent,
+    recognizeUpload,
+    composeFromBank,
+    createQuestions,
+    addCreatedQuestions,
+    addManualQuestion,
+    reloadHistory: loadHistoryList,
+    openHistoryDocument,
     selectQuestion,
     rewrite,
     applyRewrite,
