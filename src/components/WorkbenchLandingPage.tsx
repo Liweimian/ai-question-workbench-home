@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { MetisButton } from '@yuanfudao/metis-web-component'
-import { FilePlus2, FileText, FolderHeart, Sparkles } from 'lucide-react'
+import { FileText, FolderHeart, Plus, Sparkles } from 'lucide-react'
 import type {
   AsyncStatus,
   HistoryDocumentSummary,
@@ -57,7 +57,6 @@ export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
         </div>
         <div className="landing-actions">
           <MetisButton type="bordered" icon={<FolderHeart size={17} />} onClick={props.onOpenResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无">我的资源</MetisButton>
-          <MetisButton type="primary" icon={<FilePlus2 size={17} />} disabled={props.contentBusy} onClick={props.onCreateNew} data-track="/click/aiQuestionHome/createDocument | 新建组题 | 无">新建组题</MetisButton>
         </div>
       </header>
 
@@ -69,6 +68,17 @@ export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
             </div>
 
             <div className="recent-document-grid">
+              <button
+                type="button"
+                className="recent-create-card"
+                aria-label="新建组题"
+                title="新建组题"
+                disabled={props.contentBusy}
+                onClick={props.onCreateNew}
+                data-track="/click/aiQuestionHome/createDocument | 新建组题 | 无"
+              >
+                <Plus size={26} strokeWidth={1.8} />
+              </button>
               {recentDocuments.slice(0, 4).map((item, index) => (
                 <button
                   type="button"

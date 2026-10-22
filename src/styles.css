@@ -4386,8 +4386,35 @@
 
 .recent-document-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 72px repeat(4, minmax(0, 1fr));
   gap: 16px;
+}
+
+.recent-create-card {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--theme_primary1_selected2_color);
+  border-radius: var(--fx-radius-card);
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  cursor: pointer;
+  box-shadow: 0 1px 2px var(--common_shadow3_color);
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.recent-create-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--fx-primary);
+  background: var(--theme_primary1_selected2_color);
+  box-shadow: var(--fx-shadow-card);
+}
+
+.recent-create-card:disabled {
+  opacity: 0.62;
+  cursor: wait;
 }
 
 .recent-document-card {
