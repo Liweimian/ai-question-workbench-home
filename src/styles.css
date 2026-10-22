@@ -1762,28 +1762,27 @@
 
 .editor-question-list {
   display: grid;
-  gap: 14px;
+  gap: 26px;
   padding-top: 24px;
 }
 
 .editor-question {
   position: relative;
-  padding: 18px 18px 16px;
+  padding: 16px 18px 18px;
   border: 1px solid transparent;
-  border-radius: var(--fx-radius-control);
+  border-radius: var(--system-border-radius-s);
   cursor: pointer;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
 .editor-question:hover {
-  background: var(--common_bg_z1_color);
+  border-color: var(--fx-line-subtle);
 }
 
 .editor-question.is-selected {
-  padding-top: 50px;
   border-color: var(--aiq_card_border_selected);
   background: var(--common_bg2_color);
-  box-shadow: var(--aiq_card_shadow_selected);
+  box-shadow: none;
 }
 
 .editor-question:focus-visible {
@@ -1793,8 +1792,8 @@
 
 .editor-question-toolbar {
   position: absolute;
-  top: 7px;
-  right: 8px;
+  top: -18px;
+  right: 10px;
   display: flex;
   align-items: center;
   gap: 1px;
@@ -1803,6 +1802,35 @@
   border-radius: var(--aiq_radius_pill);
   background: var(--common_bg2_color);
   box-shadow: var(--fx-shadow-card);
+}
+
+.editor-question-drag {
+  position: absolute;
+  top: 17px;
+  left: -30px;
+  display: grid;
+  width: 24px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: var(--system-border-radius-s);
+  color: var(--common_level5_base_color);
+  background: transparent;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.editor-question:hover .editor-question-drag,
+.editor-question.is-selected .editor-question-drag,
+.editor-question-drag:focus-visible {
+  opacity: 1;
+}
+
+.editor-question-drag:hover {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
 }
 
 .question-format-control {
@@ -1833,18 +1861,10 @@
   font-size: 11px;
 }
 
-.editor-question-number > svg {
-  color: var(--common_level5_base_color);
-}
-
 .editor-question-number > span {
-  display: grid;
-  width: 22px;
-  height: 22px;
-  place-items: center;
-  border-radius: var(--aiq_radius_pill);
-  color: var(--common_level4_base_color);
-  background: var(--aiq_primary_gradient);
+  color: var(--fx-text-primary);
+  background: transparent;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -1887,14 +1907,6 @@
   margin-top: 12px;
   color: var(--fx-text-primary);
   font-family: "Songti SC", "STSong", serif;
-}
-
-.editor-question-hint {
-  margin-top: 13px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--fx-line-strong);
-  color: var(--fx-text-tertiary);
-  font-size: 10px;
 }
 
 .editor-add-row {

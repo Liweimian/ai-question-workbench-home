@@ -62,6 +62,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
               aria-label={`第 ${index + 1} 题`}
               style={{ '--question-font-size': `${questionStyle.fontSize}px`, '--question-line-height': questionStyle.lineHeight, '--question-letter-spacing': `${questionStyle.letterSpacing}px` } as React.CSSProperties}
             >
+              <button type="button" className="editor-question-drag" draggable aria-label={`拖动第 ${index + 1} 题`} onClick={(event) => event.stopPropagation()}><GripVertical size={16} /></button>
               {selected ? (
                 <div className="editor-question-toolbar" onClick={(event) => event.stopPropagation()}>
                   <MetisButton type="borderless" icon={<Sparkles size={15} />} onClick={props.onOpenAi}>AI 改编</MetisButton>
@@ -76,7 +77,6 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
                 </div>
               ) : null}
               <div className="editor-question-number">
-                <GripVertical size={15} />
                 <span>{index + 1}</span>
                 <em>{question.type}</em>
                 {question.origin === 'ai-original' ? <strong><Sparkles size={12} />AI 原创 · 待校验</strong> : null}
@@ -87,7 +87,6 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
                   {question.options.map((option) => <span key={option}>{option}</span>)}
                 </div>
               ) : null}
-              <div className="editor-question-hint">答案与解析请查看右侧题目信息</div>
             </section>
           )
         })}
