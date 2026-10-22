@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 49,
+      "iterationCount": 50,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -60,7 +60,8 @@
         "browser recent-section create tile flow",
         "browser unified three-column resource cards across all tabs",
         "browser resource-card date bottom-right position",
-        "browser legacy Feixiang visual-system alignment"
+        "browser legacy Feixiang visual-system alignment",
+        "browser legacy resource-detail workspace-tab flow"
       ]
     },
     "2": {
@@ -241,6 +242,11 @@
       "stage": 1,
       "hash": "710cfcd",
       "message": "Stage 1: Demo 创作完成 - 迭代 49"
+    },
+    {
+      "stage": 1,
+      "hash": "4b5d526",
+      "message": "Stage 1: Demo 创作完成 - 迭代 50"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
