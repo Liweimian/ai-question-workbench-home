@@ -52,7 +52,7 @@ const libraryQuickStarts: Array<{
 
 const inlineAiCapabilities = [
   { title: 'AI 组题', description: '从题库挑选并组合', icon: BrainCircuit, action: 'compose' as const },
-  { title: 'AI 组卷', description: '按考试要求组织试卷', icon: Layers3, action: 'paper' as const },
+  { title: 'AI 出题', description: '生成原创题并预览', icon: Layers3, action: 'create' as const },
   { title: '个性化练习', description: '结合材料与学情生成', icon: GraduationCap, action: 'personalized' as const },
   { title: 'AI 录题', description: '识别 PDF、Word、图片', icon: FileScan, action: 'upload' as const },
 ]
@@ -61,6 +61,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   const [prompt, setPrompt] = useState('')
   const [inlineAiMode, setInlineAiMode] = useState<'compose' | 'create'>('compose')
   const [blockIds, setBlockIds] = useState(['initial'])
+  const [hasBlockContent, setHasBlockContent] = useState(false)
   const [activeBlockId, setActiveBlockId] = useState('initial')
   const [addMenuRequests, setAddMenuRequests] = useState<Record<string, number>>({})
   const [selectionToolbar, setSelectionToolbar] = useState<{ x: number; y: number; text: string } | null>(null)
@@ -86,6 +87,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
 
   useEffect(() => {
     setBlockIds(['initial'])
+    setHasBlockContent(false)
     setActiveBlockId('initial')
     setAddMenuRequests({})
     window.requestAnimationFrame(() => blockRefs.current.get('initial')?.focus())
@@ -123,6 +125,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       const node = blockRefs.current.get(nextId)
       if (!node) return
       node.textContent = presets[action]
+      setHasBlockContent(true)
       node.focus()
     })
     MetisMessage.success('已插入试卷结构内容')
@@ -133,13 +136,13 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       props.onOpenAdd(action)
       return
     }
-    if (action === 'paper') {
-      setInlineAiMode('compose')
-      setPrompt('按八年级上册教学范围，组一份包含题型与分值配置的试卷')
-    }
     if (action === 'compose') {
       setInlineAiMode('compose')
       setPrompt('从题库组一份一次函数练习，包含基础题和提升题')
+    }
+    if (action === 'create') {
+      setInlineAiMode('create')
+      setPrompt('围绕一次函数知识点生成一组原创题目')
     }
     props.onAiOpen()
   }
@@ -191,7 +194,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
             <div className="empty-first-block" role="group" aria-label="题单内容块" key={blockId}>
-              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenAssistant={props.onAiOpen} />
+              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenAssistant={(action) => action ? activateAiCapability(action) : props.onAiOpen()} />
               <div
                 className="empty-block-input"
                 ref={(node) => {
@@ -207,6 +210,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                 onFocus={() => setActiveBlockId(blockId)}
                 onMouseUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
                 onKeyUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
+                onInput={() => setHasBlockContent(Array.from(blockRefs.current.values()).some((node) => Boolean(node.textContent?.trim())))}
                 onKeyDown={(event) => {
                   const isEmpty = !event.currentTarget.textContent?.trim()
                   const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
@@ -311,7 +315,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           </section>
         ) : null}
 
-        <section className="empty-quick-start" aria-label="快速开始">
+        {!hasBlockContent ? <section className="empty-quick-start" aria-label="快速开始">
           <div className="quick-start-heading"><strong>快速开始</strong><span>从具体能力直接开始</span></div>
           <div className="quick-start-groups">
             <div className="quick-start-group quick-start-group--library">
@@ -363,7 +367,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
               </div>
             </div>
           </div>
-        </section>
+        </section> : null}
       </div>
     </article>
   )

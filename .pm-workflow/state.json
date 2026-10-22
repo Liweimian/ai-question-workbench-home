@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 68,
+      "iterationCount": 69,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -89,7 +89,10 @@
         "browser direct fly and school chapter-picker entry flow",
         "browser AI paper preset from quick-start flow",
         "browser quick-start AI recording relocation flow",
-        "browser three-row Feixiang AI quick-start layout"
+        "browser three-row Feixiang AI quick-start layout",
+        "browser quick-start hide-after-content flow",
+        "browser expanded plus-menu parent and direct-child flow",
+        "browser AI question-generation rename and preset flow"
       ]
     },
     "2": {
@@ -360,6 +363,11 @@
       "stage": 1,
       "hash": "23605a0",
       "message": "Stage 1: Demo 创作完成 - 迭代 67"
+    },
+    {
+      "stage": 1,
+      "hash": "657f0c1",
+      "message": "Stage 1: Demo 创作完成 - 迭代 68"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
