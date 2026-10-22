@@ -123,7 +123,6 @@ export function WorkbenchHomePage() {
                   onOpenAi={() => workbench.setInspectorView('ai')}
                   onMoveQuestion={workbench.moveQuestion}
                   onDeleteQuestion={workbench.deleteQuestion}
-                  onEditQuestion={workbench.editQuestion}
                   onAdd={openAdd}
                 />
               )}

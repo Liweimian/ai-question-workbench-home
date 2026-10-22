@@ -159,6 +159,13 @@ export const workbenchRepository: WorkbenchRepository = {
     rewritten.sourceDetail = `基于“${question.sourceLabel}”改编`
     rewritten.origin = 'ai-original'
     rewritten.verifyStatus = '待校验'
+    if (request.instruction === '整题改编') {
+      rewritten.stem = question.stem.replace('当', '若').replace('是', '为')
+      rewritten.analysis = `${question.analysis} 已同步校对题干、选项与解析的表述，保持原考点不变。`
+    }
+    if (request.instruction === '优化题干') {
+      rewritten.stem = question.stem.replace('当', '若').replace('求', '请求')
+    }
     if (request.instruction === '换生活情境') {
       rewritten.stem = '某共享单车按骑行时长计费，起步价为 3 元，此后每 10 分钟增加 2 元。请写出费用 y（元）与计费时段 x（个）之间的函数关系式。'
       rewritten.type = '解答题'

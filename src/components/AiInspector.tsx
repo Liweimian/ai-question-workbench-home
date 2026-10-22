@@ -30,6 +30,8 @@ interface QuestionInspectorProps {
 }
 
 const actions: Array<{ label: RewriteRequest['instruction']; description: string }> = [
+  { label: '整题改编', description: '统一调整题干、选项与解析' },
+  { label: '优化题干', description: '理顺表述，保持题意与考点不变' },
   { label: '换生活情境', description: '考点不变，换真实场景' },
   { label: '降低难度', description: '减少步骤或运算复杂度' },
   { label: '提高难度', description: '增加推理与综合性' },
@@ -118,7 +120,7 @@ export function QuestionInspector(props: QuestionInspectorProps) {
             <p>{props.question.stem}</p>
           </div>
           <div className="inspector-section-heading">
-            <strong>选择改编方式</strong>
+            <strong>修改这道题</strong>
             <span>先生成预览，不会直接覆盖原题</span>
           </div>
           <div className="rewrite-action-list">

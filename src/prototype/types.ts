@@ -65,7 +65,7 @@ export interface SourceRecord {
 
 export interface RewriteRequest {
   questionId: EntityId
-  instruction: '换生活情境' | '降低难度' | '提高难度' | '同考点换题' | '优化解析'
+  instruction: '整题改编' | '优化题干' | '换生活情境' | '降低难度' | '提高难度' | '同考点换题' | '优化解析'
 }
 
 export interface WorkbenchRepository {
