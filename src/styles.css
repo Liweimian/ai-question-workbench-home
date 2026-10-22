@@ -5267,6 +5267,20 @@
 
 .picker-selection-action button {
   min-width: 64px;
+  border-color: var(--fx-primary) !important;
+  color: var(--common_fg_color) !important;
+  background: var(--fx-primary) !important;
+}
+
+.picker-selection-action button:hover:not(:disabled) {
+  border-color: var(--fx-primary-hover) !important;
+  background: var(--fx-primary-hover) !important;
+}
+
+.picker-selection-action button:disabled {
+  border-color: var(--fx-primary-selected) !important;
+  color: var(--fx-primary) !important;
+  background: var(--fx-primary-selected) !important;
 }
 
 .chapter-picker-tree {
