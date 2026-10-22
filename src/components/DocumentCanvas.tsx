@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { MetisButton, MetisInput } from '@yuanfudao/metis-web-component'
-import { ArrowDown, ArrowUp, GripVertical, Send, Sparkles, Trash2 } from 'lucide-react'
+import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
+import { ArrowDown, ArrowUp, Bold, GripVertical, Italic, Omega, Radical, Send, Sparkles, Trash2, Underline } from 'lucide-react'
 import type { AddQuestionMode, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 
@@ -16,7 +16,7 @@ interface DocumentCanvasProps {
 }
 
 export function DocumentCanvas(props: DocumentCanvasProps) {
-  const [questionStyles, setQuestionStyles] = useState<Record<string, { fontFamily: string; fontSize: string; lineHeight: string; letterSpacing: string }>>({})
+  const [questionStyles, setQuestionStyles] = useState<Record<string, { fontFamily: string; fontSize: string; lineHeight: string; letterSpacing: string; bold: boolean; italic: boolean; underline: boolean }>>({})
   const [editRequirement, setEditRequirement] = useState('')
   const totalMinutes = props.document.questions.reduce((sum, question) => sum + question.estimatedMinutes, 0)
 
@@ -40,8 +40,8 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
       <div className="editor-question-list">
         {props.document.questions.map((question, index) => {
           const selected = question.id === props.selectedQuestionId
-          const questionStyle = questionStyles[question.id] ?? { fontFamily: 'serif', fontSize: '16', lineHeight: '1.7', letterSpacing: '0' }
-          const updateQuestionStyle = (key: 'fontFamily' | 'fontSize' | 'lineHeight' | 'letterSpacing', value: string) => {
+          const questionStyle = questionStyles[question.id] ?? { fontFamily: 'serif', fontSize: '16', lineHeight: '1.7', letterSpacing: '0', bold: false, italic: false, underline: false }
+          const updateQuestionStyle = (key: 'fontFamily' | 'fontSize' | 'lineHeight' | 'letterSpacing' | 'bold' | 'italic' | 'underline', value: string | boolean) => {
             setQuestionStyles((current) => ({ ...current, [question.id]: { ...questionStyle, [key]: value } }))
           }
           return (
@@ -60,7 +60,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
               tabIndex={0}
               aria-current={selected ? 'true' : undefined}
               aria-label={`第 ${index + 1} 题`}
-              style={{ '--question-font-family': questionStyle.fontFamily === 'sans' ? 'var(--fx-font-body)' : questionStyle.fontFamily === 'kaiti' ? '"Kaiti SC", "STKaiti", serif' : '"Songti SC", "STSong", serif', '--question-font-size': `${questionStyle.fontSize}px`, '--question-line-height': questionStyle.lineHeight, '--question-letter-spacing': `${questionStyle.letterSpacing}px` } as React.CSSProperties}
+              style={{ '--question-font-family': questionStyle.fontFamily === 'sans' ? 'var(--fx-font-body)' : questionStyle.fontFamily === 'kaiti' ? '"Kaiti SC", "STKaiti", serif' : '"Songti SC", "STSong", serif', '--question-font-size': `${questionStyle.fontSize}px`, '--question-line-height': questionStyle.lineHeight, '--question-letter-spacing': `${questionStyle.letterSpacing}px`, '--question-font-weight': questionStyle.bold ? '700' : '400', '--question-font-style': questionStyle.italic ? 'italic' : 'normal', '--question-text-decoration': questionStyle.underline ? 'underline' : 'none' } as React.CSSProperties}
             >
               <button type="button" className="editor-question-drag" draggable aria-label={`拖动第 ${index + 1} 题`} onClick={(event) => event.stopPropagation()}><GripVertical size={16} /></button>
               {selected ? (
@@ -70,6 +70,12 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
                     <label className="question-format-control" title="字号"><select aria-label="题目字号" value={questionStyle.fontSize} onChange={(event) => updateQuestionStyle('fontSize', event.target.value)}><option value="14">小</option><option value="16">标准</option><option value="18">大</option></select></label>
                     <label className="question-format-control" title="行距"><select aria-label="题目行距" value={questionStyle.lineHeight} onChange={(event) => updateQuestionStyle('lineHeight', event.target.value)}><option value="1.5">1.5</option><option value="1.7">1.7</option><option value="2">2.0</option></select></label>
                     <label className="question-format-control" title="字距"><select aria-label="题目字距" value={questionStyle.letterSpacing} onChange={(event) => updateQuestionStyle('letterSpacing', event.target.value)}><option value="0">0</option><option value="0.5">0.5</option><option value="1">1.0</option></select></label>
+                    <span className="toolbar-divider" />
+                    <button type="button" className={`question-inline-tool${questionStyle.bold ? ' is-active' : ''}`} onClick={() => updateQuestionStyle('bold', !questionStyle.bold)} aria-label="加粗" title="加粗"><Bold size={15} /></button>
+                    <button type="button" className={`question-inline-tool${questionStyle.italic ? ' is-active' : ''}`} onClick={() => updateQuestionStyle('italic', !questionStyle.italic)} aria-label="斜体" title="斜体"><Italic size={15} /></button>
+                    <button type="button" className={`question-inline-tool${questionStyle.underline ? ' is-active' : ''}`} onClick={() => updateQuestionStyle('underline', !questionStyle.underline)} aria-label="下划线" title="下划线"><Underline size={15} /></button>
+                    <button type="button" className="question-inline-tool" onClick={() => MetisMessage.info('已打开公式输入演示')} aria-label="插入公式" title="插入公式"><Radical size={15} /></button>
+                    <button type="button" className="question-inline-tool" onClick={() => MetisMessage.info('已打开特殊字符面板演示')} aria-label="插入特殊字符" title="插入特殊字符"><Omega size={15} /></button>
                     <MetisButton type="borderless" icon={<ArrowUp size={15} />} onClick={() => props.onMoveQuestion(-1)} aria-label="上移" />
                     <MetisButton type="borderless" icon={<ArrowDown size={15} />} onClick={() => props.onMoveQuestion(1)} aria-label="下移" />
                     <span className="toolbar-divider" />
