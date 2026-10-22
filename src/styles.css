@@ -3391,6 +3391,7 @@
 }
 
 .add-question-panel--library {
+  position: relative;
   width: min(1120px, calc(100% - 24px));
   height: calc(100% - 12px);
   max-height: none;
@@ -5240,6 +5241,27 @@
   background: var(--fx-surface-page);
 }
 
+.chapter-picker-bulk-action {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  right: 58px;
+  display: flex;
+  height: 36px;
+  align-items: center;
+  gap: 10px;
+  color: var(--fx-text-secondary);
+  font-size: 12px;
+}
+
+.chapter-picker-bulk-action strong {
+  color: var(--fx-primary);
+}
+
+.chapter-picker-bulk-action button {
+  min-width: 64px;
+}
+
 .chapter-picker-tree {
   min-height: 0;
   overflow-y: auto;
@@ -5333,6 +5355,10 @@
 
 .chapter-question-list article.is-added {
   background: linear-gradient(90deg, var(--fx-primary-selected), transparent 72%);
+}
+
+.chapter-question-list article.is-selected {
+  background: var(--fx-primary-selected);
 }
 
 .chapter-question-meta {

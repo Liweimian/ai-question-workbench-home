@@ -239,6 +239,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
   ))
   const [showAnswers, setShowAnswers] = useState(false)
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set())
+  const [chapterPendingIds, setChapterPendingIds] = useState<Set<string>>(new Set())
   const [favorites, setFavorites] = useState<Set<string>>(new Set(['paper-2']))
   const [pinned, setPinned] = useState<Set<string>>(new Set())
 
@@ -248,11 +249,13 @@ export function LibraryPicker(props: LibraryPickerProps) {
     setDetailRecord(detailResourceId ? allSourceRecords.find((record) => record.id === detailResourceId) ?? null : null)
     setShowAnswers(false)
     setSelectedQuestionIds(new Set())
+    setChapterPendingIds(new Set())
   }, [detailResourceId, isAll, props.libraryKind, props.resourceType])
 
   useEffect(() => {
     if (variant === 'dialog') {
       setDialogChapter(false)
+      setChapterPendingIds(new Set())
       if (props.libraryKind === 'school' && props.resourceType !== 'paper' && props.resourceType !== 'workbook') {
         props.onResourceTypeChange('paper')
       }
@@ -318,6 +321,14 @@ export function LibraryPicker(props: LibraryPickerProps) {
       else next.add(value)
       return next
     })
+  }
+
+  const commitChapterQuestions = () => {
+    if (chapterPendingIds.size === 0 || props.contentBusy) return
+    const pendingIds = [...chapterPendingIds]
+    setSelectedQuestionIds((current) => new Set([...current, ...pendingIds]))
+    setChapterPendingIds(new Set())
+    props.onAddSource('sync', `chapter:${chapterNode}`, pendingIds.length)
   }
 
   if (detailRecord) {
@@ -393,6 +404,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
                 if (variant === 'home') props.onShowAllChange?.(false)
                 else {
                   setDialogChapter(false)
+                  setChapterPendingIds(new Set())
                 }
                 props.onResourceTypeChange(option.type)
               }}
@@ -420,6 +432,15 @@ export function LibraryPicker(props: LibraryPickerProps) {
       </nav>
 
       {dialogChapter ? (
+        <div className="chapter-picker-bulk-action" aria-live="polite">
+          <span>已选 <strong>{chapterPendingIds.size}</strong> 道题</span>
+          <MetisButton type="primary" disabled={chapterPendingIds.size === 0 || props.contentBusy} onClick={commitChapterQuestions}>
+            添加
+          </MetisButton>
+        </div>
+      ) : null}
+
+      {dialogChapter ? (
         <div className="chapter-picker-browser">
           <aside className="chapter-picker-tree" aria-label="教材章节与知识点">
             <div className="library-textbook-switch"><BookOpenCheck size={15} /><span>人教版 / 八年级上册</span><ChevronDown size={14} /></div>
@@ -435,12 +456,13 @@ export function LibraryPicker(props: LibraryPickerProps) {
             <div className="chapter-question-list">
               {chapterQuestions.filter((question) => !keyword.trim() || question.stem.includes(keyword.trim())).map((question, index) => {
                 const added = selectedQuestionIds.has(question.id)
+                const pending = chapterPendingIds.has(question.id)
                 return (
-                  <article key={question.id} className={added ? 'is-added' : ''}>
+                  <article key={question.id} className={added ? 'is-added' : pending ? 'is-selected' : ''}>
                     <div className="chapter-question-meta"><span>{question.type} / {question.difficulty} / {question.estimatedMinutes}分钟</span></div>
                     <div className="chapter-question-stem"><b>{index + 1}.</b><p>{question.stem}</p></div>
                     {question.options ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
-                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className="is-add" disabled={props.contentBusy || added} onClick={() => { setSelectedQuestionIds((current) => new Set(current).add(question.id)); props.onAddSource('sync', question.id, 1) }}>{added ? '已添加' : '＋ 添加'}</button></div></footer>
+                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className="is-add" disabled={props.contentBusy || added} onClick={() => toggleSetValue(setChapterPendingIds, question.id)}>{added ? '已添加' : pending ? '已选' : '＋ 选择'}</button></div></footer>
                   </article>
                 )
               })}
