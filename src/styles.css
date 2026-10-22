@@ -4590,7 +4590,7 @@
   max-height: 560px;
 }
 
-/* 迭代 50：完整复用旧飞象题库资源详情与工作区 Tab */
+/* 迭代 51：浏览器独立标签页中的旧飞象题库资源详情 */
 .legacy-detail-workspace {
   position: fixed;
   z-index: 300;
@@ -4606,75 +4606,10 @@
     linear-gradient(#e7edf8, #edf0f7 520px);
 }
 
-.legacy-workspace-tabs {
-  display: flex;
-  align-items: flex-end;
-  gap: 4px;
-  height: 52px;
-  padding: 0 32px;
-  flex: 0 0 52px;
-}
-
-.legacy-workspace-tabs > button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 72px;
-  max-width: 260px;
-  height: 40px;
-  padding: 0 14px;
-  overflow: hidden;
-  border: 0;
-  border-radius: 12px 12px 0 0;
-  color: var(--fx-text-secondary);
-  background: transparent;
-  cursor: pointer;
-  font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.legacy-workspace-tabs > button:hover {
-  color: var(--fx-text-primary);
-  background: rgba(255, 255, 255, 0.42);
-}
-
-.legacy-workspace-tabs > button.is-active {
-  color: var(--fx-text-primary);
-  background: rgba(255, 255, 255, 0.86);
-  font-weight: 600;
-}
-
-.legacy-workspace-tabs .legacy-subject-tab {
-  padding-left: 10px;
-  color: var(--fx-text-primary);
-  font-weight: 600;
-}
-
-.legacy-detail-tab > span:first-of-type {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.legacy-detail-tab > span[role="button"] {
-  display: grid;
-  width: 22px;
-  height: 22px;
-  margin-right: -7px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: var(--system-border-radius-s);
-}
-
-.legacy-detail-tab > span[role="button"]:hover {
-  background: var(--common_fg3_color);
-}
-
 .legacy-detail-stage {
   display: grid;
   min-height: 0;
-  margin: 12px 32px 24px;
+  margin: 24px 32px;
   flex: 1;
   grid-template-columns: minmax(0, 1fr) 72px;
   gap: 12px;

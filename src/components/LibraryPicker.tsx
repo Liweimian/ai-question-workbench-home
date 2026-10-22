@@ -15,7 +15,6 @@ import {
   SlidersHorizontal,
   Sparkles,
   Star,
-  X,
 } from 'lucide-react'
 import { baseQuestions, sourceOptions, sourceRecords as allSourceRecords } from '../data/workbenchData'
 import type { AsyncStatus, Question, ResourceType, SourceRecord } from '../prototype/types'
@@ -95,8 +94,6 @@ interface LegacyResourceDetailProps {
   showAnswers: boolean
   contentBusy: boolean
   addStatus: AsyncStatus
-  onClose: () => void
-  onBackToList: () => void
   onToggleAnswers: () => void
   onToggleQuestion: (questionId: string) => void
   onUseAll: () => void
@@ -112,16 +109,6 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
 
   return (
     <section className="legacy-detail-workspace" aria-label={props.record.title}>
-      <nav className="legacy-workspace-tabs" aria-label="已打开的页面" role="tablist">
-        <button type="button" className="legacy-subject-tab">初中数学<ChevronDown size={13} /></button>
-        <button type="button" role="tab" onClick={props.onClose}>首页</button>
-        <button type="button" role="tab" onClick={props.onBackToList}>{resourceTypeLabels[props.record.sourceType]}</button>
-        <button type="button" role="tab" aria-selected="true" className="is-active legacy-detail-tab">
-          <FileText size={15} /><span>{props.record.title}</span>
-          <span role="button" tabIndex={0} aria-label={`关闭 ${props.record.title}`} onClick={(event) => { event.stopPropagation(); props.onClose() }}><X size={13} /></span>
-        </button>
-      </nav>
-
       <div className="legacy-detail-stage">
         <main className="legacy-detail-panel">
           <header className="legacy-detail-header">
@@ -172,10 +159,13 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
 export function LibraryPicker(props: LibraryPickerProps) {
   const variant = props.variant ?? 'dialog'
   const isAll = variant === 'home' && props.showAll === true
+  const detailResourceId = variant === 'home' ? new URLSearchParams(window.location.search).get('resource') : null
   const [keyword, setKeyword] = useState('')
   const [sort, setSort] = useState<'recommended' | 'latest'>('recommended')
   const [category, setCategory] = useState('全部资源')
-  const [detailRecord, setDetailRecord] = useState<SourceRecord | null>(null)
+  const [detailRecord, setDetailRecord] = useState<SourceRecord | null>(() => (
+    detailResourceId ? allSourceRecords.find((record) => record.id === detailResourceId) ?? null : null
+  ))
   const [showAnswers, setShowAnswers] = useState(false)
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set())
   const [favorites, setFavorites] = useState<Set<string>>(new Set(['paper-2']))
@@ -184,14 +174,21 @@ export function LibraryPicker(props: LibraryPickerProps) {
   useEffect(() => {
     setKeyword('')
     setCategory('全部资源')
-    setDetailRecord(null)
+    setDetailRecord(detailResourceId ? allSourceRecords.find((record) => record.id === detailResourceId) ?? null : null)
     setShowAnswers(false)
     setSelectedQuestionIds(new Set())
-  }, [isAll, props.libraryKind, props.resourceType])
+  }, [detailResourceId, isAll, props.libraryKind, props.resourceType])
 
   useEffect(() => {
     if (variant === 'dialog' && props.addStatus === 'success') setSelectedQuestionIds(new Set())
   }, [props.addStatus, variant])
+
+  useEffect(() => {
+    if (variant !== 'home' || !detailRecord) return undefined
+    const previousTitle = document.title
+    document.title = `${detailRecord.title} - 飞象题库`
+    return () => { document.title = previousTitle }
+  }, [detailRecord, variant])
 
   const visibleRecords = useMemo(() => {
     const normalized = keyword.trim().toLowerCase()
@@ -215,6 +212,14 @@ export function LibraryPicker(props: LibraryPickerProps) {
   }, [category, isAll, keyword, pinned, props.records, props.resourceType, sort])
 
   const openRecord = (record: SourceRecord) => {
+    if (variant === 'home') {
+      const targetUrl = new URL(window.location.href)
+      targetUrl.searchParams.delete('mode')
+      targetUrl.searchParams.set('resource', record.id)
+      targetUrl.searchParams.set('resourceType', record.sourceType)
+      window.open(targetUrl.toString(), '_blank', 'noopener,noreferrer')
+      return
+    }
     setSelectedQuestionIds(new Set())
     setDetailRecord(record)
   }
@@ -244,8 +249,6 @@ export function LibraryPicker(props: LibraryPickerProps) {
           showAnswers={showAnswers}
           contentBusy={props.contentBusy}
           addStatus={props.addStatus}
-          onClose={() => setDetailRecord(null)}
-          onBackToList={() => setDetailRecord(null)}
           onToggleAnswers={() => setShowAnswers((current) => !current)}
           onToggleQuestion={(questionId) => {
             const wasSelected = selectedQuestionIds.has(questionId)
