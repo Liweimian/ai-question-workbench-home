@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, FileUp, GraduationCap, Heading2, School, Send, Sparkles, Underline, X } from 'lucide-react'
+import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, FileUp, GraduationCap, Heading2, Italic, School, Send, Sparkles, Strikethrough, Underline, X } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 
@@ -57,6 +57,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   const [addMenuRequests, setAddMenuRequests] = useState<Record<string, number>>({})
   const [selectionToolbar, setSelectionToolbar] = useState<{ x: number; y: number; text: string } | null>(null)
   const [aiEditOpen, setAiEditOpen] = useState(false)
+  const [customAiInstruction, setCustomAiInstruction] = useState('')
   const blockRefs = useRef(new Map<string, HTMLDivElement>())
   const selectedRangeRef = useRef<Range | null>(null)
 
@@ -109,7 +110,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
     return true
   }
 
-  const formatSelection = (command: 'bold' | 'underline' | 'formatBlock', value?: string) => {
+  const formatSelection = (command: 'bold' | 'italic' | 'underline' | 'strikeThrough' | 'formatBlock', value?: string) => {
     if (!restoreSelection()) return
     document.execCommand(command, false, value)
     setAiEditOpen(false)
@@ -178,7 +179,9 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           >
             <button type="button" title="设为小标题" aria-label="设为小标题" onClick={() => formatSelection('formatBlock', 'h3')}><Heading2 size={16} /></button>
             <button type="button" title="加粗" aria-label="加粗" onClick={() => formatSelection('bold')}><Bold size={16} /></button>
+            <button type="button" title="斜体" aria-label="斜体" onClick={() => formatSelection('italic')}><Italic size={16} /></button>
             <button type="button" title="下划线" aria-label="下划线" onClick={() => formatSelection('underline')}><Underline size={16} /></button>
+            <button type="button" title="删除线" aria-label="删除线" onClick={() => formatSelection('strikeThrough')}><Strikethrough size={16} /></button>
             <span />
             <div className="text-selection-ai">
               <button type="button" className="is-ai" aria-expanded={aiEditOpen} onClick={() => setAiEditOpen((open) => !open)}><Sparkles size={15} />AI 帮助修改<ChevronDown size={14} /></button>
@@ -190,6 +193,27 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                       MetisMessage.info(`“${selectionToolbar.text}”已进入${action}演示`)
                     }}>{action}</button>
                   ))}
+                  <div className="text-selection-ai-custom">
+                    <MetisInput
+                      value={customAiInstruction}
+                      onChange={(event) => setCustomAiInstruction(event.target.value)}
+                      placeholder="输入修改要求"
+                      aria-label="自定义 AI 修改要求"
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' && customAiInstruction.trim()) {
+                          event.stopPropagation()
+                          MetisMessage.info(`正在按“${customAiInstruction.trim()}”修改选中文本`)
+                          setCustomAiInstruction('')
+                          setAiEditOpen(false)
+                        }
+                      }}
+                    />
+                    <button type="button" aria-label="提交 AI 修改要求" disabled={!customAiInstruction.trim()} onClick={() => {
+                      MetisMessage.info(`正在按“${customAiInstruction.trim()}”修改选中文本`)
+                      setCustomAiInstruction('')
+                      setAiEditOpen(false)
+                    }}><Send size={14} /></button>
+                  </div>
                 </div>
               ) : null}
             </div>

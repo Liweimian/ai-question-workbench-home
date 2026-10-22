@@ -1805,6 +1805,26 @@
   box-shadow: var(--fx-shadow-card);
 }
 
+.question-format-control {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 28px;
+  padding: 0 5px;
+  color: var(--fx-text-tertiary);
+  font-size: 10px;
+}
+
+.question-format-control select {
+  max-width: 54px;
+  border: 0;
+  outline: 0;
+  color: var(--fx-text-primary);
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+}
+
 .editor-question-number {
   display: flex;
   align-items: center;
@@ -1849,21 +1869,24 @@
 }
 
 .editor-question-stem {
+  font-size: var(--question-font-size, 16px);
+  line-height: var(--question-line-height, 1.7);
+  letter-spacing: var(--question-letter-spacing, 0);
   margin-top: 12px;
   color: var(--fx-text-primary);
   font-family: "Songti SC", "STSong", serif;
-  font-size: 17px;
-  line-height: 29px;
 }
 
 .editor-question-options {
+  font-size: var(--question-font-size, 16px);
+  line-height: var(--question-line-height, 1.7);
+  letter-spacing: var(--question-letter-spacing, 0);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px 18px;
   margin-top: 12px;
   color: var(--fx-text-primary);
   font-family: "Songti SC", "STSong", serif;
-  font-size: 15px;
 }
 
 .editor-question-hint {
@@ -2236,7 +2259,7 @@
   z-index: 1;
   top: calc(100% + 8px);
   right: 0;
-  width: 154px;
+  width: 232px;
   padding: 6px;
   border: 1px solid var(--fx-line-strong);
   border-radius: var(--fx-radius-control);
@@ -2260,6 +2283,45 @@
 .text-selection-ai-menu button:hover {
   color: var(--fx-primary);
   background: var(--fx-primary-selected);
+}
+
+.text-selection-ai-custom {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  padding: 7px 5px 2px;
+  border-top: 1px solid var(--fx-line-subtle);
+}
+
+.text-selection-ai-custom > span,
+.text-selection-ai-custom > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.text-selection-ai-custom input {
+  height: 30px !important;
+  font-size: 11px !important;
+}
+
+.text-selection-ai-custom > button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: var(--fx-radius-control);
+  color: var(--common_fg_color);
+  background: var(--fx-primary);
+  cursor: pointer;
+}
+
+.text-selection-ai-custom > button:disabled {
+  color: var(--common_level5_base_color);
+  background: var(--common_fg2_color);
+  cursor: not-allowed;
 }
 
 .inline-ai-dialog {
