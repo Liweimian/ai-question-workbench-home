@@ -437,7 +437,7 @@ export function useWorkbench() {
     setRewritePreview(null)
   }, [])
 
-  const rewrite = useCallback(async (instruction: RewriteRequest['instruction']) => {
+  const rewrite = useCallback(async (instruction: RewriteRequest['instruction'], prompt?: string) => {
     if (!selectedQuestion) return
     const lockedQuestion = selectedQuestion
     const requestId = rewriteRequestIdRef.current + 1
@@ -448,6 +448,7 @@ export function useWorkbench() {
       const preview = await workbenchRepository.rewrite(lockedQuestion, {
         questionId: lockedQuestion.id,
         instruction,
+        prompt,
       })
       if (rewriteRequestIdRef.current !== requestId) return
       setRewritePreview(preview)

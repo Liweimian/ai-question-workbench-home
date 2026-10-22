@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { MetisButton, MetisInput } from '@yuanfudao/metis-web-component'
-import { ArrowDown, ArrowUp, GripVertical, Sparkles, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, GripVertical, Send, Trash2 } from 'lucide-react'
 import type { AddQuestionMode, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 
@@ -9,7 +9,7 @@ interface DocumentCanvasProps {
   selectedQuestionId: string | null
   onTitleChange: (title: string) => void
   onSelectQuestion: (questionId: string) => void
-  onOpenAi: () => void
+  onRewriteRequirement: (requirement: string) => void
   onMoveQuestion: (direction: -1 | 1) => void
   onDeleteQuestion: () => void
   onAdd: (mode?: AddQuestionMode) => void
@@ -17,6 +17,7 @@ interface DocumentCanvasProps {
 
 export function DocumentCanvas(props: DocumentCanvasProps) {
   const [questionStyles, setQuestionStyles] = useState<Record<string, { fontFamily: string; fontSize: string; lineHeight: string; letterSpacing: string }>>({})
+  const [editRequirement, setEditRequirement] = useState('')
   const totalMinutes = props.document.questions.reduce((sum, question) => sum + question.estimatedMinutes, 0)
 
   return (
@@ -63,16 +64,21 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
             >
               <button type="button" className="editor-question-drag" draggable aria-label={`拖动第 ${index + 1} 题`} onClick={(event) => event.stopPropagation()}><GripVertical size={16} /></button>
               {selected ? (
-                <div className="editor-question-toolbar" onClick={(event) => event.stopPropagation()}>
-                  <MetisButton type="borderless" icon={<Sparkles size={15} />} onClick={props.onOpenAi}>飞象 AI 助手</MetisButton>
-                  <label className="question-format-control">字体<select aria-label="题目字体" value={questionStyle.fontFamily} onChange={(event) => updateQuestionStyle('fontFamily', event.target.value)}><option value="serif">宋体</option><option value="sans">黑体</option><option value="kaiti">楷体</option></select></label>
-                  <label className="question-format-control">字号<select aria-label="题目字号" value={questionStyle.fontSize} onChange={(event) => updateQuestionStyle('fontSize', event.target.value)}><option value="14">小</option><option value="16">标准</option><option value="18">大</option></select></label>
-                  <label className="question-format-control">行距<select aria-label="题目行距" value={questionStyle.lineHeight} onChange={(event) => updateQuestionStyle('lineHeight', event.target.value)}><option value="1.5">1.5</option><option value="1.7">1.7</option><option value="2">2.0</option></select></label>
-                  <label className="question-format-control">字距<select aria-label="题目字距" value={questionStyle.letterSpacing} onChange={(event) => updateQuestionStyle('letterSpacing', event.target.value)}><option value="0">0</option><option value="0.5">0.5</option><option value="1">1.0</option></select></label>
-                  <MetisButton type="borderless" icon={<ArrowUp size={15} />} onClick={() => props.onMoveQuestion(-1)} aria-label="上移" />
-                  <MetisButton type="borderless" icon={<ArrowDown size={15} />} onClick={() => props.onMoveQuestion(1)} aria-label="下移" />
-                  <span className="toolbar-divider" />
-                  <MetisButton type="borderless" icon={<Trash2 size={15} />} onClick={props.onDeleteQuestion} aria-label="删除题目" />
+                <div className="editor-question-tools" onClick={(event) => event.stopPropagation()}>
+                  <div className="editor-question-toolbar">
+                    <label className="question-format-control">字体<select aria-label="题目字体" value={questionStyle.fontFamily} onChange={(event) => updateQuestionStyle('fontFamily', event.target.value)}><option value="serif">宋体</option><option value="sans">黑体</option><option value="kaiti">楷体</option></select></label>
+                    <label className="question-format-control">字号<select aria-label="题目字号" value={questionStyle.fontSize} onChange={(event) => updateQuestionStyle('fontSize', event.target.value)}><option value="14">小</option><option value="16">标准</option><option value="18">大</option></select></label>
+                    <label className="question-format-control">行距<select aria-label="题目行距" value={questionStyle.lineHeight} onChange={(event) => updateQuestionStyle('lineHeight', event.target.value)}><option value="1.5">1.5</option><option value="1.7">1.7</option><option value="2">2.0</option></select></label>
+                    <label className="question-format-control">字距<select aria-label="题目字距" value={questionStyle.letterSpacing} onChange={(event) => updateQuestionStyle('letterSpacing', event.target.value)}><option value="0">0</option><option value="0.5">0.5</option><option value="1">1.0</option></select></label>
+                    <MetisButton type="borderless" icon={<ArrowUp size={15} />} onClick={() => props.onMoveQuestion(-1)} aria-label="上移" />
+                    <MetisButton type="borderless" icon={<ArrowDown size={15} />} onClick={() => props.onMoveQuestion(1)} aria-label="下移" />
+                    <span className="toolbar-divider" />
+                    <MetisButton type="borderless" icon={<Trash2 size={15} />} onClick={props.onDeleteQuestion} aria-label="删除题目" />
+                  </div>
+                  <form className="editor-question-requirement" onSubmit={(event) => { event.preventDefault(); const requirement = editRequirement.trim(); if (!requirement) return; props.onRewriteRequirement(requirement) }}>
+                    <input value={editRequirement} onChange={(event) => setEditRequirement(event.target.value)} placeholder="输入你的编辑要求" aria-label="输入你的编辑要求" />
+                    <button type="submit" disabled={!editRequirement.trim()} aria-label="提交编辑要求"><Send size={14} /></button>
+                  </form>
                 </div>
               ) : null}
               <div className="editor-question-mainline">

@@ -159,6 +159,10 @@ export const workbenchRepository: WorkbenchRepository = {
     rewritten.sourceDetail = `基于“${question.sourceLabel}”改编`
     rewritten.origin = 'ai-original'
     rewritten.verifyStatus = '待校验'
+    if (request.instruction === '自定义要求') {
+      rewritten.stem = `${question.stem}（已按要求调整：${request.prompt ?? '优化表述'}）`
+      rewritten.analysis = `${question.analysis} 本题已按教师输入的要求生成修改预览。`
+    }
     if (request.instruction === '整题改编') {
       rewritten.stem = question.stem.replace('当', '若').replace('是', '为')
       rewritten.analysis = `${question.analysis} 已同步校对题干、选项与解析的表述，保持原考点不变。`

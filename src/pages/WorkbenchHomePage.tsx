@@ -120,7 +120,7 @@ export function WorkbenchHomePage() {
                   selectedQuestionId={workbench.selectedQuestionId}
                   onTitleChange={workbench.setTitle}
                   onSelectQuestion={workbench.selectQuestion}
-                  onOpenAi={() => workbench.setInspectorView('ai')}
+                  onRewriteRequirement={(requirement) => { workbench.setInspectorView('ai'); void workbench.rewrite('自定义要求', requirement) }}
                   onMoveQuestion={workbench.moveQuestion}
                   onDeleteQuestion={workbench.deleteQuestion}
                   onAdd={openAdd}
