@@ -4,7 +4,6 @@ import { MetisButton, MetisInput } from '@yuanfudao/metis-web-component'
 import {
   ArrowLeft,
   BookOpenCheck,
-  Check,
   ChevronDown,
   Clock3,
   Eye,
@@ -102,6 +101,7 @@ function getResourceCardTags(record: SourceRecord) {
 
 interface LegacyResourceDetailProps {
   record: SourceRecord
+  embedded?: boolean
   questions: Question[]
   selectedQuestionIds: Set<string>
   showAnswers: boolean
@@ -123,8 +123,13 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
   })).filter((section) => section.questions.length > 0)
 
   return (
-    <section className="legacy-detail-workspace" aria-label={props.record.title}>
-      <header className="legacy-detail-topbar">
+    <section className={`legacy-detail-workspace${props.embedded ? ' is-embedded' : ''}`} aria-label={props.record.title}>
+      {props.embedded ? (
+        <header className="legacy-detail-embedded-nav">
+          <button type="button" onClick={props.onReturnHome}><ArrowLeft size={15} />返回资源列表</button>
+          <span>{resourceTypeLabels[props.record.sourceType]} / <strong>{props.record.title}</strong></span>
+        </header>
+      ) : <header className="legacy-detail-topbar">
         <div className="legacy-detail-brand">
           <span><Sparkles size={16} /></span>
           <div><strong>飞象 AI 组题工作台</strong><small>初中数学 · 八年级上</small></div>
@@ -137,7 +142,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
           <strong>{props.record.title}</strong>
         </nav>
         <button type="button" className="legacy-detail-home-action" onClick={props.onReturnHome}><ArrowLeft size={15} />返回首页</button>
-      </header>
+      </header>}
       <div className={`legacy-detail-stage${props.record.sourceType === 'workbook' ? ' has-directory' : ''}`}>
         {props.record.sourceType === 'workbook' ? (
           <aside className="legacy-workbook-directory" aria-label={`${props.record.title}目录`}>
@@ -274,6 +279,11 @@ export function LibraryPicker(props: LibraryPickerProps) {
   }, [category, isAll, keyword, pinned, props.records, props.resourceType, sort])
 
   const openRecord = (record: SourceRecord) => {
+    if (variant === 'dialog') {
+      setSelectedQuestionIds(new Set())
+      setDetailRecord(record)
+      return
+    }
     const targetUrl = new URL(window.location.href)
     targetUrl.searchParams.delete('mode')
     targetUrl.searchParams.set('resource', record.id)
@@ -297,74 +307,34 @@ export function LibraryPicker(props: LibraryPickerProps) {
   }
 
   if (detailRecord) {
-    const allSelected = selectedQuestionIds.size === previewQuestions.length
-    if (variant === 'home') {
-      return (
-        <LegacyResourceDetail
-          record={detailRecord}
-          questions={previewQuestions}
-          selectedQuestionIds={selectedQuestionIds}
-          showAnswers={showAnswers}
-          contentBusy={props.contentBusy}
-          addStatus={props.addStatus}
-          onReturnHome={() => {
+    return (
+      <LegacyResourceDetail
+        record={detailRecord}
+        embedded={variant === 'dialog'}
+        questions={previewQuestions}
+        selectedQuestionIds={selectedQuestionIds}
+        showAnswers={showAnswers}
+        contentBusy={props.contentBusy}
+        addStatus={props.addStatus}
+        onReturnHome={() => {
+          if (variant === 'dialog') {
+            setDetailRecord(null)
+            setSelectedQuestionIds(new Set())
+          } else {
             const homeUrl = new URL(window.location.href)
             homeUrl.searchParams.delete('resource')
             homeUrl.searchParams.delete('resourceType')
             window.location.assign(homeUrl.toString())
-          }}
-          onToggleAnswers={() => setShowAnswers((current) => !current)}
-          onToggleQuestion={(questionId) => {
-            const wasSelected = selectedQuestionIds.has(questionId)
-            toggleSetValue(setSelectedQuestionIds, questionId)
-            if (!wasSelected) props.onAddSource(detailRecord.sourceType, detailRecord.id, 1)
-          }}
-          onUseAll={() => props.onAddSource(detailRecord.sourceType, detailRecord.id, previewQuestions.length)}
-        />
-      )
-    }
-    return (
-      <div className="library-detail-view">
-        <div className="library-detail-toolbar">
-          <button type="button" onClick={() => setDetailRecord(null)}><ArrowLeft size={16} />返回资源列表</button>
-          <div><span>{detailRecord.highlight}</span><strong>{detailRecord.title}</strong><small>{detailRecord.meta} · {detailRecord.questionCount} 题</small></div>
-          <MetisButton
-            type="bordered"
-            onClick={() => setSelectedQuestionIds(allSelected ? new Set() : new Set(previewQuestions.map((question) => question.id)))}
-          >
-            {allSelected ? '取消全选' : '全选本页'}
-          </MetisButton>
-        </div>
-        <div className="library-detail-scroll">
-          {previewQuestions.map((question, index) => {
-            const selected = selectedQuestionIds.has(question.id)
-            return (
-              <article
-                key={question.id}
-                className={`library-question-preview${selected ? ' is-selected' : ''}`}
-                onClick={() => toggleSetValue(setSelectedQuestionIds, question.id)}
-              >
-                <button type="button" className="library-question-check" aria-label={`${selected ? '取消选择' : '选择'}第 ${index + 1} 题`}>
-                  {selected ? <Check size={14} /> : null}
-                </button>
-                <div><span>{index + 1}. {question.type} · {question.difficulty}</span><p>{question.stem}</p>{question.options ? <small>{question.options.join('　　')}</small> : null}</div>
-              </article>
-            )
-          })}
-        </div>
-        <div className="library-detail-footer">
-          <span>已选 {selectedQuestionIds.size} 道题 · 加入后不覆盖当前内容</span>
-          <MetisButton
-            type="primary"
-            disabled={selectedQuestionIds.size === 0 || props.contentBusy}
-            loading={props.addStatus === 'loading'}
-            onClick={() => props.onAddSource(detailRecord.sourceType, detailRecord.id, selectedQuestionIds.size)}
-            data-track="/click/aiQuestionHome/addSelectedBankQuestions | 加入勾选题目 | resourceId#STRING,count#NUMBER"
-          >
-            加入当前题单（{selectedQuestionIds.size}）
-          </MetisButton>
-        </div>
-      </div>
+          }
+        }}
+        onToggleAnswers={() => setShowAnswers((current) => !current)}
+        onToggleQuestion={(questionId) => {
+          const wasSelected = selectedQuestionIds.has(questionId)
+          toggleSetValue(setSelectedQuestionIds, questionId)
+          if (!wasSelected) props.onAddSource(detailRecord.sourceType, detailRecord.id, 1)
+        }}
+        onUseAll={() => props.onAddSource(detailRecord.sourceType, detailRecord.id, previewQuestions.length)}
+      />
     )
   }
 
