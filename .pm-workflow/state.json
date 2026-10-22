@@ -12,8 +12,8 @@
       "name": "Demo 创作",
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
-      "completedAt": "2026-10-22T23:30:00+08:00",
-      "iterationCount": 40,
+      "completedAt": "2026-10-22T23:59:00+08:00",
+      "iterationCount": 41,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -21,7 +21,7 @@
         "src/components/SourceDrawer.tsx",
         "src/components/LibraryPicker.tsx",
         "src/components/BlockAddMenu.tsx",
-        "src/components/WorkspaceSidebar.tsx",
+        "src/components/WorkbenchLandingPage.tsx",
         "src/components/MyResourcesPanel.tsx",
         "src/hooks/useWorkbench.ts",
         "dist/"
@@ -47,7 +47,12 @@
         "browser enter-to-new-block and caret-focus flow",
         "browser selected-text toolbar and AI edit menu flow",
         "browser question typography controls and custom AI edit input flow",
-        "browser inline AI capability list flow"
+        "browser inline AI capability list flow",
+        "browser Figma-style home and recent-document flow",
+        "browser collapsed document search flow",
+        "browser paper/workbook/sync/special home tabs",
+        "browser full-width editor and resources breadcrumb flow",
+        "browser home resource add-to-editor flow"
       ]
     },
     "2": {
@@ -183,8 +188,13 @@
       "stage": 1,
       "hash": "e8aa38e",
       "message": "Stage 1: Demo 创作完成 - 迭代 23"
+    },
+    {
+      "stage": 1,
+      "hash": "9403283",
+      "message": "Stage 1: Demo 创作完成 - 迭代 41"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
-  "updatedAt": "2026-10-22T14:40:00+08:00"
+  "updatedAt": "2026-10-22T23:59:00+08:00"
 }
