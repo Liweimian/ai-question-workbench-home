@@ -52,6 +52,7 @@ const promptSuggestions = [
 
 export function EmptyCanvas(props: EmptyCanvasProps) {
   const [prompt, setPrompt] = useState('')
+  const [addMenuRequest, setAddMenuRequest] = useState(0)
   const emptyBlockRef = useRef<HTMLDivElement>(null)
 
   const closeAi = () => {
@@ -76,23 +77,30 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       </header>
 
       <div className="editor-empty-content">
-        <div
-          className="empty-first-block"
-          ref={emptyBlockRef}
-          tabIndex={0}
-          role="group"
-          aria-label="题单空白编辑块"
-          onKeyDown={(event) => {
-            const isBlankBlock = event.target === event.currentTarget
-            const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
-            if (isBlankBlock && !hasModifier && event.code === 'Space' && !event.nativeEvent.isComposing && !event.repeat && !props.aiOpen) {
-              event.preventDefault()
-              props.onAiOpen()
-            }
-          }}
-        >
-          <BlockAddMenu empty onOpenAdd={props.onOpenAdd} />
-          <span className="empty-block-hint"><strong>按 Space 唤起 AI</strong>，或按 / 添加题目</span>
+        <div className="empty-first-block" role="group" aria-label="题单空白编辑块">
+          <BlockAddMenu empty openRequest={addMenuRequest} onOpenAdd={props.onOpenAdd} />
+          <div
+            className="empty-block-input"
+            ref={emptyBlockRef}
+            contentEditable
+            suppressContentEditableWarning
+            role="textbox"
+            aria-multiline="true"
+            aria-label="输入内容，按空格唤起 AI"
+            data-placeholder="直接输入内容，按 Space 唤起 AI，或按 / 添加题目"
+            onKeyDown={(event) => {
+              const isEmpty = !event.currentTarget.textContent?.trim()
+              const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
+              if (isEmpty && !hasModifier && event.code === 'Space' && !event.nativeEvent.isComposing && !event.repeat && !props.aiOpen) {
+                event.preventDefault()
+                props.onAiOpen()
+              }
+              if (isEmpty && !hasModifier && event.key === '/' && !event.nativeEvent.isComposing && !event.repeat) {
+                event.preventDefault()
+                setAddMenuRequest((value) => value + 1)
+              }
+            }}
+          />
         </div>
 
         {props.aiOpen ? (

@@ -4,6 +4,7 @@ import type { AddQuestionMode } from '../prototype/types'
 
 interface BlockAddMenuProps {
   empty?: boolean
+  openRequest?: number
   onOpenAdd: (mode: AddQuestionMode) => void
 }
 
@@ -23,9 +24,13 @@ const blockOptions: Array<{
   { mode: 'manual', title: '手工录入', description: '添加一道空白题', icon: FilePenLine },
 ]
 
-export function BlockAddMenu({ empty = false, onOpenAdd }: BlockAddMenuProps) {
+export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd }: BlockAddMenuProps) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (openRequest > 0) setOpen(true)
+  }, [openRequest])
 
   useEffect(() => {
     const closeOnOutside = (event: MouseEvent) => {
