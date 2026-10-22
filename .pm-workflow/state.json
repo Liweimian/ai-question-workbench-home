@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 54,
+      "iterationCount": 55,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -65,7 +65,9 @@
         "browser native new-tab resource-detail flow",
         "browser full-width resource detail without composer rail",
         "browser resource-detail top navigation and breadcrumb return flow",
-        "unified Feixiang AI composition workspace product naming"
+        "unified Feixiang AI composition workspace product naming",
+        "browser home sync textbook-chapter tree and special-topic tree flow",
+        "browser workbook left-directory and right-question detail flow"
       ]
     },
     "2": {
@@ -271,6 +273,11 @@
       "stage": 1,
       "hash": "ea8aeb2",
       "message": "Stage 1: Demo 创作完成 - 迭代 54"
+    },
+    {
+      "stage": 1,
+      "hash": "601618a",
+      "message": "Stage 1: Demo 创作完成 - 迭代 55"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
