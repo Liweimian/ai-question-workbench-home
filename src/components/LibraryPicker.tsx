@@ -113,7 +113,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
       <header className="legacy-detail-topbar">
         <div className="legacy-detail-brand">
           <span><Sparkles size={16} /></span>
-          <div><strong>李老师的组题空间</strong><small>初中数学 · 八年级上</small></div>
+          <div><strong>飞象 AI 组题工作台</strong><small>初中数学 · 八年级上</small></div>
         </div>
         <nav className="legacy-detail-breadcrumb" aria-label="面包屑">
           <button type="button" onClick={props.onReturnHome}>组题首页</button>
@@ -200,7 +200,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
   useEffect(() => {
     if (variant !== 'home' || !detailRecord) return undefined
     const previousTitle = document.title
-    document.title = `${detailRecord.title} - 飞象题库`
+    document.title = `${detailRecord.title} - 飞象 AI 组题工作台`
     return () => { document.title = previousTitle }
   }, [detailRecord, variant])
 
