@@ -41,7 +41,7 @@ export function WorkbenchHomePage() {
 
   return (
     <div className="fx-app metis-theme-aiq">
-      <main className="fx-content workbench-page">
+      <main className={`fx-content workbench-page${spaceCollapsed ? ' is-space-collapsed' : ''}`}>
         <div className="fx-zoom-area workbench-zoom-area">
           <WorkspaceHeader
             questionCount={workbench.document.questions.length}

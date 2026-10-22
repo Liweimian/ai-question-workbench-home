@@ -1,5 +1,5 @@
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
-import { FileDown, Save, Send, Sparkles, Undo2 } from 'lucide-react'
+import { FileDown, Save, Send, Undo2 } from 'lucide-react'
 
 interface WorkspaceHeaderProps {
   questionCount: number
@@ -24,10 +24,6 @@ export function WorkspaceHeader({
   return (
     <header className="fx-page-header workspace-header" data-sec="1">
       <div className="header-identity">
-        <div className="workspace-header-brand">
-          <span className="workspace-header-logo"><Sparkles size={16} /></span>
-          <strong>李老师的组题空间</strong>
-        </div>
         <span className="header-scope-text">初中数学 · 八年级上</span>
       </div>
 

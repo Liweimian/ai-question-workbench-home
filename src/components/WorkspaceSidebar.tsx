@@ -1,5 +1,5 @@
 import { MetisInput } from '@yuanfudao/metis-web-component'
-import { ChevronsLeft, ChevronsRight, FilePlus2, FileText, FolderHeart, LoaderCircle, Search } from 'lucide-react'
+import { ChevronsLeft, ChevronsRight, FilePlus2, FileText, FolderHeart, LoaderCircle, Search, Sparkles } from 'lucide-react'
 import type { AsyncStatus, HistoryDocumentSummary, WorkbenchDocument } from '../prototype/types'
 
 interface WorkspaceSidebarProps {
@@ -44,7 +44,11 @@ export function WorkspaceSidebar(props: WorkspaceSidebarProps) {
 
   return (
     <aside className="workspace-space-nav" aria-label="组题空间导航">
-      <button className="space-nav-collapse" type="button" aria-label="收起组题空间" onClick={() => props.onCollapsedChange(true)}><ChevronsLeft size={16} /></button>
+      <header className="space-nav-heading">
+        <span className="space-nav-logo"><Sparkles size={16} /></span>
+        <strong>李老师的组题空间</strong>
+        <button type="button" aria-label="收起组题空间" onClick={() => props.onCollapsedChange(true)}><ChevronsLeft size={16} /></button>
+      </header>
 
       <nav className="space-nav-actions" aria-label="组题空间操作">
         <button type="button" className="is-primary" disabled={props.contentBusy} onClick={props.onCreateNew}><FilePlus2 size={16} /><span>新建题单</span></button>
