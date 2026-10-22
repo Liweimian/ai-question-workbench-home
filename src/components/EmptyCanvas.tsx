@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, ChevronRight, FileScan, FileUp, GraduationCap, Heading2, Italic, Layers3, School, Send, Sparkles, Strikethrough, Underline, X } from 'lucide-react'
+import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, ChevronRight, FileScan, GraduationCap, Heading2, Italic, Layers3, School, Send, Sparkles, Strikethrough, Underline, X } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
@@ -23,6 +23,7 @@ const quickStartGroups: Array<{
     id: string
     mode?: Exclude<AddQuestionMode, 'menu' | 'manual'>
     utility?: UtilityAction
+    assistant?: boolean
     label: string
     description: string
     icon: typeof Sparkles
@@ -39,15 +40,13 @@ const quickStartGroups: Array<{
   {
     title: '搜题与导入',
     items: [
-      { id: 'upload', mode: 'upload', label: '上传文件 AI 录题', description: 'PDF、Word、图片', icon: FileUp },
       { id: 'image-search', utility: 'image-search', label: '图片搜题', description: '拍照或粘贴图片', icon: FileScan },
     ],
   },
   {
     title: '飞象 AI',
     items: [
-      { id: 'compose', mode: 'compose', label: 'AI 组题', description: '从题库智能挑题', icon: BrainCircuit },
-      { id: 'create', mode: 'create', label: 'AI 命题', description: '生成原创题目', icon: Sparkles },
+      { id: 'assistant', assistant: true, label: '飞象 AI', description: '组题、组卷、命题与 AI 录题', icon: Sparkles },
     ],
   },
 ]
@@ -178,7 +177,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
             <div className="empty-first-block" role="group" aria-label="题单内容块" key={blockId}>
-              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} />
+              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenAssistant={props.onAiOpen} />
               <div
                 className="empty-block-input"
                 ref={(node) => {
@@ -322,8 +321,8 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
               <div className="quick-start-group" key={group.title}>
                 <span>{group.title}</span>
                 <div>
-                  {group.items.map(({ id, mode, utility, label, description, icon: Icon, primary }) => (
-                    <button type="button" key={id} className={primary ? 'is-primary' : ''} onClick={() => mode ? props.onOpenAdd(mode) : utility ? insertUtility(utility) : undefined}>
+                  {group.items.map(({ id, mode, utility, assistant, label, description, icon: Icon, primary }) => (
+                    <button type="button" key={id} className={primary ? 'is-primary' : ''} onClick={() => mode ? props.onOpenAdd(mode) : utility ? insertUtility(utility) : assistant ? props.onAiOpen() : undefined}>
                       <Icon size={16} /><span><strong>{label}</strong><small>{description}</small></span>
                     </button>
                   ))}
