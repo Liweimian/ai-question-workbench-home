@@ -5901,3 +5901,8 @@
 .add-question-panel.is-docked .add-question-body {
   min-height: 0;
 }
+
+/* 方案二右侧出现分类树时，为卡片留出可读宽度。 */
+.add-question-panel.is-docked .library-browser.has-sidebar .library-record-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
