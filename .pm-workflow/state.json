@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 64,
+      "iterationCount": 65,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -82,7 +82,8 @@
         "browser white chapter-picker content surfaces",
         "browser differentiated fly and school picker tabs",
         "browser staged chapter-question selection and batch add",
-        "browser chapter batch action in dialog header"
+        "browser chapter batch action in dialog header",
+        "browser unified picker cart across resource detail and chapter tabs"
       ]
     },
     "2": {

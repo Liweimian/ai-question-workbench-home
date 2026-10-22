@@ -112,6 +112,7 @@ interface LegacyResourceDetailProps {
   embedded?: boolean
   questions: Question[]
   selectedQuestionIds: Set<string>
+  pendingQuestionIds: Set<string>
   showAnswers: boolean
   contentBusy: boolean
   addStatus: AsyncStatus
@@ -186,7 +187,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
             <h2>{props.record.sourceType === 'workbook' ? `4.1 函数 · ${workbookSection}` : props.record.title}</h2>
             <div>
               <button type="button" onClick={props.onToggleAnswers}><Eye size={15} />{props.showAnswers ? '隐藏答案' : '显示答案'}</button>
-              <button type="button" className="is-primary" disabled={props.contentBusy} onClick={props.onUseAll}><FileText size={15} />使用整卷<ChevronDown size={13} /></button>
+              <button type="button" className="is-primary" disabled={props.contentBusy} onClick={props.onUseAll}><FileText size={15} />{props.embedded ? '选择整卷' : '使用整卷'}<ChevronDown size={13} /></button>
             </div>
           </header>
 
@@ -196,9 +197,10 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                 <h3>{section.title}</h3>
                 {section.questions.map((question) => {
                   const selected = props.selectedQuestionIds.has(question.id)
+                  const pending = props.pendingQuestionIds.has(question.id)
                   const number = props.questions.findIndex((item) => item.id === question.id) + 1
                   return (
-                    <article className={`legacy-question-card${selected ? ' is-selected' : ''}`} key={question.id} aria-label={`第 ${number} 题`}>
+                    <article className={`legacy-question-card${selected ? ' is-added' : pending ? ' is-selected' : ''}`} key={question.id} aria-label={`第 ${number} 题`}>
                       <div className="legacy-question-meta">
                         {number === 1 ? <><em>AI批改</em><em>AI赋分</em></> : null}
                         <span>{question.type === '选择题' ? '单项选择题' : question.type} / {question.difficulty} / {question.estimatedMinutes}分钟</span>
@@ -210,7 +212,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                         <span>知识点：{question.knowledgePoint}</span>
                         <div>
                           <button type="button">纠错</button><button type="button"><Star size={14} />收藏</button><button type="button">解析</button><button type="button">相似题</button>
-                          {props.embedded ? <button type="button" className="is-add" disabled={props.contentBusy || selected} onClick={() => props.onToggleQuestion(question.id)}>{selected ? '已添加' : '＋ 添加'}</button> : null}
+                          {props.embedded ? <button type="button" className="is-add" disabled={props.contentBusy || selected} onClick={() => props.onToggleQuestion(question.id)}>{selected ? '已添加' : pending ? '已选' : '＋ 选择'}</button> : null}
                         </div>
                       </footer>
                     </article>
@@ -240,11 +242,11 @@ export function LibraryPicker(props: LibraryPickerProps) {
   ))
   const [showAnswers, setShowAnswers] = useState(false)
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set())
-  const [chapterPendingIds, setChapterPendingIds] = useState<Set<string>>(new Set())
+  const [pickerPendingIds, setPickerPendingIds] = useState<Set<string>>(new Set())
   const [favorites, setFavorites] = useState<Set<string>>(new Set(['paper-2']))
   const [pinned, setPinned] = useState<Set<string>>(new Set())
-  const chapterActionHost = variant === 'dialog'
-    ? document.querySelector<HTMLElement>('[data-chapter-picker-actions]')
+  const pickerActionHost = variant === 'dialog'
+    ? document.querySelector<HTMLElement>('[data-picker-selection-actions]')
     : null
 
   useEffect(() => {
@@ -252,14 +254,13 @@ export function LibraryPicker(props: LibraryPickerProps) {
     setCategory('全部资源')
     setDetailRecord(detailResourceId ? allSourceRecords.find((record) => record.id === detailResourceId) ?? null : null)
     setShowAnswers(false)
-    setSelectedQuestionIds(new Set())
-    setChapterPendingIds(new Set())
   }, [detailResourceId, isAll, props.libraryKind, props.resourceType])
 
   useEffect(() => {
     if (variant === 'dialog') {
       setDialogChapter(false)
-      setChapterPendingIds(new Set())
+      setSelectedQuestionIds(new Set())
+      setPickerPendingIds(new Set())
       if (props.libraryKind === 'school' && props.resourceType !== 'paper' && props.resourceType !== 'workbook') {
         props.onResourceTypeChange('paper')
       }
@@ -296,7 +297,6 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
   const openRecord = (record: SourceRecord) => {
     if (variant === 'dialog') {
-      setSelectedQuestionIds(new Set())
       setDetailRecord(record)
       return
     }
@@ -327,28 +327,40 @@ export function LibraryPicker(props: LibraryPickerProps) {
     })
   }
 
-  const commitChapterQuestions = () => {
-    if (chapterPendingIds.size === 0 || props.contentBusy) return
-    const pendingIds = [...chapterPendingIds]
+  const commitPickerQuestions = () => {
+    if (pickerPendingIds.size === 0 || props.contentBusy) return
+    const pendingIds = [...pickerPendingIds]
     setSelectedQuestionIds((current) => new Set([...current, ...pendingIds]))
-    setChapterPendingIds(new Set())
-    props.onAddSource('sync', `chapter:${chapterNode}`, pendingIds.length)
+    setPickerPendingIds(new Set())
+    props.onAddSource(props.resourceType, 'picker-selection', pendingIds.length)
   }
+
+  const pickerBatchAction = variant === 'dialog' && pickerActionHost ? createPortal(
+    <div className="picker-selection-action" aria-live="polite">
+      <span>已选 <strong>{pickerPendingIds.size}</strong> 道题</span>
+      <MetisButton type="primary" disabled={pickerPendingIds.size === 0 || props.contentBusy} onClick={commitPickerQuestions}>
+        添加
+      </MetisButton>
+    </div>,
+    pickerActionHost,
+  ) : null
 
   if (detailRecord) {
     return (
+      <>
+      {pickerBatchAction}
       <LegacyResourceDetail
         record={detailRecord}
         embedded={variant === 'dialog'}
         questions={previewQuestions}
         selectedQuestionIds={selectedQuestionIds}
+        pendingQuestionIds={pickerPendingIds}
         showAnswers={showAnswers}
         contentBusy={props.contentBusy}
         addStatus={props.addStatus}
         onReturnHome={() => {
           if (variant === 'dialog') {
             setDetailRecord(null)
-            setSelectedQuestionIds(new Set())
           } else {
             const homeUrl = new URL(window.location.href)
             homeUrl.searchParams.delete('resource')
@@ -359,14 +371,20 @@ export function LibraryPicker(props: LibraryPickerProps) {
         onToggleAnswers={() => setShowAnswers((current) => !current)}
         onToggleQuestion={(questionId) => {
           if (selectedQuestionIds.has(questionId)) return
-          setSelectedQuestionIds((current) => new Set(current).add(questionId))
-          props.onAddSource(detailRecord.sourceType, detailRecord.id, 1)
+          toggleSetValue(setPickerPendingIds, questionId)
         }}
         onUseAll={() => {
-          if (variant === 'dialog') setSelectedQuestionIds(new Set(previewQuestions.map((question) => question.id)))
+          if (variant === 'dialog') {
+            setPickerPendingIds((current) => new Set([
+              ...current,
+              ...previewQuestions.filter((question) => !selectedQuestionIds.has(question.id)).map((question) => question.id),
+            ]))
+            return
+          }
           props.onAddSource(detailRecord.sourceType, detailRecord.id, previewQuestions.length)
         }}
       />
+      </>
     )
   }
 
@@ -408,7 +426,6 @@ export function LibraryPicker(props: LibraryPickerProps) {
                 if (variant === 'home') props.onShowAllChange?.(false)
                 else {
                   setDialogChapter(false)
-                  setChapterPendingIds(new Set())
                 }
                 props.onResourceTypeChange(option.type)
               }}
@@ -435,15 +452,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
         ) : null}
       </nav>
 
-      {dialogChapter && chapterActionHost ? createPortal(
-        <div className="chapter-picker-bulk-action" aria-live="polite">
-          <span>已选 <strong>{chapterPendingIds.size}</strong> 道题</span>
-          <MetisButton type="primary" disabled={chapterPendingIds.size === 0 || props.contentBusy} onClick={commitChapterQuestions}>
-            添加
-          </MetisButton>
-        </div>,
-        chapterActionHost,
-      ) : null}
+      {pickerBatchAction}
 
       {dialogChapter ? (
         <div className="chapter-picker-browser">
@@ -461,13 +470,13 @@ export function LibraryPicker(props: LibraryPickerProps) {
             <div className="chapter-question-list">
               {chapterQuestions.filter((question) => !keyword.trim() || question.stem.includes(keyword.trim())).map((question, index) => {
                 const added = selectedQuestionIds.has(question.id)
-                const pending = chapterPendingIds.has(question.id)
+                const pending = pickerPendingIds.has(question.id)
                 return (
                   <article key={question.id} className={added ? 'is-added' : pending ? 'is-selected' : ''}>
                     <div className="chapter-question-meta"><span>{question.type} / {question.difficulty} / {question.estimatedMinutes}分钟</span></div>
                     <div className="chapter-question-stem"><b>{index + 1}.</b><p>{question.stem}</p></div>
                     {question.options ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
-                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className="is-add" disabled={props.contentBusy || added} onClick={() => toggleSetValue(setChapterPendingIds, question.id)}>{added ? '已添加' : pending ? '已选' : '＋ 选择'}</button></div></footer>
+                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className="is-add" disabled={props.contentBusy || added} onClick={() => toggleSetValue(setPickerPendingIds, question.id)}>{added ? '已添加' : pending ? '已选' : '＋ 选择'}</button></div></footer>
                   </article>
                 )
               })}

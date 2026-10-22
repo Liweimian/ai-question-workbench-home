@@ -3421,7 +3421,7 @@
   gap: 8px;
 }
 
-.add-question-header-actions > [data-chapter-picker-actions] {
+.add-question-header-actions > [data-picker-selection-actions] {
   display: flex;
   align-items: center;
 }
@@ -5252,7 +5252,7 @@
   background: var(--fx-surface-page);
 }
 
-.chapter-picker-bulk-action {
+.picker-selection-action {
   display: flex;
   height: 36px;
   align-items: center;
@@ -5261,11 +5261,11 @@
   font-size: 12px;
 }
 
-.chapter-picker-bulk-action strong {
+.picker-selection-action strong {
   color: var(--fx-primary);
 }
 
-.chapter-picker-bulk-action button {
+.picker-selection-action button {
   min-width: 64px;
 }
 

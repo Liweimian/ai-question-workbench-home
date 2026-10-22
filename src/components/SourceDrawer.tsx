@@ -121,7 +121,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
             </div>
           </div>
           <div className="add-question-header-actions">
-            <div data-chapter-picker-actions />
+            <div data-picker-selection-actions />
             <MetisButton type="borderless" icon={<X size={18} />} aria-label="关闭添加题目" onClick={props.onClose} />
           </div>
         </header>
