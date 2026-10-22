@@ -23,10 +23,6 @@ export function WorkspaceHeader({
 
   return (
     <header className="fx-page-header workspace-header" data-sec="1">
-      <div className="header-identity">
-        <span className="header-scope-text">初中数学 · 八年级上</span>
-      </div>
-
       <div className="header-actions">
         <MetisButton
           type="borderless"

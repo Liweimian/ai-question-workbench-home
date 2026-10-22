@@ -80,7 +80,7 @@
   padding: 0 32px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 24px;
   border-bottom: 1px solid var(--fx-line-strong);
   background: var(--common_bg2_color);
@@ -89,20 +89,6 @@
 
 .workbench-page.is-space-collapsed .workspace-header {
   left: var(--workspace-space-collapsed-width);
-}
-
-.header-identity {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  min-width: 0;
-}
-
-.header-scope-text {
-  display: inline-flex;
-  align-items: center;
-  color: var(--fx-text-secondary);
-  font-size: 13px;
 }
 
 .header-actions {
@@ -1104,13 +1090,27 @@
   box-shadow: var(--fx-shadow-card);
 }
 
-.space-nav-heading strong {
+.space-nav-title {
+  display: flex;
   min-width: 0;
   flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.space-nav-title strong {
   overflow: hidden;
   color: var(--fx-text-primary);
   font-size: 13px;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.space-nav-title small {
+  overflow: hidden;
+  color: var(--fx-text-tertiary);
+  font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1163,13 +1163,13 @@
 
 .space-nav-actions > button.is-primary {
   color: var(--common_fg_color);
-  background: var(--fx-primary);
+  background: var(--theme_primary1_color);
   box-shadow: 0 6px 14px var(--common-shadow-color);
 }
 
 .space-nav-actions > button.is-primary:hover {
   color: var(--common_fg_color);
-  background: var(--theme_primary2_color);
+  background: var(--theme_primary1_hover_color);
 }
 
 .space-nav-actions > button:disabled,
@@ -1315,7 +1315,7 @@
 
 .workspace-space-nav.is-collapsed > button.is-primary {
   color: var(--common_fg_color);
-  background: var(--fx-primary);
+  background: var(--theme_primary1_color);
 }
 
 .navigator-tabs,

@@ -46,7 +46,10 @@ export function WorkspaceSidebar(props: WorkspaceSidebarProps) {
     <aside className="workspace-space-nav" aria-label="组题空间导航">
       <header className="space-nav-heading">
         <span className="space-nav-logo"><Sparkles size={16} /></span>
-        <strong>李老师的组题空间</strong>
+        <div className="space-nav-title">
+          <strong>李老师的组题空间</strong>
+          <small>初中数学 · 八年级上</small>
+        </div>
         <button type="button" aria-label="收起组题空间" onClick={() => props.onCollapsedChange(true)}><ChevronsLeft size={16} /></button>
       </header>
 
