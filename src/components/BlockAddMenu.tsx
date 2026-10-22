@@ -86,11 +86,11 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
   const renderFlatGroup = (group: (typeof optionGroups)[number]) => (
     <section className="block-command-group" key={group.title}>
       <h4>{group.title}</h4>
-      {group.items.map(({ id, title, description, icon: Icon, ...item }) => {
+      {group.items.map(({ id, title, icon: Icon, ...item }) => {
         const utility = 'utility' in item ? item.utility : undefined
         return <button type="button" role="menuitem" key={id} onClick={() => {
           if (utility) chooseUtility(utility)
-        }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong><small>{description}</small></span></button>
+        }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong></span></button>
       })}
     </section>
   )
@@ -108,25 +108,25 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
           <div className="block-command-scroll">
             {libraryGroups.map(({ id, title, mode, items }) => <section className="block-command-group" key={id}>
               <h4>{title}</h4>
-              {items.map(({ title: itemTitle, description, view, icon: Icon }) => <button type="button" role="menuitem" key={view} onClick={() => { setOpen(false); onOpenAdd(mode, { libraryView: view }) }}>
-                <span className="block-command-icon"><Icon size={16} /></span><span><strong>{itemTitle}</strong><small>{description}</small></span>
+              {items.map(({ title: itemTitle, view, icon: Icon }) => <button type="button" role="menuitem" key={view} onClick={() => { setOpen(false); onOpenAdd(mode, { libraryView: view }) }}>
+                <span className="block-command-icon"><Icon size={16} /></span><span><strong>{itemTitle}</strong></span>
               </button>)}
             </section>)}
             <section className="block-command-group">
               <h4>搜题与导入</h4>
-              {searchItems.map(({ id, title, description, icon: Icon }) => <button type="button" role="menuitem" key={id} onClick={() => {
+              {searchItems.map(({ id, title, icon: Icon }) => <button type="button" role="menuitem" key={id} onClick={() => {
                 if (id === 'upload') { setOpen(false); onOpenAdd('upload') }
                 else chooseUtility(id)
-              }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong><small>{description}</small></span></button>)}
+              }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong></span></button>)}
             </section>
             <section className="block-command-group">
               <h4>飞象 AI</h4>
-              {aiItems.map(({ id, title, description, icon: Icon }) => <button type="button" role="menuitem" className="is-ai" key={id} onClick={() => {
+              {aiItems.map(({ id, title, icon: Icon }) => <button type="button" role="menuitem" className="is-ai" key={id} onClick={() => {
                 setOpen(false)
                 if (id === 'personalized') onOpenAdd('personalized')
                 else if (onOpenAssistant) onOpenAssistant(id)
                 else onOpenAdd(id)
-              }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong><small>{description}</small></span></button>)}
+              }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong></span></button>)}
             </section>
             {renderFlatGroup(optionGroups[0])}
           </div>

@@ -2078,7 +2078,7 @@
   z-index: 70;
   bottom: calc(100% + 8px);
   left: 0;
-  width: 420px;
+  width: 280px;
   padding: 10px;
   border: 1px solid var(--fx-line-strong);
   border-radius: var(--fx-radius-card);
@@ -2099,7 +2099,6 @@
 
 .block-command-group + .block-command-group {
   padding-top: 7px;
-  border-top: 1px solid var(--fx-line-subtle);
 }
 
 .block-command-group h4 {
@@ -2144,8 +2143,8 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 48px;
-  padding: 7px 8px;
+  min-height: 40px;
+  padding: 4px 8px;
   border: 0;
   border-radius: var(--fx-radius-control);
   color: var(--fx-text-secondary);
@@ -2282,7 +2281,6 @@
 .block-command-tip {
   margin-top: 4px;
   padding: 8px 8px 3px;
-  border-top: 1px solid var(--fx-line-subtle);
   color: var(--fx-text-tertiary);
   font-size: 10px;
 }
