@@ -3415,6 +3415,17 @@
   border-bottom: 1px solid var(--fx-line-strong);
 }
 
+.add-question-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-question-header-actions > [data-chapter-picker-actions] {
+  display: flex;
+  align-items: center;
+}
+
 .add-question-title {
   display: flex;
   align-items: flex-start;
@@ -5242,10 +5253,6 @@
 }
 
 .chapter-picker-bulk-action {
-  position: absolute;
-  z-index: 3;
-  top: 12px;
-  right: 58px;
   display: flex;
   height: 36px;
   align-items: center;

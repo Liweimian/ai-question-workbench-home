@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
+import { createPortal } from 'react-dom'
 import { MetisButton, MetisInput } from '@yuanfudao/metis-web-component'
 import {
   ArrowLeft,
@@ -242,6 +243,9 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const [chapterPendingIds, setChapterPendingIds] = useState<Set<string>>(new Set())
   const [favorites, setFavorites] = useState<Set<string>>(new Set(['paper-2']))
   const [pinned, setPinned] = useState<Set<string>>(new Set())
+  const chapterActionHost = variant === 'dialog'
+    ? document.querySelector<HTMLElement>('[data-chapter-picker-actions]')
+    : null
 
   useEffect(() => {
     setKeyword('')
@@ -431,13 +435,14 @@ export function LibraryPicker(props: LibraryPickerProps) {
         ) : null}
       </nav>
 
-      {dialogChapter ? (
+      {dialogChapter && chapterActionHost ? createPortal(
         <div className="chapter-picker-bulk-action" aria-live="polite">
           <span>已选 <strong>{chapterPendingIds.size}</strong> 道题</span>
           <MetisButton type="primary" disabled={chapterPendingIds.size === 0 || props.contentBusy} onClick={commitChapterQuestions}>
             添加
           </MetisButton>
-        </div>
+        </div>,
+        chapterActionHost,
       ) : null}
 
       {dialogChapter ? (

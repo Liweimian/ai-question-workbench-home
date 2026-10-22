@@ -120,7 +120,10 @@ export function SourceDrawer(props: SourceDrawerProps) {
               <p>{props.mode === 'menu' ? '一个入口，选择这次要怎样添加题目' : '结果都会加入当前题单，不会覆盖已有内容'}</p>
             </div>
           </div>
-          <MetisButton type="borderless" icon={<X size={18} />} aria-label="关闭添加题目" onClick={props.onClose} />
+          <div className="add-question-header-actions">
+            <div data-chapter-picker-actions />
+            <MetisButton type="borderless" icon={<X size={18} />} aria-label="关闭添加题目" onClick={props.onClose} />
+          </div>
         </header>
 
         <div className="add-question-body">
