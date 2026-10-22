@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:30:00+08:00",
-      "iterationCount": 19,
+      "iterationCount": 20,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -42,7 +42,8 @@
         "browser FlowUs-style document toolbar and overflow menu flow",
         "browser in-workspace resource page and three-tab flow",
         "browser Feixiang AI workspace and five-capability flow",
-        "browser editable empty block and gutter controls flow"
+        "browser editable empty block and gutter controls flow",
+        "browser enter-to-new-block and caret-focus flow"
       ]
     },
     "2": {

@@ -52,17 +52,34 @@ const promptSuggestions = [
 
 export function EmptyCanvas(props: EmptyCanvasProps) {
   const [prompt, setPrompt] = useState('')
-  const [addMenuRequest, setAddMenuRequest] = useState(0)
-  const emptyBlockRef = useRef<HTMLDivElement>(null)
+  const [blockIds, setBlockIds] = useState(['initial'])
+  const [activeBlockId, setActiveBlockId] = useState('initial')
+  const [addMenuRequests, setAddMenuRequests] = useState<Record<string, number>>({})
+  const blockRefs = useRef(new Map<string, HTMLDivElement>())
 
   const closeAi = () => {
     props.onAiClose()
-    window.requestAnimationFrame(() => emptyBlockRef.current?.focus())
+    window.requestAnimationFrame(() => blockRefs.current.get(activeBlockId)?.focus())
   }
 
   useEffect(() => {
-    emptyBlockRef.current?.focus()
+    setBlockIds(['initial'])
+    setActiveBlockId('initial')
+    setAddMenuRequests({})
+    window.requestAnimationFrame(() => blockRefs.current.get('initial')?.focus())
   }, [props.document.id])
+
+  const insertBlockAfter = (blockId: string) => {
+    const nextId = `block-${Date.now()}`
+    setBlockIds((current) => {
+      const index = current.indexOf(blockId)
+      const next = [...current]
+      next.splice(index + 1, 0, nextId)
+      return next
+    })
+    setActiveBlockId(nextId)
+    window.requestAnimationFrame(() => blockRefs.current.get(nextId)?.focus())
+  }
 
   return (
     <article className="editor-empty" data-sec="3" aria-label="空白题单编辑区">
@@ -77,30 +94,42 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       </header>
 
       <div className="editor-empty-content">
-        <div className="empty-first-block" role="group" aria-label="题单空白编辑块">
-          <BlockAddMenu empty openRequest={addMenuRequest} onOpenAdd={props.onOpenAdd} />
-          <div
-            className="empty-block-input"
-            ref={emptyBlockRef}
-            contentEditable
-            suppressContentEditableWarning
-            role="textbox"
-            aria-multiline="true"
-            aria-label="输入内容，按空格唤起 AI"
-            data-placeholder="直接输入内容，按 Space 唤起 AI，或按 / 添加题目"
-            onKeyDown={(event) => {
-              const isEmpty = !event.currentTarget.textContent?.trim()
-              const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
-              if (isEmpty && !hasModifier && event.code === 'Space' && !event.nativeEvent.isComposing && !event.repeat && !props.aiOpen) {
-                event.preventDefault()
-                props.onAiOpen()
-              }
-              if (isEmpty && !hasModifier && event.key === '/' && !event.nativeEvent.isComposing && !event.repeat) {
-                event.preventDefault()
-                setAddMenuRequest((value) => value + 1)
-              }
-            }}
-          />
+        <div className="empty-block-list">
+          {blockIds.map((blockId) => (
+            <div className="empty-first-block" role="group" aria-label="题单内容块" key={blockId}>
+              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} />
+              <div
+                className="empty-block-input"
+                ref={(node) => {
+                  if (node) blockRefs.current.set(blockId, node)
+                  else blockRefs.current.delete(blockId)
+                }}
+                contentEditable
+                suppressContentEditableWarning
+                role="textbox"
+                aria-multiline="true"
+                aria-label="输入内容，按空格唤起 AI"
+                data-placeholder="按 Space（空格）以启用 AI，或按“/”启用命令"
+                onFocus={() => setActiveBlockId(blockId)}
+                onKeyDown={(event) => {
+                  const isEmpty = !event.currentTarget.textContent?.trim()
+                  const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
+                  if (!hasModifier && event.key === 'Enter' && !event.nativeEvent.isComposing) {
+                    event.preventDefault()
+                    if (!isEmpty) insertBlockAfter(blockId)
+                  }
+                  if (isEmpty && !hasModifier && event.code === 'Space' && !event.nativeEvent.isComposing && !event.repeat && !props.aiOpen) {
+                    event.preventDefault()
+                    props.onAiOpen()
+                  }
+                  if (isEmpty && !hasModifier && event.key === '/' && !event.nativeEvent.isComposing && !event.repeat) {
+                    event.preventDefault()
+                    setAddMenuRequests((current) => ({ ...current, [blockId]: (current[blockId] ?? 0) + 1 }))
+                  }
+                }}
+              />
+            </div>
+          ))}
         </div>
 
         {props.aiOpen ? (

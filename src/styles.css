@@ -2139,6 +2139,11 @@
   outline: none;
 }
 
+.empty-block-list {
+  display: flex;
+  flex-direction: column;
+}
+
 .empty-first-block .block-add {
   position: absolute;
   top: 7px;
