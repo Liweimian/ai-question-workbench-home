@@ -15,7 +15,7 @@
 - `npm run build`：通过；仅保留 Metis 依赖 CSS 及包体积告警。
 - `npm run typecheck`：通过；`npm run build`：通过（仅既有 Metis CSS 与包体积告警）。
 - 发布：未执行；未修改旧页面、旧站点或已有线上链接。
-- 本地版本：待提交（`Stage 1: Demo 创作完成 - 迭代 73`）。
+- 本地版本：`80fccc8`（`Stage 1: Demo 创作完成 - 迭代 73`）。
 
 ## 下一步
 - 等待用户评审合并后的弹窗详情顶栏。
