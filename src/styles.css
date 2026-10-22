@@ -4574,6 +4574,10 @@
   border-radius: var(--fx-radius-card);
 }
 
+.library-picker.is-home .library-record-grid--all {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .library-picker.is-home .library-record-grid--paper .library-resource-card {
   background: linear-gradient(145deg, var(--fx-primary-selected), var(--common_bg2_color) 54%);
 }
