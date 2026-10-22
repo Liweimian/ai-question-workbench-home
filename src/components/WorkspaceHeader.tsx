@@ -3,17 +3,21 @@ import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
 import { FileDown, MoreHorizontal, Save, Send, Undo2 } from 'lucide-react'
 
 interface WorkspaceHeaderProps {
+  sectionLabel?: string
   documentTitle: string
   questionCount: number
   canUndo: boolean
   onUndo: () => void
+  showActions?: boolean
 }
 
 export function WorkspaceHeader({
+  sectionLabel = '组题',
   documentTitle,
   questionCount,
   canUndo,
   onUndo,
+  showActions = true,
 }: WorkspaceHeaderProps) {
   const hasQuestions = questionCount > 0
   const [moreOpen, setMoreOpen] = useState(false)
@@ -46,11 +50,11 @@ export function WorkspaceHeader({
   return (
     <header className="fx-page-header workspace-header" data-sec="1">
       <div className="header-document-path" aria-label="当前题单路径">
-        <span>题单</span>
+        <span>{sectionLabel}</span>
         <span className="header-document-divider">/</span>
-        <strong>{documentTitle?.trim() || '未命名题单'}</strong>
+        <strong>{documentTitle?.trim() || '未命名组题'}</strong>
       </div>
-      <div className="header-actions">
+      {showActions ? <div className="header-actions">
         <MetisButton
           type="borderless"
           icon={<Save size={17} />}
@@ -88,7 +92,7 @@ export function WorkspaceHeader({
             </div>
           ) : null}
         </div>
-      </div>
+      </div> : null}
     </header>
   )
 }

@@ -47,7 +47,7 @@ const toHistorySummary = (
   previous?: HistoryDocumentSummary,
 ): HistoryDocumentSummary => ({
   id: document.id,
-  title: document.title.trim() || '未命名题单',
+  title: document.title.trim() || '未命名组题',
   gradeSubject: document.gradeSubject,
   questionCount: document.questions.length,
   updatedAt: '刚刚',
@@ -67,7 +67,7 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     return {
       document: {
         ...state.document,
-        title: state.document.title === '未命名' ? '新建题单' : state.document.title,
+        title: state.document.title === '未命名' || state.document.title === '未命名组题' ? '未命名组题' : state.document.title,
         questions: [...state.document.questions, ...cloneQuestions(action.questions)],
         updatedAt: '刚刚',
       },
@@ -382,7 +382,7 @@ export function useWorkbench() {
       MetisMessage.info('正在处理上一项内容，请稍候')
       return
     }
-    if (document.questions.length === 0 && document.title.trim() === '未命名题单') {
+    if (document.questions.length === 0 && ['未命名组题', '未命名题单'].includes(document.title.trim())) {
       MetisMessage.info('当前已经是一份空白题单')
       return
     }
@@ -390,7 +390,7 @@ export function useWorkbench() {
     rememberDocument(document)
     const nextDocument: WorkbenchDocument = {
       id: `draft-${Date.now()}`,
-      title: '未命名题单',
+      title: '未命名组题',
       gradeSubject: document.gradeSubject,
       questions: [],
       updatedAt: '刚刚',

@@ -1219,6 +1219,11 @@
   background: var(--fx-primary-selected);
 }
 
+.space-nav-actions > button.is-active {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
 .space-nav-actions > button.is-primary {
   color: var(--fx-text-secondary);
   background: transparent;
@@ -2380,29 +2385,24 @@
   background: var(--fx-primary-selected);
 }
 
-.my-resources-layer {
-  position: fixed;
-  z-index: 120;
-  inset: 0;
-  display: grid;
-  padding: 56px;
-  place-items: center;
-  background: var(--common_overlay_color);
+.editor-scroll.is-resources {
+  padding: 28px 32px 56px;
 }
 
-.my-resources-panel {
+.my-resources-page {
   display: flex;
-  width: min(920px, calc(100vw - 112px));
-  height: min(680px, calc(100vh - 112px));
+  width: min(100%, 1040px);
+  min-height: 620px;
+  margin: 0 auto;
   overflow: hidden;
   flex-direction: column;
   border: 1px solid var(--fx-line-strong);
   border-radius: var(--fx-radius-card);
   background: var(--common_bg2_color);
-  box-shadow: 0 18px 56px var(--common-shadow-color);
+  box-shadow: 0 8px 28px var(--common_shadow3_color);
 }
 
-.my-resources-panel > header {
+.my-resources-page > header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2410,17 +2410,17 @@
   border-bottom: 1px solid var(--fx-line-strong);
 }
 
-.my-resources-panel > header > div {
+.my-resources-page > header > div {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
-.my-resources-panel > header strong {
+.my-resources-page > header strong {
   font-size: 18px;
 }
 
-.my-resources-panel > header span {
+.my-resources-page > header span {
   color: var(--fx-text-tertiary);
   font-size: 11px;
 }

@@ -13,7 +13,7 @@ export function WorkbenchHomePage() {
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const [spaceCollapsed, setSpaceCollapsed] = useState(false)
   const [quickAiOpen, setQuickAiOpen] = useState(false)
-  const [myResourcesOpen, setMyResourcesOpen] = useState(false)
+  const [workspaceView, setWorkspaceView] = useState<'editor' | 'resources'>('editor')
   const hasQuestions = workbench.document.questions.length > 0
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function WorkbenchHomePage() {
     : 0
 
   const openAdd = (mode: Parameters<typeof workbench.openAdd>[0] = 'menu') => {
-    setMyResourcesOpen(false)
+    setWorkspaceView('editor')
     setQuickAiOpen(false)
     workbench.openAdd(mode)
   }
@@ -44,15 +44,18 @@ export function WorkbenchHomePage() {
       <main className={`fx-content workbench-page${spaceCollapsed ? ' is-space-collapsed' : ''}`}>
         <div className="fx-zoom-area workbench-zoom-area">
           <WorkspaceHeader
-            documentTitle={workbench.document.title}
+            sectionLabel={workspaceView === 'resources' ? '资源' : '组题'}
+            documentTitle={workspaceView === 'resources' ? '我的资源' : workbench.document.title}
             questionCount={workbench.document.questions.length}
             canUndo={workbench.canUndo}
             onUndo={workbench.undo}
+            showActions={workspaceView === 'editor'}
           />
 
-          <section className={`workspace-shell${spaceCollapsed ? ' is-space-collapsed' : ''}${hasQuestions ? ' has-inspector' : ' is-empty'}`} aria-label="AI 题库题单编辑">
+          <section className={`workspace-shell${spaceCollapsed ? ' is-space-collapsed' : ''}${workspaceView === 'editor' && hasQuestions ? ' has-inspector' : ' is-empty'}`} aria-label="AI 题库组题工作区">
             <WorkspaceSidebar
               collapsed={spaceCollapsed}
+              activeView={workspaceView}
               document={workbench.document}
               histories={workbench.historyDocuments}
               historyStatus={workbench.historyStatus}
@@ -62,22 +65,24 @@ export function WorkbenchHomePage() {
               onQueryChange={workbench.setHistoryQuery}
               onCreateNew={() => {
                 setQuickAiOpen(false)
+                setWorkspaceView('editor')
                 workbench.createNewDocument()
               }}
               onOpenMyResources={() => {
                 setQuickAiOpen(false)
                 workbench.closeAdd()
-                setMyResourcesOpen(true)
+                setWorkspaceView('resources')
               }}
               onOpenDocument={(documentId) => {
                 setQuickAiOpen(false)
+                setWorkspaceView('editor')
                 void workbench.openHistoryDocument(documentId)
               }}
               onReload={() => void workbench.reloadHistory()}
             />
 
-            <div className={`editor-scroll${hasQuestions ? '' : ' is-empty'}`}>
-              {!hasQuestions ? (
+            <div className={`editor-scroll${workspaceView === 'resources' ? ' is-resources' : hasQuestions ? '' : ' is-empty'}`}>
+              {workspaceView === 'resources' ? <MyResourcesPanel /> : !hasQuestions ? (
                 <EmptyCanvas
                   document={workbench.document}
                   aiOpen={quickAiOpen}
@@ -112,7 +117,7 @@ export function WorkbenchHomePage() {
               )}
             </div>
 
-            {hasQuestions ? (
+            {workspaceView === 'editor' && hasQuestions ? (
               <QuestionInspector
                 document={workbench.document}
                 question={workbench.selectedQuestion}
@@ -157,7 +162,6 @@ export function WorkbenchHomePage() {
             />
           ) : null}
 
-          {myResourcesOpen ? <MyResourcesPanel onClose={() => setMyResourcesOpen(false)} /> : null}
         </div>
       </main>
     </div>

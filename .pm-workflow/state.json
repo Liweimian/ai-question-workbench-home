@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:30:00+08:00",
-      "iterationCount": 15,
+      "iterationCount": 16,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -39,7 +39,8 @@
         "browser AI compose/create/rewrite flows",
         "browser no-global-sider and conditional inspector flow",
         "browser dual-library and grouped quick-start flow",
-        "browser FlowUs-style document toolbar and overflow menu flow"
+        "browser FlowUs-style document toolbar and overflow menu flow",
+        "browser in-workspace resource page and three-tab flow"
       ]
     },
     "2": {
