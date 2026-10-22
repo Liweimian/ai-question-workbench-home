@@ -1,6 +1,7 @@
 import { MetisButton, MetisInput } from '@yuanfudao/metis-web-component'
-import { ArrowDown, ArrowUp, GripVertical, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
-import type { WorkbenchDocument } from '../prototype/types'
+import { ArrowDown, ArrowUp, GripVertical, Pencil, Sparkles, Trash2 } from 'lucide-react'
+import type { AddQuestionMode, WorkbenchDocument } from '../prototype/types'
+import { BlockAddMenu } from './BlockAddMenu'
 
 interface DocumentCanvasProps {
   document: WorkbenchDocument
@@ -11,7 +12,7 @@ interface DocumentCanvasProps {
   onMoveQuestion: (direction: -1 | 1) => void
   onDeleteQuestion: () => void
   onEditQuestion: () => void
-  onAdd: () => void
+  onAdd: (mode?: AddQuestionMode) => void
 }
 
 export function DocumentCanvas(props: DocumentCanvasProps) {
@@ -83,7 +84,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
       </div>
 
       <div className="editor-add-row">
-        <MetisButton type="borderless" icon={<Plus size={16} />} onClick={props.onAdd}>继续添加题目</MetisButton>
+        <BlockAddMenu onOpenAdd={props.onAdd} />
       </div>
     </article>
   )

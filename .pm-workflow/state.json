@@ -12,8 +12,8 @@
       "name": "Demo 创作",
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
-      "completedAt": "2026-10-22T13:01:45+08:00",
-      "iterationCount": 4,
+      "completedAt": "2026-10-22T13:25:00+08:00",
+      "iterationCount": 5,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -21,6 +21,7 @@
         "src/components/AiInspector.tsx",
         "src/components/SourceDrawer.tsx",
         "src/components/LibraryPicker.tsx",
+        "src/components/BlockAddMenu.tsx",
         "src/hooks/useWorkbench.ts",
         "dist/"
       ],
@@ -31,6 +32,7 @@
         "browser history flow",
         "browser create-document and undo flow",
         "browser empty-document and large library picker flow",
+        "browser inline plus and AI-first command flow",
         "browser AI compose/create/rewrite flows"
       ]
     },
@@ -72,8 +74,13 @@
       "stage": 1,
       "hash": "f7a7bed",
       "message": "Stage 1: Demo 创作完成 - 迭代 4"
+    },
+    {
+      "stage": 1,
+      "hash": "pending",
+      "message": "Stage 1: Demo 创作完成 - 迭代 5"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
-  "updatedAt": "2026-10-22T13:01:45+08:00"
+  "updatedAt": "2026-10-22T13:25:00+08:00"
 }

@@ -1041,9 +1041,8 @@
 
 /* 阶段一 · 迭代 2：Figma 式三栏工作台 + Notion 式统一添加命令 */
 .workbench-page {
-  --workbench-navigator-width: 216px;
   --workbench-inspector-width: 304px;
-  --workbench-editor-max-width: 760px;
+  --workbench-editor-max-width: 860px;
   background: var(--common_bg2_color);
 }
 
@@ -1054,7 +1053,7 @@
   bottom: 0;
   left: 0;
   display: grid;
-  grid-template-columns: var(--workbench-navigator-width) minmax(0, 1fr) var(--workbench-inspector-width);
+  grid-template-columns: minmax(0, 1fr) var(--workbench-inspector-width);
   overflow: hidden;
   border-top: 1px solid var(--fx-line-strong);
   background: var(--common_bg2_color);
@@ -1562,6 +1561,184 @@
   border-top: 1px dashed var(--fx-line-subtle);
 }
 
+.block-add {
+  position: relative;
+  width: min(100%, 520px);
+}
+
+.block-add--empty {
+  width: min(100%, 500px);
+}
+
+.block-add-trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px dashed transparent;
+  border-radius: var(--fx-radius-control);
+  color: var(--fx-text-tertiary);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.block-add-trigger > span:first-child {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--system-border-radius-s);
+  color: var(--fx-text-secondary);
+  background: var(--common_bg2_color);
+}
+
+.block-add-trigger:hover,
+.block-add-trigger[aria-expanded="true"] {
+  border-color: var(--theme_primary1_selected2_color);
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.block-add-trigger-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.block-add-trigger-copy strong {
+  color: var(--fx-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.block-add-trigger-copy small {
+  color: var(--fx-text-tertiary);
+  font-size: 11px;
+}
+
+.block-command-menu {
+  position: absolute;
+  z-index: 70;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: 360px;
+  padding: 8px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-card);
+  background: var(--common_bg2_color);
+  box-shadow: 0 14px 40px var(--common-shadow-color);
+  animation: panel-in 160ms ease both;
+}
+
+.block-add--empty .block-command-menu {
+  top: calc(100% + 8px);
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: none;
+}
+
+.block-command-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px 8px;
+  color: var(--fx-text-tertiary);
+  font-size: 11px;
+}
+
+.block-command-heading strong {
+  color: var(--fx-text-secondary);
+  font-size: 12px;
+}
+
+.block-command-heading span {
+  padding: 2px 7px;
+  border-radius: var(--aiq_radius_pill);
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.block-command-menu > button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 8px;
+  border: 0;
+  border-radius: var(--fx-radius-control);
+  color: var(--fx-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.block-command-menu > button:hover {
+  background: var(--fx-surface-muted);
+}
+
+.block-command-menu > button.is-ai:hover {
+  background: var(--fx-primary-selected);
+}
+
+.block-command-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--system-border-radius-s);
+  color: var(--fx-text-secondary);
+  background: var(--fx-surface-muted);
+}
+
+.block-command-menu > button.is-ai .block-command-icon {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.block-command-menu > button > span:nth-child(2) {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.block-command-menu > button strong {
+  color: var(--fx-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.block-command-menu > button small {
+  color: var(--fx-text-tertiary);
+  font-size: 11px;
+}
+
+.block-command-menu > button em {
+  padding: 2px 6px;
+  border-radius: var(--aiq_radius_pill);
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.block-command-tip {
+  margin-top: 4px;
+  padding: 8px 8px 3px;
+  border-top: 1px solid var(--fx-line-subtle);
+  color: var(--fx-text-tertiary);
+  font-size: 10px;
+}
+
 .editor-empty {
   display: flex;
   width: min(100%, var(--workbench-editor-max-width));
@@ -1604,7 +1781,6 @@
   flex-direction: column;
 }
 
-.editor-empty-icon,
 .document-inspector-icon,
 .manual-visual {
   display: grid;
@@ -1617,7 +1793,7 @@
 }
 
 .editor-empty-content h1 {
-  margin: 18px 0 0;
+  margin: 0;
   font-size: 24px;
 }
 
@@ -1627,33 +1803,6 @@
   color: var(--fx-text-secondary);
   font-size: 13px;
   line-height: 21px;
-}
-
-.editor-empty-shortcuts {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.editor-empty-shortcuts button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 30px;
-  padding: 0 9px;
-  border: 0;
-  border-radius: var(--fx-radius-control);
-  color: var(--fx-text-secondary);
-  background: transparent;
-  cursor: pointer;
-  font-size: 11px;
-}
-
-.editor-empty-shortcuts button:hover {
-  color: var(--fx-primary);
-  background: var(--fx-primary-selected);
 }
 
 .inspector-question-heading {
@@ -2754,8 +2903,8 @@
 
 @media (min-width: 1600px) {
   .workbench-page {
-    --workbench-navigator-width: 240px;
     --workbench-inspector-width: 328px;
+    --workbench-editor-max-width: 920px;
   }
 
   .editor-scroll {

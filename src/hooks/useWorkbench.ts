@@ -389,7 +389,7 @@ export function useWorkbench() {
     setCreatePreview([])
     setRewriteStatus('idle')
     setRewritePreview(null)
-    MetisMessage.success('已新建空白题单，上一份已存入历史，可撤销')
+    MetisMessage.success('已新建空白题单，上一份已自动保存，可撤销')
   }, [document, rememberDocument])
 
   const openHistoryDocument = useCallback(async (documentId: string) => {

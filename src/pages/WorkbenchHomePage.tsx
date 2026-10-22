@@ -3,7 +3,6 @@ import { AppSider } from '../components/AppSider'
 import { QuestionInspector } from '../components/AiInspector'
 import { DocumentCanvas } from '../components/DocumentCanvas'
 import { EmptyCanvas } from '../components/EmptyCanvas'
-import { QuestionNavigator } from '../components/QuestionNavigator'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
@@ -44,26 +43,9 @@ export function WorkbenchHomePage() {
             contentBusy={workbench.isContentBusy}
             onUndo={workbench.undo}
             onCreateNew={workbench.createNewDocument}
-            onAdd={() => workbench.openAdd('menu')}
           />
 
           <section className="workspace-shell" aria-label="AI 题库组题工作台">
-            <QuestionNavigator
-              document={workbench.document}
-              selectedQuestionId={workbench.selectedQuestionId}
-              view={workbench.navigatorView}
-              query={workbench.historyQuery}
-              historyStatus={workbench.historyStatus}
-              histories={workbench.historyDocuments}
-              contentBusy={workbench.isContentBusy}
-              onViewChange={workbench.setNavigatorView}
-              onQueryChange={workbench.setHistoryQuery}
-              onSelectQuestion={revealQuestion}
-              onOpenHistory={(documentId) => void workbench.openHistoryDocument(documentId)}
-              onReloadHistory={() => void workbench.reloadHistory()}
-              onAdd={() => workbench.openAdd('menu')}
-            />
-
             <div className="editor-scroll" ref={editorScrollRef}>
               {workbench.document.questions.length === 0 ? (
                 <EmptyCanvas onOpenAdd={workbench.openAdd} />
@@ -77,7 +59,7 @@ export function WorkbenchHomePage() {
                   onMoveQuestion={workbench.moveQuestion}
                   onDeleteQuestion={workbench.deleteQuestion}
                   onEditQuestion={workbench.editQuestion}
-                  onAdd={() => workbench.openAdd('menu')}
+                  onAdd={workbench.openAdd}
                 />
               )}
             </div>
