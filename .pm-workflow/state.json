@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 63,
+      "iterationCount": 64,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -81,7 +81,8 @@
         "browser dialog-only chapter and knowledge-point picker flow",
         "browser white chapter-picker content surfaces",
         "browser differentiated fly and school picker tabs",
-        "browser staged chapter-question selection and batch add"
+        "browser staged chapter-question selection and batch add",
+        "browser chapter batch action in dialog header"
       ]
     },
     "2": {
@@ -332,6 +333,11 @@
       "stage": 1,
       "hash": "e742ef4",
       "message": "Stage 1: Demo 创作完成 - 迭代 63"
+    },
+    {
+      "stage": 1,
+      "hash": "3274d04",
+      "message": "Stage 1: Demo 创作完成 - 迭代 64"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
