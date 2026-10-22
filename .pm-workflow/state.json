@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 67,
+      "iterationCount": 68,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -87,7 +87,9 @@
         "unified picker add labels and button colors",
         "browser expanded grouped quick-start capabilities",
         "browser direct fly and school chapter-picker entry flow",
-        "browser AI paper preset from quick-start flow"
+        "browser AI paper preset from quick-start flow",
+        "browser quick-start AI recording relocation flow",
+        "browser three-row Feixiang AI quick-start layout"
       ]
     },
     "2": {

@@ -342,9 +342,10 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
               <div className="quick-action-list">
                 {([
                   { action: 'image-search' as UtilityAction, label: '图片搜题', icon: FileScan },
+                  { action: 'ai-recording' as const, label: 'AI 录题', icon: FileScan },
                   { action: 'web-search' as UtilityAction, label: '联网搜题', icon: Globe2 },
                 ]).map(({ action, label, icon: Icon }) => (
-                  <button type="button" key={action} onClick={() => insertUtility(action)}>
+                  <button type="button" key={action} onClick={() => action === 'ai-recording' ? activateAiCapability('upload') : insertUtility(action)}>
                     <Icon size={15} /><strong>{label}</strong>
                   </button>
                 ))}
@@ -354,7 +355,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             <div className="quick-start-group quick-start-group--ai">
               <span>飞象 AI</span>
               <div className="quick-ai-list">
-                {inlineAiCapabilities.map(({ title, icon: Icon, action }) => (
+                {inlineAiCapabilities.filter(({ action }) => action !== 'upload').map(({ title, icon: Icon, action }) => (
                   <button type="button" key={title} onClick={() => activateAiCapability(action)}>
                     <Icon size={15} /><strong>{title}</strong>
                   </button>

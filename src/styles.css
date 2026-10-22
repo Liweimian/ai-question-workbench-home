@@ -2821,7 +2821,8 @@
   flex: 0 0 auto;
 }
 
-.quick-action-list {
+.quick-action-list,
+.quick-ai-list {
   grid-template-columns: 1fr;
 }
 
