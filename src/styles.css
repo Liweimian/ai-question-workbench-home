@@ -4551,6 +4551,22 @@
   flex-direction: column;
 }
 
+.library-picker.is-home .library-browser.has-sidebar {
+  display: grid;
+  grid-template-columns: 208px minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.library-picker.is-home .library-browser.has-sidebar .library-category-sidebar {
+  min-height: 560px;
+  padding-top: 18px;
+  background: rgba(250, 250, 250, 0.82);
+}
+
+.library-picker.is-home .library-browser.has-sidebar .library-results {
+  min-width: 0;
+}
+
 .library-picker.is-home .library-filter-row {
   min-height: 78px;
   padding-right: 24px;
@@ -4706,6 +4722,94 @@
   margin: 16px 32px 24px;
   flex: 1;
   grid-template-columns: minmax(0, 1fr);
+}
+
+.legacy-detail-stage.has-directory {
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.legacy-workbook-directory {
+  min-width: 0;
+  min-height: 0;
+  padding: 20px 12px;
+  overflow: auto;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 2px rgba(22, 29, 41, 0.04);
+  backdrop-filter: blur(16px);
+}
+
+.legacy-workbook-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 0;
+  color: var(--fx-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.legacy-workbook-directory > h2 {
+  margin: 12px 8px 18px;
+  overflow: hidden;
+  color: var(--fx-text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legacy-directory-tree section + section {
+  margin-top: 6px;
+}
+
+.legacy-directory-tree h3,
+.legacy-directory-tree h4 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  margin: 0;
+  padding: 0 8px;
+  color: var(--fx-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.legacy-directory-tree h4 {
+  padding-left: 18px;
+  font-weight: 500;
+}
+
+.legacy-directory-tree h4 em {
+  margin-left: auto;
+  color: var(--common_success1_color);
+  font-size: 10px;
+  font-style: normal;
+}
+
+.legacy-directory-tree button {
+  display: block;
+  width: calc(100% - 28px);
+  min-height: 32px;
+  margin-left: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--system-border-radius-s);
+  color: var(--fx-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  text-align: left;
+}
+
+.legacy-directory-tree button:hover,
+.legacy-directory-tree button.is-active {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
 }
 
 .legacy-detail-panel {

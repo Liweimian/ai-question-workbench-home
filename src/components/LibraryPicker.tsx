@@ -79,6 +79,19 @@ const resourceTypeLabels: Record<ResourceType, string> = {
   special: '专题',
 }
 
+const workbookDirectory = [
+  {
+    title: '第四章 一次函数',
+    lessons: [
+      { title: '4.1 函数', sections: ['达标检测', '基础练习', '能力提升', '拓展训练', '自我反思'] },
+      { title: '4.2 一次函数与正比例函数', sections: [] },
+      { title: '4.3 一次函数的图象', sections: [] },
+    ],
+  },
+  { title: '第五章 二元一次方程组', lessons: [] },
+  { title: '第六章 数据的分析', lessons: [] },
+]
+
 function getResourceCardTags(record: SourceRecord) {
   const secondaryTag = record.tags?.[0]
     ?? record.meta.split(/[·/]/).map((item) => item.trim()).find(Boolean)
@@ -101,6 +114,7 @@ interface LegacyResourceDetailProps {
 }
 
 function LegacyResourceDetail(props: LegacyResourceDetailProps) {
+  const [workbookSection, setWorkbookSection] = useState('达标检测')
   const sectionOrder = ['选择题', '填空题', '解答题']
   const sectionNames = ['一、单项选择题', '二、填空题', '三、解答题']
   const groupedQuestions = sectionOrder.map((type, index) => ({
@@ -124,10 +138,39 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
         </nav>
         <button type="button" className="legacy-detail-home-action" onClick={props.onReturnHome}><ArrowLeft size={15} />返回首页</button>
       </header>
-      <div className="legacy-detail-stage">
+      <div className={`legacy-detail-stage${props.record.sourceType === 'workbook' ? ' has-directory' : ''}`}>
+        {props.record.sourceType === 'workbook' ? (
+          <aside className="legacy-workbook-directory" aria-label={`${props.record.title}目录`}>
+            <button type="button" className="legacy-workbook-back"><ArrowLeft size={15} />练习册</button>
+            <h2>{props.record.title}</h2>
+            <div className="legacy-directory-tree" role="tree" aria-label="教材章节目录">
+              {workbookDirectory.map((chapter, chapterIndex) => (
+                <section key={chapter.title}>
+                  <h3><ChevronDown size={14} />{chapter.title}</h3>
+                  {chapter.lessons.map((lesson) => (
+                    <div key={lesson.title}>
+                      <h4 className={chapterIndex === 0 ? 'is-current' : ''}><ChevronDown size={13} />{lesson.title}{chapterIndex === 0 ? <em>已关联</em> : null}</h4>
+                      {lesson.sections.map((section) => (
+                        <button
+                          type="button"
+                          role="treeitem"
+                          key={section}
+                          className={workbookSection === section ? 'is-active' : ''}
+                          onClick={() => setWorkbookSection(section)}
+                        >
+                          {section}
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                </section>
+              ))}
+            </div>
+          </aside>
+        ) : null}
         <main className="legacy-detail-panel">
           <header className="legacy-detail-header">
-            <h2>{props.record.title}</h2>
+            <h2>{props.record.sourceType === 'workbook' ? `4.1 函数 · ${workbookSection}` : props.record.title}</h2>
             <div>
               <button type="button" onClick={props.onToggleAnswers}><Eye size={15} />{props.showAnswers ? '隐藏答案' : '显示答案'}</button>
               <button type="button" className="is-primary" disabled={props.contentBusy} onClick={props.onUseAll}><FileText size={15} />使用整卷<ChevronDown size={13} /></button>
@@ -324,7 +367,8 @@ export function LibraryPicker(props: LibraryPickerProps) {
     )
   }
 
-  const hasSidebar = variant === 'dialog' && props.resourceType !== 'workbook'
+  const hasSidebar = props.resourceType !== 'workbook'
+    && (variant === 'dialog' || props.resourceType === 'sync' || props.resourceType === 'special')
   const groups = props.resourceType === 'workbook' ? [] : categoryGroups[props.resourceType]
   const visibleSourceOptions = props.libraryKind === 'school'
     ? sourceOptions
