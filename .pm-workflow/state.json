@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 60,
+      "iterationCount": 61,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -78,7 +78,8 @@
         "browser create-new-document from whole resource flow",
         "browser embedded picker detail keeps single-question add flow",
         "browser continuous multi-question add without closing picker",
-        "browser dialog-only chapter and knowledge-point picker flow"
+        "browser dialog-only chapter and knowledge-point picker flow",
+        "browser white chapter-picker content surfaces"
       ]
     },
     "2": {
@@ -314,6 +315,11 @@
       "stage": 1,
       "hash": "95a2262",
       "message": "Stage 1: Demo 创作完成 - 迭代 60"
+    },
+    {
+      "stage": 1,
+      "hash": "84319d4",
+      "message": "Stage 1: Demo 创作完成 - 迭代 61"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
