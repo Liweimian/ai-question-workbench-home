@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { MetisButton, MetisInput } from '@yuanfudao/metis-web-component'
-import { BookOpenCheck, BrainCircuit, FileUp, GraduationCap, School, Send, Sparkles, X } from 'lucide-react'
+import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
+import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, FileUp, GraduationCap, Heading2, School, Send, Sparkles, Underline, X } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 
@@ -55,7 +55,10 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   const [blockIds, setBlockIds] = useState(['initial'])
   const [activeBlockId, setActiveBlockId] = useState('initial')
   const [addMenuRequests, setAddMenuRequests] = useState<Record<string, number>>({})
+  const [selectionToolbar, setSelectionToolbar] = useState<{ x: number; y: number; text: string } | null>(null)
+  const [aiEditOpen, setAiEditOpen] = useState(false)
   const blockRefs = useRef(new Map<string, HTMLDivElement>())
+  const selectedRangeRef = useRef<Range | null>(null)
 
   const closeAi = () => {
     props.onAiClose()
@@ -79,6 +82,37 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
     })
     setActiveBlockId(nextId)
     window.requestAnimationFrame(() => blockRefs.current.get(nextId)?.focus())
+  }
+
+  const updateSelectionToolbar = () => {
+    const selection = window.getSelection()
+    const range = selection?.rangeCount ? selection.getRangeAt(0) : null
+    const selectedText = selection?.toString().trim() ?? ''
+    const commonNode = range?.commonAncestorContainer
+    const container = commonNode instanceof Element ? commonNode : commonNode?.parentElement
+    if (!range || !selectedText || !container?.closest('.empty-block-input')) {
+      setSelectionToolbar(null)
+      setAiEditOpen(false)
+      return
+    }
+    const rect = range.getBoundingClientRect()
+    selectedRangeRef.current = range.cloneRange()
+    setSelectionToolbar({ x: rect.left + rect.width / 2, y: rect.bottom + 8, text: selectedText })
+  }
+
+  const restoreSelection = () => {
+    const range = selectedRangeRef.current
+    if (!range) return false
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    return true
+  }
+
+  const formatSelection = (command: 'bold' | 'underline' | 'formatBlock', value?: string) => {
+    if (!restoreSelection()) return
+    document.execCommand(command, false, value)
+    setAiEditOpen(false)
   }
 
   return (
@@ -111,6 +145,8 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                 aria-label="输入内容，按空格唤起 AI"
                 data-placeholder="按 Space（空格）以启用 AI，或按“/”启用命令"
                 onFocus={() => setActiveBlockId(blockId)}
+                onMouseUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
+                onKeyUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
                 onKeyDown={(event) => {
                   const isEmpty = !event.currentTarget.textContent?.trim()
                   const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
@@ -131,6 +167,34 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             </div>
           ))}
         </div>
+
+        {selectionToolbar ? (
+          <div
+            className="text-selection-toolbar"
+            style={{ left: selectionToolbar.x, top: selectionToolbar.y }}
+            role="toolbar"
+            aria-label="选中文本操作"
+            onMouseDown={(event) => event.preventDefault()}
+          >
+            <button type="button" title="设为小标题" aria-label="设为小标题" onClick={() => formatSelection('formatBlock', 'h3')}><Heading2 size={16} /></button>
+            <button type="button" title="加粗" aria-label="加粗" onClick={() => formatSelection('bold')}><Bold size={16} /></button>
+            <button type="button" title="下划线" aria-label="下划线" onClick={() => formatSelection('underline')}><Underline size={16} /></button>
+            <span />
+            <div className="text-selection-ai">
+              <button type="button" className="is-ai" aria-expanded={aiEditOpen} onClick={() => setAiEditOpen((open) => !open)}><Sparkles size={15} />AI 帮助修改<ChevronDown size={14} /></button>
+              {aiEditOpen ? (
+                <div className="text-selection-ai-menu" role="menu" aria-label="AI 文本修改方式">
+                  {['润色表述', '校对错字', '精简内容', '改成试卷导语'].map((action) => (
+                    <button type="button" role="menuitem" key={action} onClick={() => {
+                      setAiEditOpen(false)
+                      MetisMessage.info(`“${selectionToolbar.text}”已进入${action}演示`)
+                    }}>{action}</button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         {props.aiOpen ? (
           <section className="inline-ai-dialog" aria-label="AI 助手">
