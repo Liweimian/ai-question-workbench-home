@@ -3,6 +3,7 @@ import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-comp
 import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, ChevronRight, FileScan, FileUp, GraduationCap, Heading2, Italic, Layers3, School, Send, Sparkles, Strikethrough, Underline, X } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
+import type { UtilityAction } from './BlockAddMenu'
 
 interface EmptyCanvasProps {
   document: WorkbenchDocument
@@ -19,7 +20,9 @@ interface EmptyCanvasProps {
 const quickStartGroups: Array<{
   title: string
   items: Array<{
-    mode: Exclude<AddQuestionMode, 'menu' | 'manual'>
+    id: string
+    mode?: Exclude<AddQuestionMode, 'menu' | 'manual'>
+    utility?: UtilityAction
     label: string
     description: string
     icon: typeof Sparkles
@@ -27,19 +30,24 @@ const quickStartGroups: Array<{
   }>
 }> = [
   {
-    title: '添加已有内容',
+    title: '题库选题',
     items: [
-      { mode: 'resource', label: '飞象题库选题', description: '平台题库', icon: BookOpenCheck, primary: true },
-      { mode: 'school', label: '校本题库选题', description: '本校资源', icon: School },
-      { mode: 'upload', label: '上传文件 AI 录题', description: '材料转题目', icon: FileUp },
+      { id: 'resource', mode: 'resource', label: '飞象题库', description: '平台优质题目', icon: BookOpenCheck, primary: true },
+      { id: 'school', mode: 'school', label: '校本题库', description: '本校沉淀资源', icon: School },
     ],
   },
   {
-    title: 'AI 创作',
+    title: '搜题与导入',
     items: [
-      { mode: 'compose', label: 'AI 组题', description: '从题库智能挑题', icon: BrainCircuit },
-      { mode: 'create', label: 'AI 命题', description: '生成全新题目', icon: Sparkles },
-      { mode: 'personalized', label: '生成个性化练习', description: '上传材料与学情', icon: GraduationCap },
+      { id: 'upload', mode: 'upload', label: '上传文件 AI 录题', description: 'PDF、Word、图片', icon: FileUp },
+      { id: 'image-search', utility: 'image-search', label: '图片搜题', description: '拍照或粘贴图片', icon: FileScan },
+    ],
+  },
+  {
+    title: '飞象 AI',
+    items: [
+      { id: 'compose', mode: 'compose', label: 'AI 组题', description: '从题库智能挑题', icon: BrainCircuit },
+      { id: 'create', mode: 'create', label: 'AI 命题', description: '生成原创题目', icon: Sparkles },
     ],
   },
 ]
@@ -86,6 +94,27 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
     })
     setActiveBlockId(nextId)
     window.requestAnimationFrame(() => blockRefs.current.get(nextId)?.focus())
+  }
+
+  const insertUtility = (action: UtilityAction) => {
+    if (action === 'image-search') return MetisMessage.info('图片搜题入口已打开（原型演示）')
+    if (action === 'web-search') return MetisMessage.info('联网搜题入口已打开（原型演示）')
+    const presets: Record<Exclude<UtilityAction, 'image-search' | 'web-search'>, string> = {
+      heading: '一、选择题',
+      note: '考试说明：请认真审题，并将答案填写在指定位置。',
+      divider: '────────────',
+      'page-break': '—— 分页符 ——',
+    }
+    const nextId = `block-${Date.now()}`
+    setBlockIds((current) => [...current, nextId])
+    setActiveBlockId(nextId)
+    window.requestAnimationFrame(() => {
+      const node = blockRefs.current.get(nextId)
+      if (!node) return
+      node.textContent = presets[action]
+      node.focus()
+    })
+    MetisMessage.success('已插入试卷结构内容')
   }
 
   const updateSelectionToolbar = () => {
@@ -135,7 +164,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
             <div className="empty-first-block" role="group" aria-label="题单内容块" key={blockId}>
-              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} />
+              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} />
               <div
                 className="empty-block-input"
                 ref={(node) => {
@@ -273,14 +302,14 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         ) : null}
 
         <section className="empty-quick-start" aria-label="快速开始">
-          <div className="quick-start-heading"><strong>快速开始</strong><span>也可以直接选择一种方式开始</span></div>
+          <div className="quick-start-heading"><strong>快速开始</strong><span>选择常用方式，完整能力请点击画布左侧＋</span></div>
           <div className="quick-start-groups">
             {quickStartGroups.map((group) => (
               <div className="quick-start-group" key={group.title}>
                 <span>{group.title}</span>
                 <div>
-                  {group.items.map(({ mode, label, description, icon: Icon, primary }) => (
-                    <button type="button" key={mode} className={primary ? 'is-primary' : ''} onClick={() => props.onOpenAdd(mode)}>
+                  {group.items.map(({ id, mode, utility, label, description, icon: Icon, primary }) => (
+                    <button type="button" key={id} className={primary ? 'is-primary' : ''} onClick={() => mode ? props.onOpenAdd(mode) : utility ? insertUtility(utility) : undefined}>
                       <Icon size={16} /><span><strong>{label}</strong><small>{description}</small></span>
                     </button>
                   ))}
