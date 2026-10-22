@@ -61,7 +61,7 @@ export function WorkspaceHeader({
           保存
         </MetisButton>
         <MetisButton
-          type="primary"
+          type="borderless"
           icon={<Send size={17} />}
           disabled={!hasQuestions}
           onClick={() => output('布置')}
