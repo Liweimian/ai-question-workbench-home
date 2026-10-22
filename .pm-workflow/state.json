@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:30:00+08:00",
-      "iterationCount": 22,
+      "iterationCount": 23,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -45,7 +45,8 @@
         "browser editable empty block and gutter controls flow",
         "browser enter-to-new-block and caret-focus flow",
         "browser selected-text toolbar and AI edit menu flow",
-        "browser question typography controls and custom AI edit input flow"
+        "browser question typography controls and custom AI edit input flow",
+        "browser inline AI capability list flow"
       ]
     },
     "2": {

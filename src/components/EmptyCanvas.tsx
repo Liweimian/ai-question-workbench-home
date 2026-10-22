@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, FileUp, GraduationCap, Heading2, Italic, School, Send, Sparkles, Strikethrough, Underline, X } from 'lucide-react'
+import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, ChevronRight, FileScan, FileUp, GraduationCap, Heading2, Italic, Layers3, School, Send, Sparkles, Strikethrough, Underline, X } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 
@@ -48,6 +48,14 @@ const promptSuggestions = [
   '组一份 20 分钟的一次函数随堂练习',
   '从题库找 8 道一次函数基础题',
   '根据班级错题生成一份分层练习',
+]
+
+const inlineAiCapabilities = [
+  { title: 'AI 组题', description: '从题库挑选并组合', icon: BrainCircuit, action: 'compose' as const },
+  { title: 'AI 组卷', description: '按考试要求组织试卷', icon: Layers3, action: 'paper' as const },
+  { title: 'AI 命题', description: '生成原创题并预览', icon: Sparkles, action: 'create' as const },
+  { title: '个性化练习', description: '结合材料与学情生成', icon: GraduationCap, action: 'personalized' as const },
+  { title: 'AI 录题', description: '识别 PDF、Word、图片', icon: FileScan, action: 'upload' as const },
 ]
 
 export function EmptyCanvas(props: EmptyCanvasProps) {
@@ -224,7 +232,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           <section className="inline-ai-dialog" aria-label="AI 助手">
             <header>
               <span><Sparkles size={17} /></span>
-              <div><strong>AI 助手</strong><small>默认从题库组题，也可以继续进入 AI 命题</small></div>
+              <div><strong>AI 助手</strong><small>组题、组卷、命题、个性化练习与录题，都可以直接告诉我</small></div>
               <button type="button" aria-label="关闭 AI 助手" onClick={closeAi}><X size={16} /></button>
             </header>
             <div className="inline-ai-input">
@@ -242,7 +250,26 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
               />
               <MetisButton type="primary" icon={<Send size={15} />} loading={props.aiStatus === 'loading'} disabled={!prompt.trim()} onClick={() => props.onStartAi('compose', prompt.trim())}>发送</MetisButton>
             </div>
+            <div className="inline-ai-capabilities" aria-label="AI 助手能力">
+              <span>选择一项能力</span>
+              <div>
+                {inlineAiCapabilities.map(({ title, description, icon: Icon, action }) => (
+                  <button type="button" key={title} onClick={() => {
+                    if (action === 'personalized' || action === 'upload') {
+                      props.onOpenAdd(action)
+                      return
+                    }
+                    if (action === 'paper') setPrompt('按八年级上册教学范围，组一份包含题型与分值配置的试卷')
+                    if (action === 'compose') setPrompt('从题库组一份一次函数练习，包含基础题和提升题')
+                    if (action === 'create') setPrompt('围绕一次函数知识点生成一组原创题目')
+                  }}>
+                    <Icon size={16} /><span><strong>{title}</strong><small>{description}</small></span><ChevronRight size={14} />
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="inline-ai-suggestions">
+              <span>示例要求</span>
               {promptSuggestions.map((suggestion) => <button type="button" key={suggestion} disabled={props.aiStatus === 'loading'} onClick={() => setPrompt(suggestion)}>{suggestion}</button>)}
             </div>
             {props.aiError ? <p className="inline-ai-error" role="alert">{props.aiError}</p> : null}
