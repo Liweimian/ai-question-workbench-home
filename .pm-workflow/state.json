@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 51,
+      "iterationCount": 52,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -62,7 +62,8 @@
         "browser resource-card date bottom-right position",
         "browser legacy Feixiang visual-system alignment",
         "browser legacy resource-detail workspace-tab flow",
-        "browser native new-tab resource-detail flow"
+        "browser native new-tab resource-detail flow",
+        "browser full-width resource detail without composer rail"
       ]
     },
     "2": {
@@ -253,6 +254,11 @@
       "stage": 1,
       "hash": "6178895",
       "message": "Stage 1: Demo 创作完成 - 迭代 51"
+    },
+    {
+      "stage": 1,
+      "hash": "eee36ca",
+      "message": "Stage 1: Demo 创作完成 - 迭代 52"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
