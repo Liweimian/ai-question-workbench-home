@@ -186,18 +186,22 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
   return (
     <div className={`library-picker${variant === 'home' ? ' is-home' : ''}`}>
-      <nav className="library-resource-tabs" aria-label="题库资源类型">
+      <nav className="library-resource-tabs" aria-label="题库资源类型" role="tablist">
         {visibleSourceOptions.map((option) => {
           const Icon = resourceIcons[option.type]
+          const isActive = props.resourceType === option.type
           return (
             <button
               type="button"
               key={option.type}
-              className={props.resourceType === option.type ? 'is-active' : ''}
+              className={isActive ? 'is-active' : ''}
+              role="tab"
+              aria-selected={isActive}
               disabled={props.contentBusy}
               onClick={() => props.onResourceTypeChange(option.type)}
+              data-track="/click/aiQuestionHome/switchResourceTab | 切换题库资源类型 | resourceType#STRING"
             >
-              <Icon size={17} /><span><strong>{option.title}</strong><small>{option.description}</small></span>
+              <Icon size={17} /><span><strong>{option.title}</strong>{variant === 'dialog' ? <small>{option.description}</small> : null}</span>
             </button>
           )
         })}
