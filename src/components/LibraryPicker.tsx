@@ -18,11 +18,12 @@ import {
   Star,
 } from 'lucide-react'
 import { baseQuestions, sourceOptions, sourceRecords as allSourceRecords } from '../data/workbenchData'
-import type { AsyncStatus, Question, ResourceType, SourceRecord } from '../prototype/types'
+import type { AsyncStatus, LibraryInitialView, Question, ResourceType, SourceRecord } from '../prototype/types'
 
 interface LibraryPickerProps {
   variant?: 'dialog' | 'home'
   libraryKind: 'fly' | 'school'
+  initialView?: LibraryInitialView
   resourceType: ResourceType
   records: SourceRecord[]
   listStatus: AsyncStatus
@@ -230,7 +231,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
 
 export function LibraryPicker(props: LibraryPickerProps) {
   const variant = props.variant ?? 'dialog'
-  const [dialogChapter, setDialogChapter] = useState(false)
+  const [dialogChapter, setDialogChapter] = useState(props.initialView === 'chapter')
   const isAll = variant === 'home' && props.showAll === true
   const detailResourceId = variant === 'home' ? new URLSearchParams(window.location.search).get('resource') : null
   const [keyword, setKeyword] = useState('')
@@ -258,14 +259,19 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
   useEffect(() => {
     if (variant === 'dialog') {
-      setDialogChapter(false)
+      setDialogChapter(props.initialView === 'chapter')
       setSelectedQuestionIds(new Set())
       setPickerPendingIds(new Set())
-      if (props.libraryKind === 'school' && props.resourceType !== 'paper' && props.resourceType !== 'workbook') {
+      if (
+        props.initialView !== 'chapter'
+        && props.libraryKind === 'school'
+        && props.resourceType !== 'paper'
+        && props.resourceType !== 'workbook'
+      ) {
         props.onResourceTypeChange('paper')
       }
     }
-  }, [props.libraryKind, variant])
+  }, [props.initialView, props.libraryKind, variant])
 
   useEffect(() => {
     if (variant !== 'home' || !detailRecord) return undefined

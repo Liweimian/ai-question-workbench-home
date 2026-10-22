@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, ChevronRight, FileScan, GraduationCap, Heading2, Italic, Layers3, School, Send, Sparkles, Strikethrough, Underline, X } from 'lucide-react'
-import type { AddQuestionMode, AsyncStatus, WorkbenchDocument } from '../prototype/types'
+import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, ChevronRight, FileScan, Globe2, GraduationCap, Heading2, Italic, Layers3, School, Send, Sparkles, Strikethrough, Underline } from 'lucide-react'
+import type { AddQuestionMode, AsyncStatus, LibraryInitialView, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
 
@@ -14,39 +14,38 @@ interface EmptyCanvasProps {
   onAiOpen: () => void
   onAiClose: () => void
   onStartAi: (mode: 'compose' | 'create', prompt: string) => void
-  onOpenAdd: (mode: AddQuestionMode) => void
+  onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
 }
 
-const quickStartGroups: Array<{
-  title: string
-  items: Array<{
-    id: string
-    mode?: Exclude<AddQuestionMode, 'menu' | 'manual'>
-    utility?: UtilityAction
-    assistant?: boolean
-    label: string
-    description: string
-    icon: typeof Sparkles
-    primary?: boolean
-  }>
+const libraryQuickStarts: Array<{
+  id: string
+  label: string
+  mode: 'resource' | 'school'
+  icon: typeof BookOpenCheck
+  items: Array<{ label: string; view: LibraryInitialView }>
 }> = [
   {
-    title: '题库选题',
+    id: 'fly',
+    label: '飞象题库',
+    mode: 'resource',
+    icon: BookOpenCheck,
     items: [
-      { id: 'resource', mode: 'resource', label: '飞象题库', description: '平台优质题目', icon: BookOpenCheck, primary: true },
-      { id: 'school', mode: 'school', label: '校本题库', description: '本校沉淀资源', icon: School },
+      { label: '章节知识点', view: 'chapter' },
+      { label: '练习册', view: 'workbook' },
+      { label: '试卷', view: 'paper' },
+      { label: '专题', view: 'special' },
+      { label: '同步练习', view: 'sync' },
     ],
   },
   {
-    title: '搜题与导入',
+    id: 'school',
+    label: '校本题库',
+    mode: 'school',
+    icon: School,
     items: [
-      { id: 'image-search', utility: 'image-search', label: '图片搜题', description: '拍照或粘贴图片', icon: FileScan },
-    ],
-  },
-  {
-    title: '飞象 AI',
-    items: [
-      { id: 'assistant', assistant: true, label: '飞象 AI', description: '组题、组卷、命题与 AI 录题', icon: Sparkles },
+      { label: '章节知识点', view: 'chapter' },
+      { label: '练习册', view: 'workbook' },
+      { label: '试卷', view: 'paper' },
     ],
   },
 ]
@@ -54,7 +53,6 @@ const quickStartGroups: Array<{
 const inlineAiCapabilities = [
   { title: 'AI 组题', description: '从题库挑选并组合', icon: BrainCircuit, action: 'compose' as const },
   { title: 'AI 组卷', description: '按考试要求组织试卷', icon: Layers3, action: 'paper' as const },
-  { title: 'AI 命题', description: '生成原创题并预览', icon: Sparkles, action: 'create' as const },
   { title: '个性化练习', description: '结合材料与学情生成', icon: GraduationCap, action: 'personalized' as const },
   { title: 'AI 录题', description: '识别 PDF、Word、图片', icon: FileScan, action: 'upload' as const },
 ]
@@ -128,6 +126,22 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       node.focus()
     })
     MetisMessage.success('已插入试卷结构内容')
+  }
+
+  const activateAiCapability = (action: typeof inlineAiCapabilities[number]['action']) => {
+    if (action === 'personalized' || action === 'upload') {
+      props.onOpenAdd(action)
+      return
+    }
+    if (action === 'paper') {
+      setInlineAiMode('compose')
+      setPrompt('按八年级上册教学范围，组一份包含题型与分值配置的试卷')
+    }
+    if (action === 'compose') {
+      setInlineAiMode('compose')
+      setPrompt('从题库组一份一次函数练习，包含基础题和提升题')
+    }
+    props.onAiOpen()
   }
 
   const updateSelectionToolbar = () => {
@@ -287,24 +301,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
               <span>教学快捷能力</span>
               <div>
                 {inlineAiCapabilities.map(({ title, description, icon: Icon, action }) => (
-                  <button type="button" key={title} onClick={() => {
-                    if (action === 'personalized' || action === 'upload') {
-                      props.onOpenAdd(action)
-                      return
-                    }
-                    if (action === 'paper') {
-                      setInlineAiMode('compose')
-                      setPrompt('按八年级上册教学范围，组一份包含题型与分值配置的试卷')
-                    }
-                    if (action === 'compose') {
-                      setInlineAiMode('compose')
-                      setPrompt('从题库组一份一次函数练习，包含基础题和提升题')
-                    }
-                    if (action === 'create') {
-                      setInlineAiMode('create')
-                      setPrompt('围绕一次函数知识点生成一组原创题目')
-                    }
-                  }}>
+                  <button type="button" key={title} onClick={() => activateAiCapability(action)}>
                     <Icon size={16} /><span><strong>{title}</strong><small>{description}</small></span><ChevronRight size={14} />
                   </button>
                 ))}
@@ -315,20 +312,55 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         ) : null}
 
         <section className="empty-quick-start" aria-label="快速开始">
-          <div className="quick-start-heading"><strong>快速开始</strong><span>选择常用方式，完整能力请点击画布左侧＋</span></div>
+          <div className="quick-start-heading"><strong>快速开始</strong><span>从具体能力直接开始</span></div>
           <div className="quick-start-groups">
-            {quickStartGroups.map((group) => (
-              <div className="quick-start-group" key={group.title}>
-                <span>{group.title}</span>
-                <div>
-                  {group.items.map(({ id, mode, utility, assistant, label, description, icon: Icon, primary }) => (
-                    <button type="button" key={id} className={primary ? 'is-primary' : ''} onClick={() => mode ? props.onOpenAdd(mode) : utility ? insertUtility(utility) : assistant ? props.onAiOpen() : undefined}>
-                      <Icon size={16} /><span><strong>{label}</strong><small>{description}</small></span>
-                    </button>
-                  ))}
-                </div>
+            <div className="quick-start-group quick-start-group--library">
+              <span>题库选题</span>
+              <div className="quick-library-list">
+                {libraryQuickStarts.map(({ id, label, mode, icon: Icon, items }) => (
+                  <section className={`quick-library-row quick-library-row--${id}`} key={id}>
+                    <div className="quick-library-name"><Icon size={15} /><strong>{label}</strong></div>
+                    <div className="quick-start-links">
+                      {items.map((item) => (
+                        <button
+                          type="button"
+                          key={item.view}
+                          onClick={() => props.onOpenAdd(mode, { libraryView: item.view })}
+                          data-track={`/click/aiQuestionHome/quick${id}${item.view} | 快速开始${label}${item.label} | 无`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                ))}
               </div>
-            ))}
+            </div>
+
+            <div className="quick-start-group quick-start-group--import">
+              <span>搜题与导入</span>
+              <div className="quick-action-list">
+                {([
+                  { action: 'image-search' as UtilityAction, label: '图片搜题', icon: FileScan },
+                  { action: 'web-search' as UtilityAction, label: '联网搜题', icon: Globe2 },
+                ]).map(({ action, label, icon: Icon }) => (
+                  <button type="button" key={action} onClick={() => insertUtility(action)}>
+                    <Icon size={15} /><strong>{label}</strong>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="quick-start-group quick-start-group--ai">
+              <span>飞象 AI</span>
+              <div className="quick-ai-list">
+                {inlineAiCapabilities.map(({ title, icon: Icon, action }) => (
+                  <button type="button" key={title} onClick={() => activateAiCapability(action)}>
+                    <Icon size={15} /><strong>{title}</strong>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
       </div>

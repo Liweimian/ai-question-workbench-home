@@ -6,6 +6,8 @@ import type {
   AsyncStatus,
   HistoryDocumentSummary,
   InspectorView,
+  LibraryInitialView,
+  OpenAddOptions,
   Question,
   ResourceType,
   RewriteRequest,
@@ -152,6 +154,7 @@ export function useWorkbench() {
   const [inspectorView, setInspectorView] = useState<InspectorView>('info')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [addMode, setAddModeState] = useState<AddQuestionMode>('menu')
+  const [libraryInitialView, setLibraryInitialView] = useState<LibraryInitialView | undefined>()
   const [resourceType, setResourceType] = useState<ResourceType>('paper')
   const [sourceRecords, setSourceRecords] = useState<SourceRecord[]>([])
   const [sourceListStatus, setSourceListStatus] = useState<AsyncStatus>('idle')
@@ -243,25 +246,31 @@ export function useWorkbench() {
     }
   }, [])
 
-  const setAddMode = useCallback((mode: AddQuestionMode) => {
+  const setAddMode = useCallback((mode: AddQuestionMode, options?: OpenAddOptions) => {
     setAddModeState(mode)
+    setLibraryInitialView(options?.libraryView)
     setSourceAddStatus('idle')
     setComposeError('')
     setCreateError('')
     if (mode === 'resource' || mode === 'school') {
-      const nextType = mode === 'school' && resourceType === 'special' ? 'paper' : resourceType
+      const requestedType = options?.libraryView && options.libraryView !== 'chapter'
+        ? options.libraryView
+        : undefined
+      const currentTypeAllowed = mode === 'resource' || resourceType === 'paper' || resourceType === 'workbook'
+      const nextType = requestedType ?? (currentTypeAllowed ? resourceType : 'paper')
       void loadSources(nextType)
     }
   }, [loadSources, resourceType])
 
-  const openAdd = useCallback((mode: AddQuestionMode = 'menu') => {
+  const openAdd = useCallback((mode: AddQuestionMode = 'menu', options?: OpenAddOptions) => {
     setIsAddOpen(true)
-    setAddMode(mode)
+    setAddMode(mode, options)
   }, [setAddMode])
 
   const closeAdd = useCallback(() => {
     setIsAddOpen(false)
     setAddModeState('menu')
+    setLibraryInitialView(undefined)
     setCreatePreview([])
   }, [])
 
@@ -413,6 +422,7 @@ export function useWorkbench() {
     setInspectorView('info')
     setIsAddOpen(false)
     setAddModeState('menu')
+    setLibraryInitialView(undefined)
     setCreatePreview([])
     setRewriteStatus('idle')
     setRewritePreview(null)
@@ -529,6 +539,7 @@ export function useWorkbench() {
     isAddOpen,
     addMode,
     setAddMode,
+    libraryInitialView,
     resourceType,
     sourceRecords,
     sourceListStatus,

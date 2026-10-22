@@ -1,6 +1,10 @@
 export type EntityId = string
 export type AsyncStatus = 'idle' | 'loading' | 'success' | 'error'
 export type ResourceType = 'workbook' | 'paper' | 'sync' | 'special'
+export type LibraryInitialView = ResourceType | 'chapter'
+export interface OpenAddOptions {
+  libraryView?: LibraryInitialView
+}
 export type AddQuestionMode = 'menu' | 'resource' | 'school' | 'compose' | 'create' | 'upload' | 'personalized' | 'manual'
 export type InspectorView = 'info' | 'ai'
 export type Difficulty = '基础' | '中等' | '提升'

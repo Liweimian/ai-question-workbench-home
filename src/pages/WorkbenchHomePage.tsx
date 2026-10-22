@@ -34,10 +34,13 @@ export function WorkbenchHomePage() {
     ? workbench.document.questions.findIndex((question) => question.id === workbench.selectedQuestion?.id) + 1
     : 0
 
-  const openAdd = (mode: Parameters<typeof workbench.openAdd>[0] = 'menu') => {
+  const openAdd = (
+    mode: Parameters<typeof workbench.openAdd>[0] = 'menu',
+    options?: Parameters<typeof workbench.openAdd>[1],
+  ) => {
     setWorkspaceView('editor')
     setQuickAiOpen(false)
-    workbench.openAdd(mode)
+    workbench.openAdd(mode, options)
   }
 
   const openHome = () => {
@@ -164,6 +167,7 @@ export function WorkbenchHomePage() {
           {workbench.isAddOpen ? (
             <SourceDrawer
               mode={workbench.addMode}
+              libraryInitialView={workbench.libraryInitialView}
               resourceType={workbench.resourceType}
               records={workbench.sourceRecords}
               listStatus={workbench.sourceListStatus}

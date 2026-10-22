@@ -17,6 +17,7 @@ import {
 import type {
   AddQuestionMode,
   AsyncStatus,
+  LibraryInitialView,
   Question,
   ResourceType,
   SourceRecord,
@@ -26,6 +27,7 @@ import { LibraryPicker } from './LibraryPicker'
 
 interface SourceDrawerProps {
   mode: AddQuestionMode
+  libraryInitialView?: LibraryInitialView
   resourceType: ResourceType
   records: SourceRecord[]
   listStatus: AsyncStatus
@@ -150,6 +152,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
           {props.mode === 'resource' || props.mode === 'school' ? (
             <LibraryPicker
               libraryKind={props.mode === 'school' ? 'school' : 'fly'}
+              initialView={props.libraryInitialView}
               resourceType={props.resourceType}
               records={props.records}
               listStatus={props.listStatus}
