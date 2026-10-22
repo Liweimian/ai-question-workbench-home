@@ -1773,7 +1773,7 @@
   width: min(100%, var(--workbench-editor-max-width));
   min-height: 100%;
   margin: 0 auto;
-  padding: 30px 20px 56px;
+  padding: 18px 20px 56px;
   border: 1px solid var(--fx-line-strong);
   border-radius: var(--fx-radius-card);
   background: var(--common_bg2_color);
@@ -1781,8 +1781,7 @@
 }
 
 .editor-document-heading {
-  padding: 0 12px 24px;
-  border-bottom: 1px solid var(--fx-line-strong);
+  padding: 0 12px 4px;
   text-align: center;
 }
 
@@ -1825,7 +1824,7 @@
 .editor-question-list {
   display: grid;
   gap: 26px;
-  padding-top: 24px;
+  padding-top: 6px;
 }
 
 .editor-question {
