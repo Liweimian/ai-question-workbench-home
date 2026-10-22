@@ -2,19 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import { QuestionInspector } from '../components/AiInspector'
 import { DocumentCanvas } from '../components/DocumentCanvas'
 import { EmptyCanvas } from '../components/EmptyCanvas'
-import { FeixiangAiPage } from '../components/FeixiangAiPage'
 import { MyResourcesPanel } from '../components/MyResourcesPanel'
 import { SourceDrawer } from '../components/SourceDrawer'
+import { WorkbenchLandingPage } from '../components/WorkbenchLandingPage'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
-import { WorkspaceSidebar } from '../components/WorkspaceSidebar'
 import { useWorkbench } from '../hooks/useWorkbench'
 
 export function WorkbenchHomePage() {
   const workbench = useWorkbench()
   const previousQuestionCount = useRef(workbench.document.questions.length)
-  const [spaceCollapsed, setSpaceCollapsed] = useState(false)
   const [quickAiOpen, setQuickAiOpen] = useState(false)
-  const [workspaceView, setWorkspaceView] = useState<'editor' | 'ai' | 'resources'>('editor')
+  const [workspaceView, setWorkspaceView] = useState<'home' | 'editor' | 'resources'>('home')
   const hasQuestions = workbench.document.questions.length > 0
 
   useEffect(() => {
@@ -40,108 +38,109 @@ export function WorkbenchHomePage() {
     workbench.openAdd(mode)
   }
 
+  const openHome = () => {
+    setQuickAiOpen(false)
+    workbench.closeAdd()
+    setWorkspaceView('home')
+  }
+
   return (
     <div className="fx-app metis-theme-aiq">
-      <main className={`fx-content workbench-page${spaceCollapsed ? ' is-space-collapsed' : ''}`}>
+      <main className="fx-content workbench-page">
         <div className="fx-zoom-area workbench-zoom-area">
-          <WorkspaceHeader
-            sectionLabel={workspaceView === 'resources' ? '资源' : workspaceView === 'ai' ? 'AI' : '组题'}
-            documentTitle={workspaceView === 'resources' ? '我的资源' : workspaceView === 'ai' ? '飞象 AI' : workbench.document.title}
-            questionCount={workbench.document.questions.length}
-            canUndo={workbench.canUndo}
-            onUndo={workbench.undo}
-            showActions={workspaceView === 'editor'}
-          />
-
-          <section className={`workspace-shell${spaceCollapsed ? ' is-space-collapsed' : ''}${workspaceView === 'editor' && hasQuestions ? ' has-inspector' : ' is-empty'}`} aria-label="AI 题库组题工作区">
-            <WorkspaceSidebar
-              collapsed={spaceCollapsed}
-              activeView={workspaceView}
+          {workspaceView === 'home' ? (
+            <WorkbenchLandingPage
               document={workbench.document}
               histories={workbench.historyDocuments}
               historyStatus={workbench.historyStatus}
-              query={workbench.historyQuery}
               contentBusy={workbench.isContentBusy}
-              onCollapsedChange={setSpaceCollapsed}
-              onQueryChange={workbench.setHistoryQuery}
+              resourceType={workbench.resourceType}
+              sourceRecords={workbench.sourceRecords}
+              sourceListStatus={workbench.sourceListStatus}
+              sourceAddStatus={workbench.sourceAddStatus}
               onCreateNew={() => {
                 setQuickAiOpen(false)
-                setWorkspaceView('editor')
                 workbench.createNewDocument()
+                setWorkspaceView('editor')
               }}
-              onOpenAi={() => {
-                setQuickAiOpen(false)
-                workbench.closeAdd()
-                setWorkspaceView('ai')
-              }}
-              onOpenMyResources={() => {
-                setQuickAiOpen(false)
-                workbench.closeAdd()
-                setWorkspaceView('resources')
-              }}
+              onOpenResources={() => setWorkspaceView('resources')}
               onOpenDocument={(documentId) => {
                 setQuickAiOpen(false)
                 setWorkspaceView('editor')
-                void workbench.openHistoryDocument(documentId)
+                if (documentId !== workbench.document.id) void workbench.openHistoryDocument(documentId)
               }}
-              onReload={() => void workbench.reloadHistory()}
+              onReloadHistory={() => void workbench.reloadHistory()}
+              onResourceTypeChange={(type) => void workbench.loadSources(type)}
+              onAddSource={(type, sourceId, count) => {
+                void workbench.addSource(type, sourceId, count).then((success) => {
+                  if (success) setWorkspaceView('editor')
+                })
+              }}
             />
-
-            <div className={`editor-scroll${workspaceView === 'resources' || workspaceView === 'ai' ? ' is-resources' : hasQuestions ? '' : ' is-empty'}`}>
-              {workspaceView === 'resources' ? <MyResourcesPanel /> : workspaceView === 'ai' ? (
-                <FeixiangAiPage onStart={(mode, prompt) => {
-                  if (mode === 'compose') workbench.setComposePrompt(prompt)
-                  if (mode === 'create') workbench.setCreatePrompt(prompt)
-                  openAdd(mode)
-                }} />
-              ) : !hasQuestions ? (
-                <EmptyCanvas
-                  document={workbench.document}
-                  aiOpen={quickAiOpen}
-                  aiStatus={workbench.composeStatus}
-                  aiError={workbench.composeError}
-                  onTitleChange={workbench.setTitle}
-                  onAiOpen={() => setQuickAiOpen(true)}
-                  onAiClose={() => setQuickAiOpen(false)}
-                  onStartAi={(mode, prompt) => {
-                    if (mode === 'compose') {
-                      void workbench.composeFromBank(prompt)
-                      return
-                    }
-                    setQuickAiOpen(false)
-                    workbench.setCreatePrompt(prompt)
-                    openAdd('create')
-                  }}
-                  onOpenAdd={openAdd}
-                />
-              ) : (
-                <DocumentCanvas
-                  document={workbench.document}
-                  selectedQuestionId={workbench.selectedQuestionId}
-                  onTitleChange={workbench.setTitle}
-                  onSelectQuestion={workbench.selectQuestion}
-                  onRewriteRequirement={(requirement) => { workbench.setInspectorView('ai'); void workbench.rewrite('自定义要求', requirement) }}
-                  onMoveQuestion={workbench.moveQuestion}
-                  onDeleteQuestion={workbench.deleteQuestion}
-                  onAdd={openAdd}
-                />
-              )}
-            </div>
-
-            {workspaceView === 'editor' && hasQuestions ? (
-              <QuestionInspector
-                document={workbench.document}
-                question={workbench.selectedQuestion}
-                questionNumber={questionNumber}
-                view={workbench.inspectorView}
-                status={workbench.rewriteStatus}
-                preview={workbench.rewritePreview}
-                onViewChange={workbench.setInspectorView}
-                onRewrite={(instruction) => void workbench.rewrite(instruction)}
-                onApply={workbench.applyRewrite}
+          ) : (
+            <>
+              <WorkspaceHeader
+                sectionLabel="组题首页"
+                documentTitle={workspaceView === 'resources' ? '我的资源' : workbench.document.title}
+                questionCount={workbench.document.questions.length}
+                canUndo={workbench.canUndo}
+                onUndo={workbench.undo}
+                onHome={openHome}
+                showActions={workspaceView === 'editor'}
               />
-            ) : null}
-          </section>
+
+              <section className={`workspace-shell${workspaceView === 'editor' && hasQuestions ? ' has-inspector' : ' is-empty'}`} aria-label="AI 题库组题工作区">
+                <div className={`editor-scroll${workspaceView === 'resources' ? ' is-resources' : hasQuestions ? '' : ' is-empty'}`}>
+                  {workspaceView === 'resources' ? <MyResourcesPanel /> : !hasQuestions ? (
+                    <EmptyCanvas
+                      document={workbench.document}
+                      aiOpen={quickAiOpen}
+                      aiStatus={workbench.composeStatus}
+                      aiError={workbench.composeError}
+                      onTitleChange={workbench.setTitle}
+                      onAiOpen={() => setQuickAiOpen(true)}
+                      onAiClose={() => setQuickAiOpen(false)}
+                      onStartAi={(mode, prompt) => {
+                        if (mode === 'compose') {
+                          void workbench.composeFromBank(prompt)
+                          return
+                        }
+                        setQuickAiOpen(false)
+                        workbench.setCreatePrompt(prompt)
+                        openAdd('create')
+                      }}
+                      onOpenAdd={openAdd}
+                    />
+                  ) : (
+                    <DocumentCanvas
+                      document={workbench.document}
+                      selectedQuestionId={workbench.selectedQuestionId}
+                      onTitleChange={workbench.setTitle}
+                      onSelectQuestion={workbench.selectQuestion}
+                      onRewriteRequirement={(requirement) => { workbench.setInspectorView('ai'); void workbench.rewrite('自定义要求', requirement) }}
+                      onMoveQuestion={workbench.moveQuestion}
+                      onDeleteQuestion={workbench.deleteQuestion}
+                      onAdd={openAdd}
+                    />
+                  )}
+                </div>
+
+                {workspaceView === 'editor' && hasQuestions ? (
+                  <QuestionInspector
+                    document={workbench.document}
+                    question={workbench.selectedQuestion}
+                    questionNumber={questionNumber}
+                    view={workbench.inspectorView}
+                    status={workbench.rewriteStatus}
+                    preview={workbench.rewritePreview}
+                    onViewChange={workbench.setInspectorView}
+                    onRewrite={(instruction) => void workbench.rewrite(instruction)}
+                    onApply={workbench.applyRewrite}
+                  />
+                ) : null}
+              </section>
+            </>
+          )}
 
           {workbench.isAddOpen ? (
             <SourceDrawer

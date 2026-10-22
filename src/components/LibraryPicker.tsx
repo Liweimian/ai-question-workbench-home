@@ -18,6 +18,7 @@ import { baseQuestions, sourceOptions } from '../data/workbenchData'
 import type { AsyncStatus, ResourceType, SourceRecord } from '../prototype/types'
 
 interface LibraryPickerProps {
+  variant?: 'dialog' | 'home'
   libraryKind: 'fly' | 'school'
   resourceType: ResourceType
   records: SourceRecord[]
@@ -68,6 +69,7 @@ const listHeadings: Record<ResourceType, string> = {
 }
 
 export function LibraryPicker(props: LibraryPickerProps) {
+  const variant = props.variant ?? 'dialog'
   const [keyword, setKeyword] = useState('')
   const [sort, setSort] = useState<'recommended' | 'latest'>('recommended')
   const [category, setCategory] = useState('全部资源')
@@ -128,7 +130,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
   if (detailRecord) {
     const allSelected = selectedQuestionIds.size === previewQuestions.length
     return (
-      <div className="library-detail-view">
+      <div className={`library-detail-view${variant === 'home' ? ' is-home' : ''}`}>
         <div className="library-detail-toolbar">
           <button type="button" onClick={() => setDetailRecord(null)}><ArrowLeft size={16} />返回资源列表</button>
           <div><span>{detailRecord.highlight}</span><strong>{detailRecord.title}</strong><small>{detailRecord.meta} · {detailRecord.questionCount} 题</small></div>
@@ -172,7 +174,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
     )
   }
 
-  const hasSidebar = props.resourceType !== 'workbook'
+  const hasSidebar = variant === 'dialog' && props.resourceType !== 'workbook'
   const groups = props.resourceType === 'workbook' ? [] : categoryGroups[props.resourceType]
   const visibleSourceOptions = props.libraryKind === 'school'
     ? sourceOptions
@@ -183,7 +185,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
     : sourceOptions
 
   return (
-    <div className="library-picker">
+    <div className={`library-picker${variant === 'home' ? ' is-home' : ''}`}>
       <nav className="library-resource-tabs" aria-label="题库资源类型">
         {visibleSourceOptions.map((option) => {
           const Icon = resourceIcons[option.type]
@@ -222,7 +224,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
               {filterLabels[props.resourceType].map((label) => <button type="button" key={label}>{label}<ChevronDown size={13} /></button>)}
               <button type="button"><SlidersHorizontal size={14} />其他</button>
             </div>
-            <div className="library-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="请输入题单名称或关键词" /></div>
+            <div className="library-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder={`搜索${visibleSourceOptions.find((item) => item.type === props.resourceType)?.title ?? '资源'}名称或关键词`} /></div>
           </div>
 
           <div className="library-list-heading">

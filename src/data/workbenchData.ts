@@ -7,9 +7,9 @@ import type {
 } from '../prototype/types'
 
 export const sourceOptions: SourceOption[] = [
-  { type: 'workbook', title: '练习册', description: '按章节或页码加入', eyebrow: '已有资源' },
   { type: 'paper', title: '试卷', description: '整卷或挑题加入', eyebrow: '已有资源' },
-  { type: 'sync', title: '同步题单', description: '按教材章节浏览题单', eyebrow: '教材同步' },
+  { type: 'workbook', title: '练习册', description: '按章节或页码加入', eyebrow: '已有资源' },
+  { type: 'sync', title: '同步练习', description: '按教材章节浏览练习', eyebrow: '教材同步' },
   { type: 'special', title: '专题', description: '按知识模块和能力专题选题', eyebrow: '专题训练' },
 ]
 

@@ -4,6 +4,7 @@ import { FileDown, MoreHorizontal, Save, Send, Undo2 } from 'lucide-react'
 
 interface WorkspaceHeaderProps {
   sectionLabel?: string
+  onHome?: () => void
   documentTitle: string
   questionCount: number
   canUndo: boolean
@@ -13,6 +14,7 @@ interface WorkspaceHeaderProps {
 
 export function WorkspaceHeader({
   sectionLabel = '组题',
+  onHome,
   documentTitle,
   questionCount,
   canUndo,
@@ -50,7 +52,7 @@ export function WorkspaceHeader({
   return (
     <header className="fx-page-header workspace-header" data-sec="1">
       <div className="header-document-path" aria-label="当前题单路径">
-        <span>{sectionLabel}</span>
+        {onHome ? <button type="button" onClick={onHome}>{sectionLabel}</button> : <span>{sectionLabel}</span>}
         <span className="header-document-divider">/</span>
         <strong>{documentTitle?.trim() || '未命名组题'}</strong>
       </div>

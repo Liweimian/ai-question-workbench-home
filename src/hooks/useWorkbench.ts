@@ -141,13 +141,12 @@ export function useWorkbench() {
   const [inspectorView, setInspectorView] = useState<InspectorView>('info')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [addMode, setAddModeState] = useState<AddQuestionMode>('menu')
-  const [resourceType, setResourceType] = useState<ResourceType>('workbook')
+  const [resourceType, setResourceType] = useState<ResourceType>('paper')
   const [sourceRecords, setSourceRecords] = useState<SourceRecord[]>([])
   const [sourceListStatus, setSourceListStatus] = useState<AsyncStatus>('idle')
   const [sourceAddStatus, setSourceAddStatus] = useState<AsyncStatus>('idle')
   const [historyStatus, setHistoryStatus] = useState<AsyncStatus>('idle')
   const [historyDocuments, setHistoryDocuments] = useState<HistoryDocumentSummary[]>([])
-  const [historyQuery, setHistoryQuery] = useState('')
   const [composePrompt, setComposePrompt] = useState('')
   const [composeError, setComposeError] = useState('')
   const [composeStatus, setComposeStatus] = useState<AsyncStatus>('idle')
@@ -266,15 +265,17 @@ export function useWorkbench() {
   }, [closeAdd, document.questions.length])
 
   const addSource = useCallback(async (type: ResourceType, sourceId?: string, count?: number) => {
-    if (!beginContentOperation('source-add')) return
+    if (!beginContentOperation('source-add')) return false
     setSourceAddStatus('loading')
     try {
       const questions = await workbenchRepository.addSource(type, sourceId, count)
       appendQuestions(questions, `已从题库添加 ${questions.length} 道题`)
       setSourceAddStatus('success')
+      return true
     } catch {
       setSourceAddStatus('error')
       MetisMessage.error('题目添加失败，请重试')
+      return false
     } finally {
       finishContentOperation('source-add')
     }
@@ -518,8 +519,6 @@ export function useWorkbench() {
     sourceAddStatus,
     historyStatus,
     historyDocuments,
-    historyQuery,
-    setHistoryQuery,
     composePrompt,
     setComposePrompt,
     composeError,
