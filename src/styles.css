@@ -3562,6 +3562,11 @@
   animation: add-layer-in 140ms ease both;
 }
 
+.add-question-layer--library {
+  top: 0;
+  padding: 4px 12px;
+}
+
 @keyframes add-layer-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -3583,7 +3588,7 @@
 .add-question-panel--library {
   position: relative;
   width: min(1240px, calc(100% - 8px));
-  height: calc(100% - 4px);
+  height: 100%;
   max-height: none;
 }
 

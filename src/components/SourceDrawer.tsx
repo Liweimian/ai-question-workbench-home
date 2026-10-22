@@ -101,7 +101,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
   }, [props.contentBusy, props.mode, props.onClose, props.onModeChange])
 
   return (
-    <div className="add-question-layer" onMouseDown={props.onClose}>
+    <div className={`add-question-layer${props.mode === 'resource' || props.mode === 'school' ? ' add-question-layer--library' : ''}`} onMouseDown={props.onClose}>
       <section
         className={`add-question-panel${props.mode === 'resource' || props.mode === 'school' ? ' add-question-panel--library' : ''}`}
         data-sec="5"

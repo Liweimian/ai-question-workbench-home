@@ -18,8 +18,6 @@ interface DocumentCanvasProps {
 export function DocumentCanvas(props: DocumentCanvasProps) {
   const [questionStyles, setQuestionStyles] = useState<Record<string, { fontFamily: string; fontSize: string; lineHeight: string; letterSpacing: string; bold: boolean; italic: boolean; underline: boolean }>>({})
   const [editRequirement, setEditRequirement] = useState('')
-  const totalMinutes = props.document.questions.reduce((sum, question) => sum + question.estimatedMinutes, 0)
-
   return (
     <article className="editor-document" data-sec="3" aria-label="题单编辑区">
       <header className="editor-document-heading">
@@ -29,12 +27,6 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
           className="editor-title-input"
           aria-label="题单标题"
         />
-        <p>{props.document.gradeSubject}</p>
-        <div className="editor-document-summary">
-          <span>{props.document.questions.length} 道题</span>
-          <span>预计 {totalMinutes} 分钟</span>
-          <span>自动保存 · {props.document.updatedAt}</span>
-        </div>
       </header>
 
       <div className="editor-question-list">
