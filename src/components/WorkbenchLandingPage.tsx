@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { MetisButton, MetisInput } from '@yuanfudao/metis-web-component'
-import { FilePlus2, FileText, FolderHeart, Search, Sparkles, X } from 'lucide-react'
+import { useEffect, useMemo } from 'react'
+import { MetisButton } from '@yuanfudao/metis-web-component'
+import { FilePlus2, FileText, FolderHeart, Sparkles } from 'lucide-react'
 import type {
   AsyncStatus,
   HistoryDocumentSummary,
@@ -38,54 +38,14 @@ const toCurrentSummary = (document: WorkbenchDocument): HistoryDocumentSummary =
 })
 
 export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const searchRef = useRef<HTMLDivElement>(null)
-
   const recentDocuments = useMemo(() => {
     const current = toCurrentSummary(props.document)
     return [current, ...props.histories.filter((item) => item.id !== current.id)]
   }, [props.document, props.histories])
 
-  const normalizedQuery = query.trim().toLowerCase()
-  const searchResults = normalizedQuery
-    ? recentDocuments.filter((item) => (
-      item.title.toLowerCase().includes(normalizedQuery)
-      || item.gradeSubject.toLowerCase().includes(normalizedQuery)
-      || item.origin.toLowerCase().includes(normalizedQuery)
-    )).slice(0, 6)
-    : []
-
-  useEffect(() => {
-    if (!searchOpen) return
-    window.requestAnimationFrame(() => searchRef.current?.querySelector('input')?.focus())
-    const closeOnOutside = (event: MouseEvent) => {
-      if (!searchRef.current?.contains(event.target as Node)) {
-        setSearchOpen(false)
-        setQuery('')
-      }
-    }
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return
-      setSearchOpen(false)
-      setQuery('')
-    }
-    document.addEventListener('mousedown', closeOnOutside)
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.removeEventListener('mousedown', closeOnOutside)
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [searchOpen])
-
   useEffect(() => {
     if (props.sourceListStatus === 'idle') props.onResourceTypeChange(props.resourceType)
   }, [props.onResourceTypeChange, props.resourceType, props.sourceListStatus])
-
-  const closeSearch = () => {
-    setSearchOpen(false)
-    setQuery('')
-  }
 
   return (
     <section className="workbench-landing" aria-label="组题首页">
@@ -117,17 +77,11 @@ export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
                   onClick={() => props.onOpenDocument(item.id)}
                   data-track="/click/aiQuestionHome/openRecentDocument | 打开最近组题 | documentId#STRING"
                 >
-                  <span className={`recent-document-preview preview-${index + 1}`}>
-                    <span className="recent-preview-paper">
-                      <span className="recent-preview-title" />
-                      <span className="recent-preview-meta" />
-                      <span className="recent-preview-question"><i>1.</i><b /></span>
-                      <span className="recent-preview-options"><i /><i /><i /><i /></span>
-                      <span className="recent-preview-question"><i>2.</i><b /></span>
-                    </span>
+                  <span className={`recent-document-icon preview-${index + 1}`} aria-hidden="true">
+                    <FileText size={18} />
                   </span>
                   <span className="recent-document-copy">
-                    <span><FileText size={16} /><strong>{item.title}</strong></span>
+                    <strong>{item.title}</strong>
                     <small>{item.questionCount} 题 · {item.status} · {item.updatedAt}</small>
                   </span>
                 </button>
@@ -140,36 +94,9 @@ export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
             {props.historyStatus === 'error' ? (
               <button type="button" className="landing-inline-retry" onClick={props.onReloadHistory}>最近组题加载失败，点击重试</button>
             ) : null}
-
-            <div className={`landing-history-search${searchOpen ? ' is-open' : ''}`} ref={searchRef} data-sec="3">
-              {!searchOpen ? (
-                <button type="button" onClick={() => setSearchOpen(true)}><Search size={16} /><span>搜索组题</span><small>按标题、类型或年级查找</small></button>
-              ) : (
-                <div className="landing-history-search-input">
-                  <Search size={16} />
-                  <MetisInput
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    onPressEnter={() => { if (searchResults[0]) props.onOpenDocument(searchResults[0].id) }}
-                    placeholder="搜索全部组题"
-                    aria-label="搜索全部组题"
-                  />
-                  <button type="button" aria-label="收起搜索" onClick={closeSearch}><X size={15} /></button>
-                </div>
-              )}
-              {searchOpen && normalizedQuery ? (
-                <div className="landing-history-results" role="listbox" aria-label="组题搜索结果">
-                  {searchResults.length ? searchResults.map((item) => (
-                    <button type="button" key={item.id} onClick={() => props.onOpenDocument(item.id)}>
-                      <FileText size={15} /><span><strong>{item.title}</strong><small>{item.questionCount} 题 · {item.updatedAt}</small></span>
-                    </button>
-                  )) : <p>没有找到相关组题</p>}
-                </div>
-              ) : null}
-            </div>
           </section>
 
-          <section className="landing-library" data-sec="4">
+          <section className="landing-library" data-sec="3">
             <div className="landing-section-heading">
               <div><h2>飞象题库</h2><p>浏览资源并选题，内容会加入当前组题</p></div>
             </div>
