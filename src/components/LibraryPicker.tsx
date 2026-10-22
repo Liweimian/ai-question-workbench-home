@@ -239,13 +239,11 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const [showAnswers, setShowAnswers] = useState(false)
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set())
   const [pickerPendingIds, setPickerPendingIds] = useState<Set<string>>(new Set())
+  const [pickerDetailNavHost, setPickerDetailNavHost] = useState<HTMLElement | null>(null)
   const [favorites, setFavorites] = useState<Set<string>>(new Set(['paper-2']))
   const [pinned, setPinned] = useState<Set<string>>(new Set())
   const pickerActionHost = variant === 'dialog'
     ? document.querySelector<HTMLElement>('[data-picker-selection-actions]')
-    : null
-  const pickerDetailNavHost = variant === 'dialog'
-    ? document.querySelector<HTMLElement>('[data-picker-detail-nav]')
     : null
 
   useEffect(() => {
@@ -281,6 +279,17 @@ export function LibraryPicker(props: LibraryPickerProps) {
   useEffect(() => {
     props.onDetailChange?.(Boolean(detailRecord))
   }, [detailRecord, props.onDetailChange])
+
+  useEffect(() => {
+    if (variant !== 'dialog' || !detailRecord) {
+      setPickerDetailNavHost(null)
+      return undefined
+    }
+    const frame = window.requestAnimationFrame(() => {
+      setPickerDetailNavHost(document.querySelector<HTMLElement>('[data-picker-detail-nav]'))
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [detailRecord, variant])
 
   const visibleRecords = useMemo(() => {
     const normalized = keyword.trim().toLowerCase()
