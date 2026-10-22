@@ -2386,20 +2386,21 @@
 }
 
 .editor-scroll.is-resources {
-  padding: 28px 32px 56px;
+  padding: 0;
+  background: var(--common_bg2_color);
 }
 
 .my-resources-page {
   display: flex;
-  width: min(100%, 1040px);
-  min-height: 620px;
-  margin: 0 auto;
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
   overflow: hidden;
   flex-direction: column;
-  border: 1px solid var(--fx-line-strong);
-  border-radius: var(--fx-radius-card);
+  border: 0;
+  border-radius: 0;
   background: var(--common_bg2_color);
-  box-shadow: 0 8px 28px var(--common_shadow3_color);
+  box-shadow: none;
 }
 
 .my-resources-page > header {
