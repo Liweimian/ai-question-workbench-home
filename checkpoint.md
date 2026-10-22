@@ -14,7 +14,7 @@
 - `npm run build`：通过；仅保留 Metis 依赖 CSS 及包体积告警。
 - `npm run typecheck` 与 `npm run build` 通过。
 - 发布：未执行；未修改旧页面、旧站点或已有线上链接。
-- 本地版本：待提交（`Stage 1: Demo 创作完成 - 迭代 66`）。
+- 本地版本：`5f6bdbd`（`Stage 1: Demo 创作完成 - 迭代 66`）。
 
 ## 下一步
 - 等待用户评审统一后的按钮文案与颜色。
