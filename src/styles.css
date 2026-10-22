@@ -2534,6 +2534,158 @@
   white-space: nowrap;
 }
 
+.feixiang-ai-page {
+  display: flex;
+  width: 100%;
+  min-height: 100%;
+  padding: 72px 64px 56px;
+  align-items: center;
+  flex-direction: column;
+  background: var(--common_bg2_color);
+}
+
+.feixiang-ai-hero {
+  text-align: center;
+}
+
+.feixiang-ai-mark {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 18px;
+  place-items: center;
+  border-radius: var(--aiq_radius_pill);
+  color: var(--common_fg_color);
+  background: var(--aiq_primary_gradient);
+  box-shadow: 0 10px 28px var(--common-shadow-color);
+}
+
+.feixiang-ai-hero h1 {
+  margin: 0;
+  color: var(--fx-text-primary);
+  font-size: 30px;
+  font-weight: 650;
+}
+
+.feixiang-ai-hero p {
+  margin: 10px 0 0;
+  color: var(--fx-text-tertiary);
+  font-size: 13px;
+}
+
+.feixiang-ai-capabilities {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 38px;
+}
+
+.feixiang-ai-capabilities button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 13px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--aiq_radius_pill);
+  color: var(--fx-text-secondary);
+  background: var(--common_bg2_color);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.feixiang-ai-capabilities button:hover,
+.feixiang-ai-capabilities button.is-active {
+  color: var(--fx-primary);
+  border-color: var(--theme_primary1_selected2_color);
+  background: var(--fx-primary-selected);
+}
+
+.feixiang-ai-composer {
+  width: min(100%, 840px);
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: 18px;
+  background: var(--common_bg2_color);
+  box-shadow: 0 12px 36px var(--common_shadow3_color);
+}
+
+.feixiang-ai-composer textarea {
+  width: 100%;
+  height: 126px;
+  padding: 22px 22px 12px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  color: var(--fx-text-primary);
+  background: transparent;
+  font: 14px/1.7 var(--fx-font-body);
+}
+
+.feixiang-ai-composer textarea::placeholder {
+  color: var(--fx-text-tertiary);
+}
+
+.feixiang-ai-composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 14px 20px;
+}
+
+.feixiang-ai-composer-footer > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--fx-text-secondary);
+  font-size: 12px;
+}
+
+.feixiang-ai-composer-footer > button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: var(--aiq_radius_pill);
+  color: var(--common_fg_color);
+  background: var(--fx-primary);
+  cursor: pointer;
+}
+
+.feixiang-ai-composer-footer > button:disabled {
+  color: var(--common_level5_base_color);
+  background: var(--common_fg2_color);
+  cursor: not-allowed;
+}
+
+.feixiang-ai-suggestions {
+  display: flex;
+  width: min(100%, 840px);
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--fx-text-tertiary);
+  font-size: 11px;
+}
+
+.feixiang-ai-suggestions button {
+  padding: 7px 10px;
+  border: 1px solid var(--fx-line-subtle);
+  border-radius: var(--aiq_radius_pill);
+  color: var(--fx-text-secondary);
+  background: var(--common_fg2_color);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.feixiang-ai-suggestions button:hover {
+  color: var(--fx-primary);
+  border-color: var(--theme_primary1_selected2_color);
+}
+
 .my-resource-list article small,
 .my-resource-empty {
   color: var(--fx-text-tertiary);

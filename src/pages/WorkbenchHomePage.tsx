@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { QuestionInspector } from '../components/AiInspector'
 import { DocumentCanvas } from '../components/DocumentCanvas'
 import { EmptyCanvas } from '../components/EmptyCanvas'
+import { FeixiangAiPage } from '../components/FeixiangAiPage'
 import { MyResourcesPanel } from '../components/MyResourcesPanel'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
@@ -13,7 +14,7 @@ export function WorkbenchHomePage() {
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const [spaceCollapsed, setSpaceCollapsed] = useState(false)
   const [quickAiOpen, setQuickAiOpen] = useState(false)
-  const [workspaceView, setWorkspaceView] = useState<'editor' | 'resources'>('editor')
+  const [workspaceView, setWorkspaceView] = useState<'editor' | 'ai' | 'resources'>('editor')
   const hasQuestions = workbench.document.questions.length > 0
 
   useEffect(() => {
@@ -44,8 +45,8 @@ export function WorkbenchHomePage() {
       <main className={`fx-content workbench-page${spaceCollapsed ? ' is-space-collapsed' : ''}`}>
         <div className="fx-zoom-area workbench-zoom-area">
           <WorkspaceHeader
-            sectionLabel={workspaceView === 'resources' ? '资源' : '组题'}
-            documentTitle={workspaceView === 'resources' ? '我的资源' : workbench.document.title}
+            sectionLabel={workspaceView === 'resources' ? '资源' : workspaceView === 'ai' ? 'AI' : '组题'}
+            documentTitle={workspaceView === 'resources' ? '我的资源' : workspaceView === 'ai' ? '飞象 AI' : workbench.document.title}
             questionCount={workbench.document.questions.length}
             canUndo={workbench.canUndo}
             onUndo={workbench.undo}
@@ -68,6 +69,11 @@ export function WorkbenchHomePage() {
                 setWorkspaceView('editor')
                 workbench.createNewDocument()
               }}
+              onOpenAi={() => {
+                setQuickAiOpen(false)
+                workbench.closeAdd()
+                setWorkspaceView('ai')
+              }}
               onOpenMyResources={() => {
                 setQuickAiOpen(false)
                 workbench.closeAdd()
@@ -81,8 +87,14 @@ export function WorkbenchHomePage() {
               onReload={() => void workbench.reloadHistory()}
             />
 
-            <div className={`editor-scroll${workspaceView === 'resources' ? ' is-resources' : hasQuestions ? '' : ' is-empty'}`}>
-              {workspaceView === 'resources' ? <MyResourcesPanel /> : !hasQuestions ? (
+            <div className={`editor-scroll${workspaceView === 'resources' || workspaceView === 'ai' ? ' is-resources' : hasQuestions ? '' : ' is-empty'}`}>
+              {workspaceView === 'resources' ? <MyResourcesPanel /> : workspaceView === 'ai' ? (
+                <FeixiangAiPage onStart={(mode, prompt) => {
+                  if (mode === 'compose') workbench.setComposePrompt(prompt)
+                  if (mode === 'create') workbench.setCreatePrompt(prompt)
+                  openAdd(mode)
+                }} />
+              ) : !hasQuestions ? (
                 <EmptyCanvas
                   document={workbench.document}
                   aiOpen={quickAiOpen}
