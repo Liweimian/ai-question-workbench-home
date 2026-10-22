@@ -5053,13 +5053,8 @@
   grid-template-columns: 196px minmax(0, 1fr);
 }
 
-.legacy-detail-workspace.is-embedded .legacy-detail-header {
-  min-height: 54px;
-  padding: 0 20px;
-}
-
 .legacy-detail-workspace.is-embedded .legacy-detail-scroll {
-  padding-top: 14px;
+  padding-top: 10px;
 }
 
 .legacy-detail-workspace.is-embedded .legacy-question-card {
@@ -5345,11 +5340,45 @@
   margin-top: 30px;
 }
 
+.legacy-question-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  margin-bottom: 8px;
+  padding: 0 16px;
+}
+
 .legacy-question-section h3 {
-  margin: 0 0 14px;
+  margin: 0;
   color: var(--fx-text-primary);
   font-size: 15px;
   font-weight: 600;
+}
+
+.legacy-question-section-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legacy-question-section-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--aiq_radius_pill);
+  color: var(--fx-text-primary);
+  background: var(--common_fg2_color);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.legacy-question-section-actions button.is-primary {
+  color: var(--common_fg_color);
+  background: var(--fx-primary);
 }
 
 .legacy-question-card {

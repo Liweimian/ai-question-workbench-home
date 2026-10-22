@@ -179,18 +179,16 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
           </aside>
         ) : null}
         <main className="legacy-detail-panel">
-          <header className="legacy-detail-header">
-            <h2>{props.record.sourceType === 'workbook' ? `4.1 函数 · ${workbookSection}` : props.record.title}</h2>
-            <div>
-              <button type="button" onClick={props.onToggleAnswers}><Eye size={15} />{props.showAnswers ? '隐藏答案' : '显示答案'}</button>
-              <button type="button" className="is-primary" disabled={props.contentBusy} onClick={props.onUseAll}><FileText size={15} />{props.embedded ? '选择整卷' : '使用整卷'}<ChevronDown size={13} /></button>
-            </div>
-          </header>
-
           <div className="legacy-detail-scroll">
-            {groupedQuestions.map((section) => (
+            {groupedQuestions.map((section, sectionIndex) => (
               <section className="legacy-question-section" key={section.title} aria-label={section.title}>
-                <h3>{section.title}</h3>
+                <div className="legacy-question-section-heading">
+                  <h3>{section.title}</h3>
+                  {sectionIndex === 0 ? <div className="legacy-question-section-actions">
+                    <button type="button" onClick={props.onToggleAnswers}><Eye size={15} />{props.showAnswers ? '隐藏答案' : '显示答案'}</button>
+                    <button type="button" className="is-primary" disabled={props.contentBusy} onClick={props.onUseAll}><FileText size={15} />{props.embedded ? '选择整卷' : '使用整卷'}<ChevronDown size={13} /></button>
+                  </div> : null}
+                </div>
                 {section.questions.map((question) => {
                   const selected = props.selectedQuestionIds.has(question.id)
                   const pending = props.pendingQuestionIds.has(question.id)
