@@ -1162,13 +1162,30 @@
 }
 
 .space-nav-actions > button.is-primary {
-  color: var(--common_fg_color);
-  background: var(--theme_primary1_color);
-  box-shadow: 0 6px 14px var(--common-shadow-color);
+  color: var(--fx-text-secondary);
+  background: transparent;
+  box-shadow: none;
 }
 
 .space-nav-actions > button.is-primary:hover {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.space-nav-actions > button .space-nav-create-icon,
+.workspace-space-nav.is-collapsed .space-nav-create-icon {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  border-radius: var(--system-border-radius-s);
   color: var(--common_fg_color);
+  background: var(--theme_primary1_color);
+  box-shadow: 0 4px 10px var(--common-shadow-color);
+}
+
+.space-nav-actions > button.is-primary:hover .space-nav-create-icon {
   background: var(--theme_primary1_hover_color);
 }
 
@@ -1314,8 +1331,8 @@
 }
 
 .workspace-space-nav.is-collapsed > button.is-primary {
-  color: var(--common_fg_color);
-  background: var(--theme_primary1_color);
+  color: var(--fx-text-secondary);
+  background: transparent;
 }
 
 .navigator-tabs,
