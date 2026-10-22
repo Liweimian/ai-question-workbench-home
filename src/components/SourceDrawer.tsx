@@ -63,7 +63,7 @@ const commandOptions: Array<{
   { mode: 'compose', title: 'AI 组题', description: '根据要求从题库智能挑选，保留真实来源', tag: '题库智能筛选', icon: BrainCircuit },
   { mode: 'create', title: 'AI 出题', description: '生成全新题目，先预览再加入当前题单', tag: '原创 · 待校验', icon: Sparkles },
   { mode: 'upload', title: '上传录题', description: '识别 PDF、Word 或图片中的题目', tag: '本地材料', icon: FileUp },
-  { mode: 'manual', title: '手工录入', description: '新建一道空白题并继续编辑', tag: '空白题', icon: FilePenLine },
+  { mode: 'manual', title: '手工录入', description: '添加一道空白题并继续编辑', tag: '空白题', icon: FilePenLine },
 ]
 
 const resourceIcons: Record<ResourceType, typeof BookOpenCheck> = {
@@ -297,7 +297,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
                 disabled={props.contentBusy}
                 onClick={props.onAddManual}
               >
-                新建空白题
+                添加空白题
               </MetisButton>
             </div>
           ) : null}

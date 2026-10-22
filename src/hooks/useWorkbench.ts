@@ -43,6 +43,19 @@ const cloneDocument = (document: WorkbenchDocument): WorkbenchDocument => ({
   questions: cloneQuestions(document.questions),
 })
 
+const toHistorySummary = (
+  document: WorkbenchDocument,
+  previous?: HistoryDocumentSummary,
+): HistoryDocumentSummary => ({
+  id: document.id,
+  title: document.title.trim() || '未命名题单',
+  gradeSubject: document.gradeSubject,
+  questionCount: document.questions.length,
+  updatedAt: '刚刚',
+  status: '草稿',
+  origin: previous?.origin ?? '手工组题',
+})
+
 function editorReducer(state: EditorState, action: EditorAction): EditorState {
   if (action.type === 'set-title') {
     return {
@@ -151,6 +164,7 @@ export function useWorkbench() {
   const sourceRequestIdRef = useRef(0)
   const historyRequestIdRef = useRef(0)
   const rewriteRequestIdRef = useRef(0)
+  const sessionDocumentsRef = useRef(new Map<string, WorkbenchDocument>())
 
   const document = editor.document
   const selectedQuestion = useMemo(
@@ -191,6 +205,20 @@ export function useWorkbench() {
   useEffect(() => {
     void loadHistoryList()
   }, [loadHistoryList])
+
+  const rememberDocument = useCallback((currentDocument: WorkbenchDocument) => {
+    historyRequestIdRef.current += 1
+    const snapshot = cloneDocument({ ...currentDocument, updatedAt: '刚刚' })
+    sessionDocumentsRef.current.set(snapshot.id, snapshot)
+    setHistoryDocuments((current) => {
+      const previous = current.find((item) => item.id === snapshot.id)
+      return [
+        toHistorySummary(snapshot, previous),
+        ...current.filter((item) => item.id !== snapshot.id),
+      ]
+    })
+    setHistoryStatus('success')
+  }, [])
 
   const loadSources = useCallback(async (type: ResourceType) => {
     const requestId = sourceRequestIdRef.current + 1
@@ -332,6 +360,38 @@ export function useWorkbench() {
     }
   }, [appendQuestions, beginContentOperation, closeAdd, finishContentOperation])
 
+  const createNewDocument = useCallback(() => {
+    if (contentOperationRef.current) {
+      MetisMessage.info('正在处理上一项内容，请稍候')
+      return
+    }
+    if (document.questions.length === 0 && document.title.trim() === '未命名题单') {
+      setNavigatorView('questions')
+      MetisMessage.info('当前已经是一份空白题单')
+      return
+    }
+
+    rememberDocument(document)
+    const nextDocument: WorkbenchDocument = {
+      id: `draft-${Date.now()}`,
+      title: '未命名题单',
+      gradeSubject: document.gradeSubject,
+      questions: [],
+      updatedAt: '刚刚',
+    }
+    rewriteRequestIdRef.current += 1
+    dispatch({ type: 'load-document', document: nextDocument })
+    setSelectedQuestionId(null)
+    setNavigatorView('questions')
+    setInspectorView('info')
+    setIsAddOpen(false)
+    setAddModeState('menu')
+    setCreatePreview([])
+    setRewriteStatus('idle')
+    setRewritePreview(null)
+    MetisMessage.success('已新建空白题单，上一份已存入历史，可撤销')
+  }, [document, rememberDocument])
+
   const openHistoryDocument = useCallback(async (documentId: string) => {
     if (document.id === documentId) {
       setNavigatorView('questions')
@@ -340,7 +400,11 @@ export function useWorkbench() {
     }
     if (!beginContentOperation('history-load')) return
     try {
-      const nextDocument = await workbenchRepository.loadDocument(documentId)
+      rememberDocument(document)
+      const sessionDocument = sessionDocumentsRef.current.get(documentId)
+      const nextDocument = sessionDocument
+        ? cloneDocument(sessionDocument)
+        : await workbenchRepository.loadDocument(documentId)
       dispatch({ type: 'load-document', document: nextDocument })
       setSelectedQuestionId(nextDocument.questions[0]?.id ?? null)
       setNavigatorView('questions')
@@ -351,7 +415,7 @@ export function useWorkbench() {
     } finally {
       finishContentOperation('history-load')
     }
-  }, [beginContentOperation, document.id, finishContentOperation])
+  }, [beginContentOperation, document, finishContentOperation, rememberDocument])
 
   const selectQuestion = useCallback((questionId: string) => {
     rewriteRequestIdRef.current += 1
@@ -457,6 +521,7 @@ export function useWorkbench() {
     rewritePreview,
     isContentBusy: contentOperation !== null,
     canUndo: Boolean(editor.undoDocument),
+    createNewDocument,
     openAdd,
     closeAdd,
     loadSources,

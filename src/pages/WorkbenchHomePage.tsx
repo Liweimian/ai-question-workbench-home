@@ -41,7 +41,9 @@ export function WorkbenchHomePage() {
           <WorkspaceHeader
             questionCount={workbench.document.questions.length}
             canUndo={workbench.canUndo}
+            contentBusy={workbench.isContentBusy}
             onUndo={workbench.undo}
+            onCreateNew={workbench.createNewDocument}
             onAdd={() => workbench.openAdd('menu')}
           />
 
