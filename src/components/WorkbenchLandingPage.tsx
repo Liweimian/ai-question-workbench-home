@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MetisButton } from '@yuanfudao/metis-web-component'
 import { FilePlus2, FileText, FolderHeart, Sparkles } from 'lucide-react'
 import type {
@@ -38,6 +38,7 @@ const toCurrentSummary = (document: WorkbenchDocument): HistoryDocumentSummary =
 })
 
 export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
+  const [showAllResources, setShowAllResources] = useState(true)
   const recentDocuments = useMemo(() => {
     const current = toCurrentSummary(props.document)
     return [current, ...props.histories.filter((item) => item.id !== current.id)]
@@ -108,6 +109,8 @@ export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
               listStatus={props.sourceListStatus}
               addStatus={props.sourceAddStatus}
               contentBusy={props.contentBusy}
+              showAll={showAllResources}
+              onShowAllChange={setShowAllResources}
               onResourceTypeChange={props.onResourceTypeChange}
               onAddSource={props.onAddSource}
             />

@@ -7,6 +7,7 @@ import {
   Check,
   ChevronDown,
   FileText,
+  LayoutGrid,
   ListChecks,
   Pin,
   Search,
@@ -14,7 +15,7 @@ import {
   Sparkles,
   Star,
 } from 'lucide-react'
-import { baseQuestions, sourceOptions } from '../data/workbenchData'
+import { baseQuestions, sourceOptions, sourceRecords as allSourceRecords } from '../data/workbenchData'
 import type { AsyncStatus, ResourceType, SourceRecord } from '../prototype/types'
 
 interface LibraryPickerProps {
@@ -25,6 +26,8 @@ interface LibraryPickerProps {
   listStatus: AsyncStatus
   addStatus: AsyncStatus
   contentBusy: boolean
+  showAll?: boolean
+  onShowAllChange?: (showAll: boolean) => void
   onResourceTypeChange: (type: ResourceType) => void
   onAddSource: (type: ResourceType, sourceId: string, count: number) => void
 }
@@ -70,6 +73,7 @@ const listHeadings: Record<ResourceType, string> = {
 
 export function LibraryPicker(props: LibraryPickerProps) {
   const variant = props.variant ?? 'dialog'
+  const isAll = variant === 'home' && props.showAll === true
   const [keyword, setKeyword] = useState('')
   const [sort, setSort] = useState<'recommended' | 'latest'>('recommended')
   const [category, setCategory] = useState('全部资源')
@@ -83,7 +87,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
     setCategory('全部资源')
     setDetailRecord(null)
     setSelectedQuestionIds(new Set())
-  }, [props.libraryKind, props.resourceType])
+  }, [isAll, props.libraryKind, props.resourceType])
 
   useEffect(() => {
     if (props.addStatus === 'success') setSelectedQuestionIds(new Set())
@@ -91,8 +95,10 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
   const visibleRecords = useMemo(() => {
     const normalized = keyword.trim().toLowerCase()
-    const filtered = props.records.filter((record) => (
+    const source = isAll ? allSourceRecords : props.records
+    const filtered = source.filter((record) => (
       (category === '全部资源'
+        || isAll
         || props.resourceType !== 'paper'
         || record.highlight === category
         || record.tags?.includes(category))
@@ -106,7 +112,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
       if (sort === 'recommended') return (b.usageCount ?? 0) - (a.usageCount ?? 0)
       return (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '')
     })
-  }, [category, keyword, pinned, props.records, props.resourceType, sort])
+  }, [category, isAll, keyword, pinned, props.records, props.resourceType, sort])
 
   const openRecord = (record: SourceRecord) => {
     setSelectedQuestionIds(new Set())
@@ -187,9 +193,22 @@ export function LibraryPicker(props: LibraryPickerProps) {
   return (
     <div className={`library-picker${variant === 'home' ? ' is-home' : ''}`}>
       <nav className="library-resource-tabs" aria-label="题库资源类型" role="tablist">
+        {variant === 'home' ? (
+          <button
+            type="button"
+            className={isAll ? 'is-active' : ''}
+            role="tab"
+            aria-selected={isAll}
+            disabled={props.contentBusy}
+            onClick={() => props.onShowAllChange?.(true)}
+            data-track="/click/aiQuestionHome/switchResourceTab | 切换全部资源 | 无"
+          >
+            <LayoutGrid size={17} /><span><strong>全部</strong></span>
+          </button>
+        ) : null}
         {visibleSourceOptions.map((option) => {
           const Icon = resourceIcons[option.type]
-          const isActive = props.resourceType === option.type
+          const isActive = !isAll && props.resourceType === option.type
           return (
             <button
               type="button"
@@ -198,7 +217,10 @@ export function LibraryPicker(props: LibraryPickerProps) {
               role="tab"
               aria-selected={isActive}
               disabled={props.contentBusy}
-              onClick={() => props.onResourceTypeChange(option.type)}
+              onClick={() => {
+                props.onShowAllChange?.(false)
+                props.onResourceTypeChange(option.type)
+              }}
               data-track="/click/aiQuestionHome/switchResourceTab | 切换题库资源类型 | resourceType#STRING"
             >
               <Icon size={17} /><span><strong>{option.title}</strong>{variant === 'dialog' ? <small>{option.description}</small> : null}</span>
@@ -225,14 +247,14 @@ export function LibraryPicker(props: LibraryPickerProps) {
         <main className="library-results">
           <div className="library-filter-row" aria-label="题库筛选">
             <div className="library-filter-chips">
-              {filterLabels[props.resourceType].map((label) => <button type="button" key={label}>{label}<ChevronDown size={13} /></button>)}
+              {(isAll ? ['八年级上', '资源类型', '教材版本', '来源'] : filterLabels[props.resourceType]).map((label) => <button type="button" key={label}>{label}<ChevronDown size={13} /></button>)}
               <button type="button"><SlidersHorizontal size={14} />其他</button>
             </div>
-            <div className="library-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder={`搜索${visibleSourceOptions.find((item) => item.type === props.resourceType)?.title ?? '资源'}名称或关键词`} /></div>
+            <div className="library-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder={isAll ? '搜索全部资源名称或关键词' : `搜索${visibleSourceOptions.find((item) => item.type === props.resourceType)?.title ?? '资源'}名称或关键词`} /></div>
           </div>
 
           <div className="library-list-heading">
-            <h3>{category === '全部资源' ? listHeadings[props.resourceType] : category}</h3>
+            <h3>{isAll ? '全部资源' : category === '全部资源' ? listHeadings[props.resourceType] : category}</h3>
             <div role="tablist" aria-label="资源排序">
               <button type="button" className={sort === 'recommended' ? 'is-active' : ''} onClick={() => setSort('recommended')}>推荐</button>
               <button type="button" className={sort === 'latest' ? 'is-active' : ''} onClick={() => setSort('latest')}>最新</button>
@@ -244,11 +266,11 @@ export function LibraryPicker(props: LibraryPickerProps) {
             {props.listStatus === 'error' ? <div className="library-feedback"><strong>资源加载失败</strong><p>当前题单不受影响。</p><MetisButton onClick={() => props.onResourceTypeChange(props.resourceType)}>重新加载</MetisButton></div> : null}
             {props.listStatus === 'success' && visibleRecords.length === 0 ? <div className="library-feedback"><strong>没有找到匹配资源</strong><p>换个关键词或减少筛选条件试试。</p></div> : null}
             {props.listStatus === 'success' ? (
-              <div className={`library-record-grid library-record-grid--${props.resourceType}`}>
+              <div className={`library-record-grid library-record-grid--${isAll ? 'all' : props.resourceType}`}>
                 {visibleRecords.map((record) => (
-                  <article className="library-resource-card" key={record.id}>
+                  <article className={`library-resource-card library-resource-card--${record.sourceType}`} key={record.id}>
                     <button type="button" className="library-card-main" onClick={() => openRecord(record)}>
-                      {props.resourceType === 'workbook' ? <span className="workbook-cover"><BookOpenCheck size={25} /><small>{record.highlight?.slice(0, 2)}</small></span> : null}
+                      {!isAll && props.resourceType === 'workbook' ? <span className="workbook-cover"><BookOpenCheck size={25} /><small>{record.highlight?.slice(0, 2)}</small></span> : null}
                       <span className="library-card-copy">
                         <span className="library-card-tags"><em>{record.highlight}</em>{record.tags?.map((tag) => <em key={tag}>{tag}</em>)}</span>
                         <strong>{record.title}</strong>
@@ -258,8 +280,8 @@ export function LibraryPicker(props: LibraryPickerProps) {
                       </span>
                     </button>
                     <div className="library-card-actions">
-                      <button type="button" aria-label={favorites.has(record.id) ? '取消收藏' : '收藏'} onClick={() => toggleSetValue(setFavorites, record.id)} className={favorites.has(record.id) ? 'is-active' : ''}><Star size={15} />{props.resourceType === 'workbook' ? '收藏' : null}</button>
-                      {props.resourceType === 'workbook' ? <button type="button" aria-label="置顶" onClick={() => toggleSetValue(setPinned, record.id)} className={pinned.has(record.id) ? 'is-active' : ''}><Pin size={15} /></button> : null}
+                      <button type="button" aria-label={favorites.has(record.id) ? '取消收藏' : '收藏'} onClick={() => toggleSetValue(setFavorites, record.id)} className={favorites.has(record.id) ? 'is-active' : ''}><Star size={15} />{!isAll && props.resourceType === 'workbook' ? '收藏' : null}</button>
+                      {!isAll && props.resourceType === 'workbook' ? <button type="button" aria-label="置顶" onClick={() => toggleSetValue(setPinned, record.id)} className={pinned.has(record.id) ? 'is-active' : ''}><Pin size={15} /></button> : null}
                     </div>
                     <div className="library-card-footer"><span>{record.questionCount} 题</span><span>{record.updatedAt ?? `${record.usageCount?.toLocaleString()} 人使用`}</span><button type="button" onClick={() => openRecord(record)}>选题</button></div>
                   </article>
