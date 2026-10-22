@@ -6,10 +6,10 @@ import {
   BookOpenCheck,
   Check,
   ChevronDown,
+  Clock3,
   FileText,
   LayoutGrid,
   ListChecks,
-  Pin,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -69,6 +69,21 @@ const listHeadings: Record<ResourceType, string> = {
   paper: '全部试卷',
   sync: '4.1 函数',
   special: '全部资源',
+}
+
+const resourceTypeLabels: Record<ResourceType, string> = {
+  workbook: '练习册',
+  paper: '试卷',
+  sync: '同步练习',
+  special: '专题',
+}
+
+function getResourceCardTags(record: SourceRecord) {
+  const secondaryTag = record.tags?.[0]
+    ?? record.meta.split(/[·/]/).map((item) => item.trim()).find(Boolean)
+    ?? resourceTypeLabels[record.sourceType]
+
+  return [record.highlight || resourceTypeLabels[record.sourceType], secondaryTag].slice(0, 2)
 }
 
 export function LibraryPicker(props: LibraryPickerProps) {
@@ -268,22 +283,24 @@ export function LibraryPicker(props: LibraryPickerProps) {
             {props.listStatus === 'success' ? (
               <div className={`library-record-grid library-record-grid--${isAll ? 'all' : props.resourceType}`}>
                 {visibleRecords.map((record) => (
-                  <article className={`library-resource-card library-resource-card--${record.sourceType}`} key={record.id}>
+                  <article className="library-resource-card" key={record.id}>
                     <button type="button" className="library-card-main" onClick={() => openRecord(record)}>
-                      {!isAll && props.resourceType === 'workbook' ? <span className="workbook-cover"><BookOpenCheck size={25} /><small>{record.highlight?.slice(0, 2)}</small></span> : null}
                       <span className="library-card-copy">
-                        <span className="library-card-tags"><em>{record.highlight}</em>{record.tags?.map((tag) => <em key={tag}>{tag}</em>)}</span>
+                        <span className="library-card-tags">
+                          {getResourceCardTags(record).map((tag) => <em key={tag}>{tag}</em>)}
+                        </span>
                         <strong>{record.title}</strong>
-                        {record.description ? <p>{record.description}</p> : null}
-                        <small>{record.meta}</small>
-                        {record.sourceName ? <small>来源：{record.sourceName}　{record.usageCount?.toLocaleString()} 人使用</small> : null}
+                        <small className="library-card-date"><Clock3 size={13} />{record.updatedAt ?? '最近更新'}</small>
                       </span>
                     </button>
-                    <div className="library-card-actions">
-                      <button type="button" aria-label={favorites.has(record.id) ? '取消收藏' : '收藏'} onClick={() => toggleSetValue(setFavorites, record.id)} className={favorites.has(record.id) ? 'is-active' : ''}><Star size={15} />{!isAll && props.resourceType === 'workbook' ? '收藏' : null}</button>
-                      {!isAll && props.resourceType === 'workbook' ? <button type="button" aria-label="置顶" onClick={() => toggleSetValue(setPinned, record.id)} className={pinned.has(record.id) ? 'is-active' : ''}><Pin size={15} /></button> : null}
-                    </div>
-                    <div className="library-card-footer"><span>{record.questionCount} 题</span><span>{record.updatedAt ?? `${record.usageCount?.toLocaleString()} 人使用`}</span><button type="button" onClick={() => openRecord(record)}>选题</button></div>
+                    <button
+                      type="button"
+                      aria-label={favorites.has(record.id) ? '取消收藏' : '收藏'}
+                      onClick={() => toggleSetValue(setFavorites, record.id)}
+                      className={`library-card-favorite${favorites.has(record.id) ? ' is-active' : ''}`}
+                    >
+                      <Star size={15} />收藏
+                    </button>
                   </article>
                 ))}
               </div>
