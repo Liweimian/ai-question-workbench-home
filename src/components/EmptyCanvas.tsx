@@ -70,12 +70,22 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   const [aiEditOpen, setAiEditOpen] = useState(false)
   const [customAiInstruction, setCustomAiInstruction] = useState('')
   const blockRefs = useRef(new Map<string, HTMLDivElement>())
+  const aiDialogRef = useRef<HTMLElement>(null)
   const selectedRangeRef = useRef<Range | null>(null)
 
   const closeAi = () => {
     props.onAiClose()
     window.requestAnimationFrame(() => blockRefs.current.get(activeBlockId)?.focus())
   }
+
+  useEffect(() => {
+    if (!props.aiOpen) return
+    const closeOnOutside = (event: MouseEvent) => {
+      if (!aiDialogRef.current?.contains(event.target as Node)) props.onAiClose()
+    }
+    document.addEventListener('mousedown', closeOnOutside)
+    return () => document.removeEventListener('mousedown', closeOnOutside)
+  }, [props.aiOpen, props.onAiClose])
 
   useEffect(() => {
     setBlockIds(['initial'])
@@ -257,7 +267,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         ) : null}
 
         {props.aiOpen ? (
-          <section className="inline-ai-dialog" aria-label="AI 助手">
+          <section className="inline-ai-dialog" aria-label="AI 助手" ref={aiDialogRef}>
             <div className="inline-ai-input">
               <span className="inline-ai-input-prefix"><Sparkles size={17} /><strong>{inlineAiMode === 'create' ? 'AI 命题' : '飞象 AI'}</strong><ChevronDown size={14} /></span>
               <MetisInput
