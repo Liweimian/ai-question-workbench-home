@@ -4758,11 +4758,18 @@
 }
 
 .landing-recent {
+  position: relative;
+  z-index: 2;
   padding: 20px 24px 24px;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.78);
   box-shadow: 0 1px 2px rgba(22, 29, 41, 0.04);
   backdrop-filter: blur(16px);
+}
+
+.landing-library {
+  position: relative;
+  z-index: 1;
 }
 
 .landing-section-heading {
@@ -5801,4 +5808,96 @@
 .my-resources-page {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
+}
+
+/* 方案二：题单与添加内容并列展示；方案一的弹窗样式保持不变。 */
+.recent-create-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+
+.create-scheme-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 264px;
+  padding: 6px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-card);
+  background: var(--common_bg2_color);
+  box-shadow: 0 10px 28px var(--common_shadow3_color);
+}
+
+.create-scheme-menu button {
+  display: grid;
+  width: 100%;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--system-border-radius-m);
+  color: var(--fx-text-primary);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.create-scheme-menu button:hover {
+  background: var(--fx-primary-selected);
+}
+
+.create-scheme-menu strong {
+  font-size: 14px;
+}
+
+.create-scheme-menu span {
+  color: var(--fx-text-secondary);
+  font-size: 12px;
+}
+
+.workspace-shell.is-split-source {
+  grid-template-columns: minmax(480px, 44%) minmax(650px, 56%);
+}
+
+.workspace-shell.is-split-source .editor-scroll {
+  padding: 18px 12px 48px;
+}
+
+.workspace-shell.is-split-source .editor-document,
+.workspace-shell.is-split-source .empty-canvas {
+  width: 100%;
+}
+
+.workspace-shell.is-split-source .empty-quick-start {
+  display: none;
+}
+
+.add-question-layer.is-docked,
+.add-question-layer--library.is-docked {
+  position: relative;
+  z-index: 2;
+  inset: auto;
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  margin-top: 60px;
+  padding: 0;
+  background: var(--common_bg2_color);
+  animation: none;
+}
+
+.add-question-panel.is-docked,
+.add-question-panel--library.is-docked {
+  width: 100%;
+  height: calc(100vh - 60px);
+  max-height: none;
+  border-width: 0 0 0 1px;
+  border-radius: 0;
+  box-shadow: -8px 0 24px var(--common_shadow3_color);
+  animation: none;
+}
+
+.add-question-panel.is-docked .add-question-body {
+  min-height: 0;
 }

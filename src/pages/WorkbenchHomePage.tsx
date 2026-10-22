@@ -14,6 +14,7 @@ export function WorkbenchHomePage() {
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const [quickAiOpen, setQuickAiOpen] = useState(false)
   const [sortCollapsed, setSortCollapsed] = useState(false)
+  const [editorScheme, setEditorScheme] = useState<'classic' | 'split'>('classic')
   const [workspaceView, setWorkspaceView] = useState<'home' | 'editor' | 'resources'>('home')
   const hasQuestions = workbench.document.questions.length > 0
 
@@ -63,8 +64,9 @@ export function WorkbenchHomePage() {
               sourceRecords={workbench.sourceRecords}
               sourceListStatus={workbench.sourceListStatus}
               sourceAddStatus={workbench.sourceAddStatus}
-              onCreateNew={() => {
+              onCreateNew={(scheme) => {
                 setQuickAiOpen(false)
+                setEditorScheme(scheme)
                 workbench.createNewDocument()
                 setWorkspaceView('editor')
               }}
@@ -101,8 +103,8 @@ export function WorkbenchHomePage() {
                 showActions={workspaceView === 'editor'}
               />
 
-              <section className={`workspace-shell${workspaceView === 'editor' && hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`} aria-label="AI 题库组题工作区">
-                {workspaceView === 'editor' && hasQuestions ? (
+              <section className={`workspace-shell${workspaceView === 'editor' && hasQuestions && !(editorScheme === 'split' && workbench.isAddOpen) ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}${editorScheme === 'split' && workbench.isAddOpen ? ' is-split-source' : ''}`} aria-label="AI 题库组题工作区">
+                {workspaceView === 'editor' && hasQuestions && !(editorScheme === 'split' && workbench.isAddOpen) ? (
                   <QuestionSortPanel
                     questions={workbench.document.questions}
                     selectedQuestionId={workbench.selectedQuestionId}
@@ -147,7 +149,37 @@ export function WorkbenchHomePage() {
                   )}
                 </div>
 
-                {workspaceView === 'editor' && hasQuestions ? (
+                {editorScheme === 'split' && workbench.isAddOpen ? (
+                  <SourceDrawer
+                    presentation="docked"
+                    mode={workbench.addMode}
+                    libraryInitialView={workbench.libraryInitialView}
+                    resourceType={workbench.resourceType}
+                    records={workbench.sourceRecords}
+                    listStatus={workbench.sourceListStatus}
+                    addStatus={workbench.sourceAddStatus}
+                    contentBusy={workbench.isContentBusy}
+                    composePrompt={workbench.composePrompt}
+                    composeError={workbench.composeError}
+                    composeStatus={workbench.composeStatus}
+                    createPrompt={workbench.createPrompt}
+                    createError={workbench.createError}
+                    createStatus={workbench.createStatus}
+                    createPreview={workbench.createPreview}
+                    onModeChange={workbench.setAddMode}
+                    onResourceTypeChange={(type) => void workbench.loadSources(type)}
+                    onAddSource={(type, sourceId, count) => void workbench.addSource(type, sourceId, count)}
+                    onComposePromptChange={workbench.setComposePrompt}
+                    onCompose={() => void workbench.composeFromBank()}
+                    onCreatePromptChange={workbench.setCreatePrompt}
+                    onCreate={() => void workbench.createQuestions()}
+                    onAddCreated={workbench.addCreatedQuestions}
+                    onUpload={() => void workbench.recognizeUpload()}
+                    onPersonalize={() => void workbench.personalizeFromUpload()}
+                    onAddManual={() => void workbench.addManualQuestion()}
+                    onClose={workbench.closeAdd}
+                  />
+                ) : workspaceView === 'editor' && hasQuestions ? (
                   <QuestionInspector
                     document={workbench.document}
                     question={workbench.selectedQuestion}
@@ -164,7 +196,7 @@ export function WorkbenchHomePage() {
             </>
           )}
 
-          {workbench.isAddOpen ? (
+          {workbench.isAddOpen && editorScheme === 'classic' ? (
             <SourceDrawer
               mode={workbench.addMode}
               libraryInitialView={workbench.libraryInitialView}

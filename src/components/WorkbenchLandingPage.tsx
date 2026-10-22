@@ -19,7 +19,7 @@ interface WorkbenchLandingPageProps {
   sourceRecords: SourceRecord[]
   sourceListStatus: AsyncStatus
   sourceAddStatus: AsyncStatus
-  onCreateNew: () => void
+  onCreateNew: (scheme: 'classic' | 'split') => void
   onOpenResources: () => void
   onOpenDocument: (documentId: string) => void
   onReloadHistory: () => void
@@ -39,6 +39,7 @@ const toCurrentSummary = (document: WorkbenchDocument): HistoryDocumentSummary =
 
 export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
   const [showAllResources, setShowAllResources] = useState(true)
+  const [createMenuOpen, setCreateMenuOpen] = useState(false)
   const recentDocuments = useMemo(() => {
     const current = toCurrentSummary(props.document)
     return [current, ...props.histories.filter((item) => item.id !== current.id)]
@@ -68,17 +69,30 @@ export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
             </div>
 
             <div className="recent-document-grid">
-              <button
-                type="button"
-                className="recent-create-card"
-                aria-label="新建组题"
-                title="新建组题"
-                disabled={props.contentBusy}
-                onClick={props.onCreateNew}
-                data-track="/click/aiQuestionHome/createDocument | 新建组题 | 无"
-              >
-                <Plus size={26} strokeWidth={1.8} />
-              </button>
+              <div className="recent-create-wrap">
+                <button
+                  type="button"
+                  className="recent-create-card"
+                  aria-label="新建组题"
+                  title="新建组题"
+                  aria-expanded={createMenuOpen}
+                  disabled={props.contentBusy}
+                  onClick={() => setCreateMenuOpen((open) => !open)}
+                  data-track="/click/aiQuestionHome/createDocument | 新建组题 | 无"
+                >
+                  <Plus size={26} strokeWidth={1.8} />
+                </button>
+                {createMenuOpen ? (
+                  <div className="create-scheme-menu" role="menu" aria-label="选择新建方案">
+                    <button type="button" role="menuitem" onClick={() => { setCreateMenuOpen(false); props.onCreateNew('classic') }}>
+                      <strong>方案一</strong><span>沉浸编辑，选题时使用大弹窗</span>
+                    </button>
+                    <button type="button" role="menuitem" onClick={() => { setCreateMenuOpen(false); props.onCreateNew('split') }}>
+                      <strong>方案二</strong><span>题单与题库左右分屏，边选边看</span>
+                    </button>
+                  </div>
+                ) : null}
+              </div>
               {recentDocuments.slice(0, 4).map((item, index) => (
                 <button
                   type="button"

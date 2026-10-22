@@ -25,6 +25,7 @@ import { AiComposer } from './AiComposer'
 import { LibraryPicker } from './LibraryPicker'
 
 interface SourceDrawerProps {
+  presentation?: 'modal' | 'docked'
   mode: AddQuestionMode
   libraryInitialView?: LibraryInitialView
   resourceType: ResourceType
@@ -82,6 +83,7 @@ const modeTitles: Record<AddQuestionMode, string> = {
 
 export function SourceDrawer(props: SourceDrawerProps) {
   const [libraryDetailOpen, setLibraryDetailOpen] = useState(false)
+  const docked = props.presentation === 'docked'
 
   useEffect(() => { setLibraryDetailOpen(false) }, [props.mode])
 
@@ -101,12 +103,12 @@ export function SourceDrawer(props: SourceDrawerProps) {
   }, [props.contentBusy, props.mode, props.onClose, props.onModeChange])
 
   return (
-    <div className={`add-question-layer${props.mode === 'resource' || props.mode === 'school' ? ' add-question-layer--library' : ''}`} onMouseDown={props.onClose}>
+    <div className={`add-question-layer${props.mode === 'resource' || props.mode === 'school' ? ' add-question-layer--library' : ''}${docked ? ' is-docked' : ''}`} onMouseDown={docked ? undefined : props.onClose}>
       <section
-        className={`add-question-panel${props.mode === 'resource' || props.mode === 'school' ? ' add-question-panel--library' : ''}`}
+        className={`add-question-panel${props.mode === 'resource' || props.mode === 'school' ? ' add-question-panel--library' : ''}${docked ? ' is-docked' : ''}`}
         data-sec="5"
-        role="dialog"
-        aria-modal="true"
+        role={docked ? 'region' : 'dialog'}
+        aria-modal={docked ? undefined : 'true'}
         aria-label="添加题目"
         onMouseDown={(event) => event.stopPropagation()}
       >
