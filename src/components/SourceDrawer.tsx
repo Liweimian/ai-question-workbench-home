@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MetisButton } from '@yuanfudao/metis-web-component'
 import {
-  ArrowLeft,
   BrainCircuit,
   FilePenLine,
   Files,
@@ -113,14 +112,6 @@ export function SourceDrawer(props: SourceDrawerProps) {
       >
         <header className="add-question-header">
           <div className="add-question-title">
-            {props.mode !== 'menu' && !libraryDetailOpen ? (
-              <MetisButton
-                type="borderless"
-                icon={<ArrowLeft size={18} />}
-                aria-label="返回添加方式"
-                onClick={() => props.onModeChange('menu')}
-              />
-            ) : null}
             <div>
               <div data-picker-detail-nav className={libraryDetailOpen ? '' : 'is-hidden'} />
               {!libraryDetailOpen ? <h2>{modeTitles[props.mode]}</h2> : null}
