@@ -94,6 +94,7 @@ interface LegacyResourceDetailProps {
   showAnswers: boolean
   contentBusy: boolean
   addStatus: AsyncStatus
+  onReturnHome: () => void
   onToggleAnswers: () => void
   onToggleQuestion: (questionId: string) => void
   onUseAll: () => void
@@ -109,6 +110,20 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
 
   return (
     <section className="legacy-detail-workspace" aria-label={props.record.title}>
+      <header className="legacy-detail-topbar">
+        <div className="legacy-detail-brand">
+          <span><Sparkles size={16} /></span>
+          <div><strong>李老师的组题空间</strong><small>初中数学 · 八年级上</small></div>
+        </div>
+        <nav className="legacy-detail-breadcrumb" aria-label="面包屑">
+          <button type="button" onClick={props.onReturnHome}>组题首页</button>
+          <i>/</i>
+          <span>{resourceTypeLabels[props.record.sourceType]}</span>
+          <i>/</i>
+          <strong>{props.record.title}</strong>
+        </nav>
+        <button type="button" className="legacy-detail-home-action" onClick={props.onReturnHome}><ArrowLeft size={15} />返回首页</button>
+      </header>
       <div className="legacy-detail-stage">
         <main className="legacy-detail-panel">
           <header className="legacy-detail-header">
@@ -248,6 +263,12 @@ export function LibraryPicker(props: LibraryPickerProps) {
           showAnswers={showAnswers}
           contentBusy={props.contentBusy}
           addStatus={props.addStatus}
+          onReturnHome={() => {
+            const homeUrl = new URL(window.location.href)
+            homeUrl.searchParams.delete('resource')
+            homeUrl.searchParams.delete('resourceType')
+            window.location.assign(homeUrl.toString())
+          }}
           onToggleAnswers={() => setShowAnswers((current) => !current)}
           onToggleQuestion={(questionId) => {
             const wasSelected = selectedQuestionIds.has(questionId)

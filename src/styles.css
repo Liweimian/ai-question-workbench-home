@@ -4606,10 +4606,104 @@
     linear-gradient(#e7edf8, #edf0f7 520px);
 }
 
+.legacy-detail-topbar {
+  display: grid;
+  align-items: center;
+  min-height: 60px;
+  padding: 0 32px;
+  flex: 0 0 60px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 28px;
+  border-bottom: 1px solid var(--fx-line-subtle);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+}
+
+.legacy-detail-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legacy-detail-brand > span {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: var(--system-border-radius-m);
+  color: var(--common_fg_color);
+  background: var(--fx-primary);
+}
+
+.legacy-detail-brand > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.legacy-detail-brand strong {
+  color: var(--fx-text-primary);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.legacy-detail-brand small {
+  color: var(--fx-text-tertiary);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.legacy-detail-breadcrumb {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+  color: var(--fx-text-tertiary);
+  font-size: 13px;
+}
+
+.legacy-detail-breadcrumb button,
+.legacy-detail-home-action {
+  border: 0;
+  color: var(--fx-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.legacy-detail-breadcrumb button:hover,
+.legacy-detail-home-action:hover {
+  color: var(--fx-primary);
+}
+
+.legacy-detail-breadcrumb i {
+  color: var(--fx-line-strong);
+  font-style: normal;
+}
+
+.legacy-detail-breadcrumb strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--fx-text-primary);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legacy-detail-home-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--system-border-radius-m);
+  background: var(--common_fg_color);
+}
+
 .legacy-detail-stage {
   display: grid;
   min-height: 0;
-  margin: 24px 32px;
+  margin: 16px 32px 24px;
   flex: 1;
   grid-template-columns: minmax(0, 1fr);
 }
