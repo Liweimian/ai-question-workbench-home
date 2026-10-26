@@ -5725,9 +5725,15 @@
   border-bottom: 1px solid var(--fx-line-subtle);
 }
 
+.chapter-picker-heading > div:first-child {
+  min-width: 150px;
+  flex: 1 1 auto;
+}
+
 .chapter-picker-heading h3,
 .chapter-picker-heading p {
   margin: 0;
+  white-space: nowrap;
 }
 
 .chapter-picker-heading h3 {
@@ -5743,6 +5749,8 @@
 
 .chapter-picker-heading .library-search {
   width: 250px;
+  min-width: 180px;
+  flex: 0 1 250px;
 }
 
 .chapter-question-list {
