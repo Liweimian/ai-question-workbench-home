@@ -6052,7 +6052,7 @@
   min-width: 0;
   align-items: end;
   gap: 2px;
-  padding: 0 10px 0 154px;
+  padding: 0 10px 0 174px;
   overflow-x: auto;
   border-bottom: 1px solid var(--fx-line-strong);
   background: var(--common_bg1_color);
@@ -6076,9 +6076,9 @@
 }
 
 .add-workspace-brand select {
-  width: 96px;
+  width: 116px;
   height: 32px;
-  padding: 0 24px 0 10px;
+  padding: 0 28px 0 12px;
   border: 1px solid var(--fx-line-strong);
   border-radius: var(--fx-radius-control);
   color: var(--fx-text-primary);
