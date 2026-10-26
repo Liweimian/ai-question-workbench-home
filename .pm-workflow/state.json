@@ -12,8 +12,8 @@
       "name": "Demo 创作",
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
-      "completedAt": "2026-10-26T23:50:00+08:00",
-      "iterationCount": 90,
+      "completedAt": "2026-10-26T23:59:00+08:00",
+      "iterationCount": 91,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -124,7 +124,9 @@
         "Space quick start and insert menu route to the single AI assistant",
         "undo is blocked while AI content operations are pending",
         "chapter picker heading keeps horizontal layout beside flexible search",
-        "docked workbook detail removes empty secondary header"
+        "docked workbook detail removes empty secondary header",
+        "library resource details open as adjacent closable workspace tabs",
+        "library list state remains mounted while detail tabs are active"
       ]
     },
     "2": {
@@ -460,8 +462,13 @@
       "stage": 1,
       "hash": "8a19758",
       "message": "Stage 1: remove empty workbook detail header - iteration 90"
+    },
+    {
+      "stage": 1,
+      "hash": "102042c",
+      "message": "Stage 1: open library details in workspace tabs - iteration 91"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
-  "updatedAt": "2026-10-26T23:50:00+08:00"
+  "updatedAt": "2026-10-26T23:59:00+08:00"
 }
