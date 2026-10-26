@@ -2214,25 +2214,6 @@
   background: var(--fx-primary-selected);
 }
 
-.block-add-trigger-copy {
-  display: flex;
-  min-width: 0;
-  margin-left: 6px;
-  padding: 2px 8px;
-  align-items: center;
-  border: 0;
-  border-radius: var(--fx-radius-control);
-  background: transparent;
-  color: var(--fx-text-tertiary);
-  cursor: pointer;
-  font-size: 12px;
-  text-align: left;
-}
-
-.block-add-trigger-copy:hover {
-  background: var(--fx-primary-selected);
-}
-
 .block-command-menu {
   position: absolute;
   z-index: 70;
@@ -2485,65 +2466,6 @@
 
 .empty-title-input input::placeholder {
   color: var(--common_level5_base_color);
-}
-
-.editor-empty-heading span {
-  color: var(--fx-text-tertiary);
-  font-size: 11px;
-}
-
-.empty-workflow-guide {
-  display: flex;
-  width: 100%;
-  margin: 4px 0 0;
-  padding: 0;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  color: var(--fx-text-tertiary);
-  list-style: none;
-}
-
-.empty-workflow-guide li {
-  display: inline-flex;
-  position: relative;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.empty-workflow-guide li + li {
-  padding-left: 17px;
-}
-
-.empty-workflow-guide li + li::before {
-  content: '›';
-  position: absolute;
-  left: 0;
-  color: var(--common_level5_base_color);
-  font-size: 16px;
-}
-
-.empty-workflow-guide b {
-  display: inline-grid;
-  width: 20px;
-  height: 20px;
-  place-items: center;
-  border-radius: var(--aiq_radius_pill);
-  color: var(--fx-text-tertiary);
-  background: var(--common_bg_z1_color);
-  font-size: 10px;
-  font-weight: 600;
-}
-
-.empty-workflow-guide .is-current {
-  color: var(--fx-text-secondary);
-  font-weight: 550;
-}
-
-.empty-workflow-guide .is-current b {
-  color: var(--fx-primary);
-  background: var(--fx-primary-selected);
 }
 
 .editor-empty-content {
@@ -6069,10 +5991,6 @@
 
 .workspace-shell.is-split-source .editor-empty-heading {
   padding: 20px 42px 12px;
-}
-
-.workspace-shell.is-split-source .editor-empty-heading > span {
-  display: none;
 }
 
 .workspace-shell.is-split-source .editor-empty-content {

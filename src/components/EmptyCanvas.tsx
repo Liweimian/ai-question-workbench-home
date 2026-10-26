@@ -120,11 +120,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           className="empty-title-input"
           aria-label="题单标题"
         />
-        <ol className="empty-workflow-guide" aria-label="组题操作步骤">
-          <li className="is-current"><b>1</b><span>{props.sidePanelOpen ? '从左侧添加题目' : '点击「添加题目」'}</span></li>
-          <li><b>2</b><span>修改题稿名称</span></li>
-          <li><b>3</b><span>保存或布置</span></li>
-        </ol>
       </header>
 
       <div className="editor-empty-content">
