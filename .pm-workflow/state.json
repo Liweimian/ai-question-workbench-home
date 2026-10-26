@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-26T23:50:00+08:00",
-      "iterationCount": 89,
+      "iterationCount": 90,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -123,7 +123,8 @@
         "composition hub keeps four non-conversational source tools",
         "Space quick start and insert menu route to the single AI assistant",
         "undo is blocked while AI content operations are pending",
-        "chapter picker heading keeps horizontal layout beside flexible search"
+        "chapter picker heading keeps horizontal layout beside flexible search",
+        "docked workbook detail removes empty secondary header"
       ]
     },
     "2": {
@@ -454,6 +455,11 @@
       "stage": 1,
       "hash": "aa2ee68",
       "message": "Stage 1: fix chapter picker heading layout - iteration 89"
+    },
+    {
+      "stage": 1,
+      "hash": "8a19758",
+      "message": "Stage 1: remove empty workbook detail header - iteration 90"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
