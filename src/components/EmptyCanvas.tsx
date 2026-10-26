@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Bold, BookOpenCheck, ChevronDown, FileScan, FileText, Globe2, Heading2, Italic, School, Send, Sparkles, Strikethrough, Underline, WandSparkles } from 'lucide-react'
+import { Bold, BookOpenCheck, ChevronDown, FileScan, FileText, Heading2, Italic, School, Send, Sparkles, Strikethrough, Underline, WandSparkles } from 'lucide-react'
 import type { AddQuestionMode, LibraryInitialView, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
@@ -94,8 +94,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
 
   const insertUtility = (action: UtilityAction) => {
     if (action === 'image-search') return MetisMessage.info('图片搜题入口已打开（原型演示）')
-    if (action === 'web-search') return MetisMessage.info('联网搜题入口已打开（原型演示）')
-    const presets: Record<Exclude<UtilityAction, 'image-search' | 'web-search'>, string> = {
+    const presets: Record<Exclude<UtilityAction, 'image-search'>, string> = {
       'heading-2': '一、选择题',
       'heading-3': '（一）单项选择题',
       'heading-4': '基础题组',
@@ -296,7 +295,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                 {([
                   { action: 'image-search' as UtilityAction, label: '图片搜题', icon: FileScan },
                   { action: 'ai-recording' as const, label: 'AI 录题', icon: FileScan },
-                  { action: 'web-search' as UtilityAction, label: '联网搜题', icon: Globe2 },
                 ]).map(({ action, label, icon: Icon }) => (
                   <button type="button" key={action} onClick={() => action === 'ai-recording' ? props.onOpenAdd('upload') : insertUtility(action)}>
                     <Icon size={15} /><strong>{label}</strong>

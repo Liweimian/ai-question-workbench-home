@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
-import { BookOpen, BookOpenCheck, FileImage, FileSearch, FileText, GripVertical, Heading2, Heading3, Heading4, Image, ListChecks, Minus, Network, Plus, ScanSearch, School, Sparkles, Table2, WandSparkles } from 'lucide-react'
+import { BookOpen, BookOpenCheck, FileImage, FileSearch, FileText, GripVertical, Heading2, Heading3, Heading4, Image, ListChecks, Minus, Plus, ScanSearch, School, Sparkles, Table2, WandSparkles } from 'lucide-react'
 import type { AddQuestionMode, OpenAddOptions } from '../prototype/types'
 
-export type UtilityAction = 'image-search' | 'web-search' | 'heading-2' | 'heading-3' | 'heading-4' | 'table' | 'image' | 'note' | 'divider' | 'page-break'
+export type UtilityAction = 'image-search' | 'heading-2' | 'heading-3' | 'heading-4' | 'table' | 'image' | 'note' | 'divider' | 'page-break'
 
 interface BlockAddMenuProps {
   empty?: boolean
@@ -44,7 +44,6 @@ const libraryGroups = [
 const searchItems = [
   { id: 'image-search', title: '图片搜题', description: '上传或粘贴图片查找原题', icon: ScanSearch },
   { id: 'upload', title: 'AI 录题', description: '识别 PDF、Word 或图片中的题目', icon: FileSearch },
-  { id: 'web-search', title: '联网搜题', description: '从公开网络检索可用题目', icon: Network },
 ] as const
 
 const aiItems = [
@@ -78,7 +77,6 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
     setOpen(false)
     if (onInsertUtility) return onInsertUtility(action)
     if (action === 'image-search') MetisMessage.info('图片搜题入口已打开（原型演示）')
-    else if (action === 'web-search') MetisMessage.info('联网搜题入口已打开（原型演示）')
     else MetisMessage.success('已插入试卷结构块（原型演示）')
   }
 

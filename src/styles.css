@@ -1875,6 +1875,7 @@
 
 .editor-title-input,
 .editor-title-input input {
+  text-align: center !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
@@ -2467,6 +2468,7 @@
 .empty-title-input,
 .empty-title-input input {
   padding: 0 !important;
+  text-align: center !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
