@@ -5,11 +5,12 @@ import { CompositionHub } from '../components/CompositionHub'
 import { QuestionSortPanel } from '../components/QuestionSortPanel'
 import { DocumentCanvas } from '../components/DocumentCanvas'
 import { EmptyCanvas } from '../components/EmptyCanvas'
+import { MyResourcesPanel } from '../components/MyResourcesPanel'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
 import type { AddQuestionMode, SourceRecord } from '../prototype/types'
-import { BrainCircuit, FileText, House, PanelLeftClose, Sparkles, X } from 'lucide-react'
+import { BrainCircuit, FileText, FolderHeart, House, PanelLeftClose, Sparkles, X } from 'lucide-react'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
@@ -44,6 +45,8 @@ export function WorkbenchHomePage() {
   const [activeLibraryDetailKey, setActiveLibraryDetailKey] = useState<string | null>(null)
   const [assistantTabOpen, setAssistantTabOpen] = useState(false)
   const [assistantActive, setAssistantActive] = useState(false)
+  const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
+  const [myResourcesActive, setMyResourcesActive] = useState(false)
   const hasQuestions = workbench.document.questions.length > 0
   const activeLibraryDetail = libraryDetailTabs.find((tab) => tab.key === activeLibraryDetailKey) ?? null
 
@@ -61,6 +64,8 @@ export function WorkbenchHomePage() {
     previousDocumentId.current = workbench.document.id
     setAssistantTabOpen(false)
     setAssistantActive(false)
+    setMyResourcesTabOpen(false)
+    setMyResourcesActive(false)
   }, [workbench.document.id])
 
   useEffect(() => {
@@ -78,6 +83,7 @@ export function WorkbenchHomePage() {
   const openAssistant = (prompt?: string) => {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
+    setMyResourcesActive(false)
     if (prompt === undefined && workbench.assistantRun) {
       workbench.closeAdd()
       setAssistantTabOpen(true)
@@ -107,6 +113,7 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
+    setMyResourcesActive(false)
     if (mode !== 'menu') {
       setOpenAddTabs((current) => current.includes(mode) ? current : [...current, mode])
     }
@@ -117,6 +124,7 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
+    setMyResourcesActive(false)
     if (!workbench.isAddOpen || workbench.addMode !== mode) workbench.openAdd(mode)
   }
 
@@ -124,6 +132,7 @@ export function WorkbenchHomePage() {
     const key = `${libraryMode}:${record.id}`
     setSidePanelOpen(true)
     setAssistantActive(false)
+    setMyResourcesActive(false)
     setOpenAddTabs((current) => current.includes(libraryMode) ? current : [...current, libraryMode])
     setLibraryDetailTabs((current) => current.some((tab) => tab.key === key)
       ? current
@@ -140,6 +149,7 @@ export function WorkbenchHomePage() {
   const activateLibraryDetail = (tab: LibraryDetailTab) => {
     setSidePanelOpen(true)
     setAssistantActive(false)
+    setMyResourcesActive(false)
     setActiveLibraryDetailKey(tab.key)
     if (!workbench.isAddOpen || workbench.addMode !== tab.libraryMode) {
       workbench.openAdd(tab.libraryMode, { libraryView: tab.record.sourceType })
@@ -150,6 +160,7 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
+    setMyResourcesActive(false)
     workbench.closeAdd()
   }
 
@@ -169,6 +180,7 @@ export function WorkbenchHomePage() {
   const activateAssistantTab = () => {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
+    setMyResourcesActive(false)
     workbench.closeAdd()
     setAssistantActive(true)
   }
@@ -177,6 +189,20 @@ export function WorkbenchHomePage() {
     workbench.clearAssistantRun()
     setAssistantTabOpen(false)
     if (assistantActive) setAssistantActive(false)
+  }
+
+  const openMyResources = () => {
+    setSidePanelOpen(true)
+    setActiveLibraryDetailKey(null)
+    setAssistantActive(false)
+    workbench.closeAdd()
+    setMyResourcesTabOpen(true)
+    setMyResourcesActive(true)
+  }
+
+  const closeMyResourcesTab = () => {
+    setMyResourcesTabOpen(false)
+    setMyResourcesActive(false)
   }
 
   const closeAddTab = (mode: AddTabMode) => {
@@ -287,8 +313,8 @@ export function WorkbenchHomePage() {
                     role="tab"
                     aria-label="添加题目首页"
                     title="添加题目首页"
-                    aria-selected={!workbench.isAddOpen && !activeLibraryDetail && !assistantActive}
-                    className={`add-workspace-home${!workbench.isAddOpen && !activeLibraryDetail && !assistantActive ? ' is-active' : ''}`}
+                    aria-selected={!workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive}
+                    className={`add-workspace-home${!workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive ? ' is-active' : ''}`}
                     onClick={activateAddHome}
                   ><House size={17} /></button>
                   {openAddTabs.map((mode) => (
@@ -344,6 +370,20 @@ export function WorkbenchHomePage() {
                       </button>
                     </span>
                   ) : null}
+                  {myResourcesTabOpen ? (
+                    <span className={`add-workspace-tab is-my-resources${myResourcesActive ? ' is-active' : ''}`}>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={myResourcesActive}
+                        onClick={openMyResources}
+                        data-track="/click/aiQuestionHome/switchMyResourcesTab | 切换我的资源任务 | 无"
+                      ><FolderHeart size={14} /><span>我的资源</span></button>
+                      <button type="button" className="add-workspace-tab-close" aria-label="关闭我的资源" onClick={closeMyResourcesTab}>
+                        <X size={13} />
+                      </button>
+                    </span>
+                  ) : null}
                   <button
                     type="button"
                     className="add-workspace-collapse"
@@ -352,7 +392,9 @@ export function WorkbenchHomePage() {
                     onClick={collapseSidePanel}
                   ><PanelLeftClose size={17} /></button>
                 </nav>
-                {assistantActive && assistantTabOpen ? (
+                {myResourcesActive && myResourcesTabOpen ? (
+                  <MyResourcesPanel />
+                ) : assistantActive && assistantTabOpen ? (
                   <AiAssistantWorkspace
                     run={workbench.assistantRun}
                     prompt={workbench.composePrompt}
@@ -402,6 +444,7 @@ export function WorkbenchHomePage() {
                     composeError={workbench.composeError}
                     composeStatus={workbench.composeStatus}
                     onOpenAdd={openAdd}
+                    onOpenMyResources={openMyResources}
                     onOpenDocument={(documentId) => void workbench.openHistoryDocument(documentId)}
                     onReloadHistory={() => void workbench.reloadHistory()}
                     onComposePromptChange={workbench.setComposePrompt}

@@ -2,6 +2,7 @@ import {
   BookOpenCheck,
   BrainCircuit,
   FileScan,
+  FolderHeart,
   Library,
   School,
   Sparkles,
@@ -23,6 +24,7 @@ interface CompositionHubProps {
   composeError: string
   composeStatus: AsyncStatus
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
+  onOpenMyResources: () => void
   onOpenDocument: (documentId: string) => void
   onReloadHistory: () => void
   onComposePromptChange: (value: string) => void
@@ -112,6 +114,17 @@ export function CompositionHub(props: CompositionHubProps) {
                 <span className="composition-source-action">{action}</span>
               </button>
             ))}
+            <button
+              type="button"
+              className="composition-source-card"
+              disabled={props.contentBusy}
+              onClick={props.onOpenMyResources}
+              data-track="/click/aiQuestionHome/openMyResources | 从添加区打开我的资源 | 无"
+            >
+              <span className="composition-source-icon is-my-resources"><FolderHeart size={19} /></span>
+              <div><strong>我的资源</strong><span>查看自己创建、上传和收藏的资源</span></div>
+              <span className="composition-source-action">去查看</span>
+            </button>
           </div>
         </section>
 
