@@ -181,6 +181,15 @@ export function WorkbenchHomePage() {
     void workbench.composeFromBank()
   }
 
+  const openAssistantWorkspace = () => {
+    setSidePanelOpen(true)
+    setActiveLibraryDetailKey(null)
+    setMyResourcesActive(false)
+    workbench.closeAdd()
+    setAssistantTabOpen(true)
+    setAssistantActive(true)
+  }
+
   const activateAssistantTab = () => {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
@@ -499,6 +508,7 @@ export function WorkbenchHomePage() {
                     historyDisabled={workbench.isContentBusy || workbench.documentSyncState === 'dirty' || workbench.documentSyncState === 'saving'}
                     onOpenAdd={openAdd}
                     onOpenMyResources={() => openMyResources('全部')}
+                    onOpenAssistant={openAssistantWorkspace}
                     onComposePromptChange={workbench.setComposePrompt}
                     onCompose={submitAssistant}
                     onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
