@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Bold, BookOpenCheck, ChevronDown, FileScan, Heading2, Italic, School, Send, Sparkles, Strikethrough, Underline, WandSparkles } from 'lucide-react'
-import type { AddQuestionMode, LibraryInitialView, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
+import { Bold, ChevronDown, Heading2, Italic, Send, Sparkles, Strikethrough, Underline } from 'lucide-react'
+import type { AddQuestionMode, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
 
@@ -14,42 +14,8 @@ interface EmptyCanvasProps {
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
 }
 
-const libraryQuickStarts: Array<{
-  id: string
-  label: string
-  mode: 'resource' | 'school'
-  icon: typeof BookOpenCheck
-  items: Array<{ label: string; view: LibraryInitialView }>
-}> = [
-  {
-    id: 'fly',
-    label: '飞象题库',
-    mode: 'resource',
-    icon: BookOpenCheck,
-    items: [
-      { label: '章节知识点', view: 'chapter' },
-      { label: '练习册', view: 'workbook' },
-      { label: '试卷', view: 'paper' },
-      { label: '专题', view: 'special' },
-      { label: '同步练习', view: 'sync' },
-    ],
-  },
-  {
-    id: 'school',
-    label: '校本题库',
-    mode: 'school',
-    icon: School,
-    items: [
-      { label: '章节知识点', view: 'chapter' },
-      { label: '练习册', view: 'workbook' },
-      { label: '试卷', view: 'paper' },
-    ],
-  },
-]
-
 export function EmptyCanvas(props: EmptyCanvasProps) {
   const [blockIds, setBlockIds] = useState(['initial'])
-  const [hasBlockContent, setHasBlockContent] = useState(Boolean(props.document.intro?.trim()))
   const [addMenuRequests, setAddMenuRequests] = useState<Record<string, number>>({})
   const [selectionToolbar, setSelectionToolbar] = useState<{ x: number; y: number; text: string } | null>(null)
   const [aiEditOpen, setAiEditOpen] = useState(false)
@@ -62,7 +28,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   useEffect(() => {
     blockIdsRef.current = ['initial']
     setBlockIds(['initial'])
-    setHasBlockContent(Boolean(props.document.intro?.trim()))
     setAddMenuRequests({})
     window.requestAnimationFrame(() => {
       const initialBlock = blockRefs.current.get('initial')
@@ -77,7 +42,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       .map((blockId) => blockRefs.current.get(blockId)?.textContent?.trim() ?? '')
       .filter(Boolean)
       .join('\n')
-    setHasBlockContent(Boolean(intro))
     props.onIntroChange(intro)
   }
 
@@ -254,60 +218,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             </div>
           </div>
         ) : null}
-
-        {!hasBlockContent ? <section className="empty-quick-start" aria-label="快速开始">
-          <div className="quick-start-heading"><strong>快速开始</strong><span>从具体能力直接开始</span></div>
-          <div className="quick-start-groups">
-            <div className="quick-start-group quick-start-group--library">
-              <span>题库选题</span>
-              <div className="quick-library-list">
-                {libraryQuickStarts.map(({ id, label, mode, icon: Icon, items }) => (
-                  <section className={`quick-library-row quick-library-row--${id}`} key={id}>
-                    <div className="quick-library-name"><Icon size={15} /><strong>{label}</strong></div>
-                    <div className="quick-start-links">
-                      {items.map((item) => (
-                        <button
-                          type="button"
-                          key={item.view}
-                          onClick={() => props.onOpenAdd(mode, { libraryView: item.view })}
-                          data-track={`/click/aiQuestionHome/quick${id}${item.view} | 快速开始${label}${item.label} | 无`}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            </div>
-
-            <div className="quick-start-group quick-start-group--import">
-              <span>搜题与导入</span>
-              <div className="quick-action-list">
-                {([
-                  { action: 'image-search' as UtilityAction, label: '图片搜题', icon: FileScan },
-                  { action: 'ai-recording' as const, label: 'AI 录题', icon: FileScan },
-                ]).map(({ action, label, icon: Icon }) => (
-                  <button type="button" key={action} onClick={() => action === 'ai-recording' ? props.onOpenAdd('upload') : insertUtility(action)}>
-                    <Icon size={15} /><strong>{label}</strong>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="quick-start-group quick-start-group--ai">
-              <span>飞象 AI</span>
-              <div className="quick-ai-list">
-                <button type="button" onClick={() => props.onOpenAssistant()}>
-                  <Sparkles size={15} /><strong>AI 助手</strong>
-                </button>
-                <button type="button" onClick={() => props.onOpenAdd('create')}>
-                  <WandSparkles size={15} /><strong>AI 出题工具</strong>
-                </button>
-              </div>
-            </div>
-          </div>
-        </section> : null}
       </div>
     </article>
   )
