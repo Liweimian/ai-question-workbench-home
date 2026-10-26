@@ -123,7 +123,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
         aria-label="添加题目"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        {!docked || libraryDetailOpen ? (
+        {!docked ? (
           <header className="add-question-header">
             <div className="add-question-title">
               <div className="add-question-heading-copy">
