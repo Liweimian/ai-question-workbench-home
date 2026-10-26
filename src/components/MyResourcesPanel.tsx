@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { BookOpenCheck, ChevronDown, ChevronRight, Download, FileQuestion, FileText, Folder, FolderPlus, ListChecks, MoreHorizontal, ScanLine, Search, Star, Upload } from 'lucide-react'
+import { BookOpenCheck, ChevronDown, ChevronRight, Download, FileQuestion, FileText, Folder, FolderPlus, ListChecks, MoreHorizontal, Search, Star, Upload } from 'lucide-react'
 
 type SpaceTab = 'created' | 'favorites'
 type ResourceKind = '全部' | '试卷' | '题单' | '题目' | '文件' | '练习册'
@@ -43,9 +43,6 @@ export function MyResourcesPanel() {
 
   return <section className="my-resources-page" aria-label="我的资源">
     <aside className="resource-workbench" aria-label="资源工作台">
-      <button type="button" className="resource-recording-entry" onClick={() => MetisMessage.info('已进入 AI 智能录题演示')}>
-        <span><ScanLine size={20} /></span><div><strong>AI 智能录题</strong><small>上传文档，自动解析题目</small></div><ChevronRight size={16} />
-      </button>
       <div className="resource-space-tabs" role="tablist" aria-label="资源空间">
         <button type="button" role="tab" aria-selected={space === 'created'} onClick={() => switchSpace('created')}>我的创建 <span>{createdResources.length}</span></button>
         <button type="button" role="tab" aria-selected={space === 'favorites'} onClick={() => switchSpace('favorites')}>我的收藏 <span>{favoriteResources.length}</span></button>

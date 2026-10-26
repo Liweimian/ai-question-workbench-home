@@ -1131,12 +1131,7 @@
 /* 我的资源：复用旧飞象题库的资源工作台结构 */
 .my-resources-page { display: grid; grid-template-columns: 248px minmax(0, 1fr); }
 .resource-workbench { min-width: 0; padding: 16px 12px; border-right: 1px solid var(--fx-line-subtle); background: var(--fx-surface-muted); }
-.resource-recording-entry { display: grid; width: 100%; min-height: 64px; padding: 10px; align-items: center; grid-template-columns: 36px minmax(0, 1fr) 16px; gap: 10px; border: 1px solid var(--fx-line-subtle); border-radius: var(--fx-radius-card); color: var(--fx-text-primary); background: var(--common_fg_color); cursor: pointer; text-align: left; }
-.resource-recording-entry > span, .resource-type-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--fx-radius-control); color: var(--fx-primary); background: var(--fx-primary-selected); }
-.resource-recording-entry div { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
-.resource-recording-entry strong { font-size: 13px; }
-.resource-recording-entry small { overflow: hidden; color: var(--fx-text-tertiary); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-.resource-recording-entry:hover { border-color: var(--fx-primary); }
+.resource-type-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--fx-radius-control); color: var(--fx-primary); background: var(--fx-primary-selected); }
 .resource-space-tabs { display: grid; margin: 16px 0 14px; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--fx-line-subtle); }
 .resource-space-tabs button { position: relative; height: 38px; border: 0; color: var(--fx-text-secondary); background: transparent; cursor: pointer; font-size: 13px; }
 .resource-space-tabs button span { margin-left: 4px; color: var(--fx-text-tertiary); font-size: 11px; }
