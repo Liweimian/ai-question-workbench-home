@@ -241,7 +241,6 @@ export function WorkbenchHomePage() {
       <main className="fx-content workbench-page">
         <div className="fx-zoom-area workbench-zoom-area">
           <WorkspaceHeader
-            documentId={workbench.document.id}
             documentTitle={workbench.document.title}
             questionCount={workbench.document.questions.length}
             canSave={workbench.document.questions.length > 0 || Boolean(workbench.document.intro?.trim()) || !['未命名组题', '未命名题单'].includes(workbench.document.title.trim())}
@@ -250,8 +249,7 @@ export function WorkbenchHomePage() {
             documentStatus={workbench.documentStatus}
             syncState={workbench.documentSyncState}
             assignmentOutdated={workbench.assignmentOutdated}
-            histories={workbench.historyDocuments}
-            historyStatus={workbench.historyStatus}
+            hasPersistedDraft={workbench.historyDocuments.some((item) => item.id === workbench.document.id)}
             onUndo={() => {
               setAssistantTabOpen(false)
               setAssistantActive(false)
@@ -266,9 +264,6 @@ export function WorkbenchHomePage() {
             }}
             onSave={() => { void workbench.saveDocument() }}
             onAssign={() => { void workbench.assignDocument() }}
-            onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
-            onReloadHistory={() => { void workbench.reloadHistory() }}
-            onOpenAllDocuments={() => openMyResources('题单')}
             sidePanelOpen={sidePanelOpen}
             onSidePanelOpen={() => setSidePanelOpen(true)}
           />
@@ -465,11 +460,17 @@ export function WorkbenchHomePage() {
                     composePrompt={workbench.composePrompt}
                     composeError={workbench.composeError}
                     composeStatus={workbench.composeStatus}
+                    currentDocumentId={workbench.document.id}
+                    histories={workbench.historyDocuments}
+                    historyStatus={workbench.historyStatus}
+                    recentDisabled={workbench.isContentBusy || workbench.documentSyncState === 'dirty' || workbench.documentSyncState === 'saving'}
                     onOpenAdd={openAdd}
                     onOpenMyResources={() => openMyResources('全部')}
+                    onOpenRecentDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
+                    onReloadHistory={() => { void workbench.reloadHistory() }}
+                    onOpenAllDocuments={() => openMyResources('题单')}
                     onComposePromptChange={workbench.setComposePrompt}
                     onCompose={submitAssistant}
-                    onCollapse={collapseSidePanel}
                   />
                 )}
               </div>

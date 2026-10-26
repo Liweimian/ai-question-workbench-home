@@ -1,8 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
 import {
-  ChevronRight,
-  Clock3,
   FileDown,
   FilePlus2,
   LoaderCircle,
@@ -13,10 +11,9 @@ import {
   Sparkles,
   Undo2,
 } from 'lucide-react'
-import type { AsyncStatus, DocumentStatus, DocumentSyncState, HistoryDocumentSummary } from '../prototype/types'
+import type { DocumentStatus, DocumentSyncState } from '../prototype/types'
 
 interface WorkspaceHeaderProps {
-  documentId: string
   documentTitle: string
   questionCount: number
   canSave: boolean
@@ -25,21 +22,16 @@ interface WorkspaceHeaderProps {
   documentStatus: DocumentStatus
   syncState: DocumentSyncState
   assignmentOutdated: boolean
-  histories: HistoryDocumentSummary[]
-  historyStatus: AsyncStatus
+  hasPersistedDraft: boolean
   onUndo: () => void
   onCreateNew: () => void
   onSave: () => void
   onAssign: () => void
-  onOpenDocument: (documentId: string) => void
-  onReloadHistory: () => void
-  onOpenAllDocuments: () => void
   sidePanelOpen: boolean
   onSidePanelOpen: () => void
 }
 
 export function WorkspaceHeader({
-  documentId,
   documentTitle,
   questionCount,
   canSave,
@@ -48,31 +40,19 @@ export function WorkspaceHeader({
   documentStatus,
   syncState,
   assignmentOutdated,
-  histories,
-  historyStatus,
+  hasPersistedDraft,
   onUndo,
   onCreateNew,
   onSave,
   onAssign,
-  onOpenDocument,
-  onReloadHistory,
-  onOpenAllDocuments,
   sidePanelOpen,
   onSidePanelOpen,
 }: WorkspaceHeaderProps) {
   const hasQuestions = questionCount > 0
-  const [recentOpen, setRecentOpen] = useState(false)
   const [assignOpen, setAssignOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
-  const recentRef = useRef<HTMLDivElement>(null)
   const assignRef = useRef<HTMLDivElement>(null)
   const moreRef = useRef<HTMLDivElement>(null)
-
-  const recentDocuments = useMemo(
-    () => histories.filter((item) => item.id !== documentId).slice(0, 5),
-    [documentId, histories],
-  )
-  const hasPersistedDraft = histories.some((item) => item.id === documentId)
 
   const syncLabel = syncState === 'saving'
     ? '正在保存…'
@@ -91,16 +71,14 @@ export function WorkspaceHeader({
                 : '尚未保存'
 
   useEffect(() => {
-    if (!recentOpen && !assignOpen && !moreOpen) return
+    if (!assignOpen && !moreOpen) return
     const closeOnOutside = (event: MouseEvent) => {
       const target = event.target as Node
-      if (!recentRef.current?.contains(target)) setRecentOpen(false)
       if (!assignRef.current?.contains(target)) setAssignOpen(false)
       if (!moreRef.current?.contains(target)) setMoreOpen(false)
     }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
-      setRecentOpen(false)
       setAssignOpen(false)
       setMoreOpen(false)
     }
@@ -110,7 +88,7 @@ export function WorkspaceHeader({
       document.removeEventListener('mousedown', closeOnOutside)
       document.removeEventListener('keydown', closeOnEscape)
     }
-  }, [assignOpen, moreOpen, recentOpen])
+  }, [assignOpen, moreOpen])
 
   const exportDocument = () => {
     if (!hasQuestions) {
@@ -139,49 +117,6 @@ export function WorkspaceHeader({
             data-track="/click/aiQuestionHome/openCompositionHub | 打开添加题目工作区 | 无"
           >添加题目</MetisButton>
         ) : null}
-        <div className="header-recent" ref={recentRef}>
-          <MetisButton
-            type="borderless"
-            icon={<Clock3 size={17} />}
-            aria-expanded={recentOpen}
-            onClick={() => {
-              setRecentOpen((open) => !open)
-              setAssignOpen(false)
-              setMoreOpen(false)
-            }}
-            data-track="/click/aiQuestionHome/recentDocuments | 打开最近题单 | 无"
-          >最近题单</MetisButton>
-          {recentOpen ? (
-            <div className="header-recent-menu" role="dialog" aria-label="最近题单">
-              <div className="header-recent-title"><strong>最近题单</strong><span>自动保存的题稿也会出现在这里</span></div>
-              <div className="header-recent-list">
-                <button type="button" className="is-current" disabled>
-                  <span><strong>{documentTitle?.trim() || '未命名组题'}</strong><small>{questionCount} 道题 · {syncLabel}</small></span>
-                  <em>正在编辑</em>
-                </button>
-                {historyStatus === 'loading' ? (
-                  <div className="header-recent-state"><LoaderCircle size={15} />正在加载最近题单…</div>
-                ) : historyStatus === 'error' ? (
-                  <div className="header-recent-state is-error"><span>最近题单加载失败</span><button type="button" onClick={onReloadHistory}>重新加载</button></div>
-                ) : recentDocuments.length ? recentDocuments.map((item) => (
-                  <button
-                    type="button"
-                    key={item.id}
-                    disabled={contentBusy || syncState === 'saving' || syncState === 'dirty'}
-                    onClick={() => {
-                      onOpenDocument(item.id)
-                      setRecentOpen(false)
-                    }}
-                  >
-                    <span><strong>{item.title}</strong><small>{item.questionCount} 道题 · {item.status} · {item.updatedAt}</small></span>
-                    <ChevronRight size={15} />
-                  </button>
-                )) : <div className="header-recent-state">暂无最近题单</div>}
-              </div>
-              <button type="button" className="header-recent-all" disabled={contentBusy || syncState === 'saving' || syncState === 'dirty'} onClick={() => { onOpenAllDocuments(); setRecentOpen(false) }}>查看全部题单<ChevronRight size={14} /></button>
-            </div>
-          ) : null}
-        </div>
         <MetisButton
           type="borderless"
           icon={<FilePlus2 size={17} />}
@@ -204,7 +139,6 @@ export function WorkspaceHeader({
             aria-expanded={assignOpen}
             onClick={() => {
               setAssignOpen((open) => !open)
-              setRecentOpen(false)
               setMoreOpen(false)
             }}
             data-track="/click/aiQuestionHome/assign | 布置当前内容 | 无"
@@ -225,7 +159,6 @@ export function WorkspaceHeader({
             aria-expanded={moreOpen}
             onClick={() => {
               setMoreOpen((open) => !open)
-              setRecentOpen(false)
               setAssignOpen(false)
             }}
           />

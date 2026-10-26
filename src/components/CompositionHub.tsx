@@ -1,15 +1,19 @@
 import {
   BookOpenCheck,
   BrainCircuit,
+  ChevronRight,
+  Clock3,
   FileScan,
   FolderHeart,
   Library,
+  LoaderCircle,
   School,
   Sparkles,
 } from 'lucide-react'
 import type {
   AddQuestionMode,
   AsyncStatus,
+  HistoryDocumentSummary,
   OpenAddOptions,
 } from '../prototype/types'
 import { AiComposer } from './AiComposer'
@@ -19,11 +23,17 @@ interface CompositionHubProps {
   composePrompt: string
   composeError: string
   composeStatus: AsyncStatus
+  currentDocumentId: string
+  histories: HistoryDocumentSummary[]
+  historyStatus: AsyncStatus
+  recentDisabled: boolean
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onOpenMyResources: () => void
+  onOpenRecentDocument: (documentId: string) => void
+  onReloadHistory: () => void
+  onOpenAllDocuments: () => void
   onComposePromptChange: (value: string) => void
   onCompose: () => void
-  onCollapse: () => void
 }
 
 const sourceEntries = [
@@ -31,28 +41,24 @@ const sourceEntries = [
     mode: 'resource' as const,
     title: '飞象题库',
     description: '从平台题库按教材、知识点或题型选题',
-    action: '去选题',
     icon: Library,
   },
   {
     mode: 'school' as const,
     title: '校本题库',
     description: '从学校和个人沉淀的资源中选题',
-    action: '去选题',
     icon: School,
   },
   {
     mode: 'upload' as const,
     title: 'AI 智能录题',
     description: '上传 Word、PDF 或图片，自动识别并拆分题目',
-    action: '去上传',
     icon: FileScan,
   },
   {
     mode: 'create' as const,
     title: 'AI 出题工具',
     description: '设置知识点、难度和题量，生成原创题',
-    action: '去出题',
     icon: Sparkles,
   },
 ]
@@ -86,6 +92,10 @@ const aiShortcuts = [
 ]
 
 export function CompositionHub(props: CompositionHubProps) {
+  const recentDocuments = props.histories
+    .filter((item) => item.id !== props.currentDocumentId)
+    .slice(0, 3)
+
   return (
     <aside className="composition-hub" data-sec="2" aria-label="添加题目工作区">
       <div className="composition-hub-scroll">
@@ -94,7 +104,7 @@ export function CompositionHub(props: CompositionHubProps) {
             <div><BookOpenCheck size={17} /><strong id="source-heading">先添加题目</strong></div>
           </div>
           <div className="composition-source-list">
-            {sourceEntries.map(({ mode, title, description, action, icon: Icon }) => (
+            {sourceEntries.map(({ mode, title, description, icon: Icon }) => (
               <button
                 type="button"
                 className="composition-source-card"
@@ -105,7 +115,7 @@ export function CompositionHub(props: CompositionHubProps) {
               >
                 <span className={`composition-source-icon is-${mode}`}><Icon size={19} /></span>
                 <div><strong>{title}</strong><span>{description}</span></div>
-                <span className="composition-source-action">{action}</span>
+                <ChevronRight className="composition-source-action" size={15} aria-hidden="true" />
               </button>
             ))}
             <button
@@ -117,12 +127,53 @@ export function CompositionHub(props: CompositionHubProps) {
             >
               <span className="composition-source-icon is-my-resources"><FolderHeart size={19} /></span>
               <div><strong>我的资源</strong><span>查看自己创建、上传和收藏的资源</span></div>
-              <span className="composition-source-action">去查看</span>
+              <ChevronRight className="composition-source-action" size={15} aria-hidden="true" />
             </button>
           </div>
         </section>
 
-        <section className="composition-hub-composer" aria-labelledby="assistant-heading">
+        <section className="composition-recent-section" aria-labelledby="recent-heading">
+          <div className="composition-section-heading">
+            <div><Clock3 size={17} /><strong id="recent-heading">最近编辑</strong></div>
+            <button
+              type="button"
+              disabled={props.recentDisabled}
+              onClick={props.onOpenAllDocuments}
+              data-track="/click/aiQuestionHome/openAllDocuments | 查看全部最近编辑题单 | 无"
+            >查看全部<ChevronRight size={13} /></button>
+          </div>
+          <div className="composition-recent-list">
+            {props.historyStatus === 'loading' ? (
+              <div className="composition-recent-state"><LoaderCircle size={15} />正在加载最近题单…</div>
+            ) : props.historyStatus === 'error' ? (
+              <div className="composition-recent-state is-error">
+                <span>最近题单加载失败</span>
+                <button
+                  type="button"
+                  onClick={props.onReloadHistory}
+                >重新加载</button>
+              </div>
+            ) : recentDocuments.length ? recentDocuments.map((item) => (
+              <button
+                type="button"
+                key={item.id}
+                disabled={props.recentDisabled}
+                onClick={() => props.onOpenRecentDocument(item.id)}
+                data-track="/click/aiQuestionHome/openRecentDocument | 从添加首页打开最近题单 | documentId#STRING"
+              >
+                <span>
+                  <strong>{item.title}</strong>
+                  <small>{item.questionCount} 道题 · {item.status} · {item.updatedAt}</small>
+                </span>
+                <ChevronRight size={15} aria-hidden="true" />
+              </button>
+            )) : <div className="composition-recent-state">暂无最近编辑的题单</div>}
+          </div>
+        </section>
+      </div>
+
+      <section className="composition-hub-composer" aria-labelledby="assistant-heading">
+        <div className="composition-hub-composer-inner">
           <div className="composition-chat-heading">
             <div><BrainCircuit size={16} /><strong id="assistant-heading">或者，直接告诉 AI 你想要什么</strong></div>
             <span>AI 可以帮你找题、组题或组卷</span>
@@ -156,8 +207,8 @@ export function CompositionHub(props: CompositionHubProps) {
             onChange={props.onComposePromptChange}
             onSubmit={props.onCompose}
           />
-        </section>
-      </div>
+        </div>
+      </section>
     </aside>
   )
 }
