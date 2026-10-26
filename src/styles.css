@@ -88,6 +88,38 @@
   transition: left 180ms ease;
 }
 
+.workspace-header.is-split {
+  right: auto;
+  z-index: 21;
+  width: 620px;
+  padding-right: 10px;
+  padding-left: 14px;
+  box-sizing: border-box;
+}
+
+.workspace-header.is-split .header-workbench-brand {
+  gap: 8px;
+}
+
+.workspace-header.is-split .header-workbench-brand > div {
+  gap: 8px;
+}
+
+.workspace-header.is-split .header-current-document {
+  max-width: 92px;
+  margin-left: 2px;
+  padding-left: 10px;
+}
+
+.workspace-header.is-split .header-actions {
+  gap: 2px;
+}
+
+.workspace-header.is-split .header-actions .metis-button {
+  padding-right: 8px !important;
+  padding-left: 8px !important;
+}
+
 .workbench-page.is-space-collapsed .workspace-header {
   left: var(--workspace-space-collapsed-width);
 }

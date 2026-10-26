@@ -50,7 +50,7 @@ export function WorkspaceHeader({
   }
 
   return (
-    <header className="fx-page-header workspace-header" data-sec="1">
+    <header className={`fx-page-header workspace-header${sidePanelOpen ? ' is-split' : ''}`} data-sec="1">
       <div className="header-workbench-brand" aria-label="飞象组题工作台">
         <span className="header-workbench-mark"><Sparkles size={17} /></span>
         <div><strong>飞象组题</strong><small>本地草稿</small></div>
@@ -67,6 +67,14 @@ export function WorkspaceHeader({
             添加题目
           </MetisButton>
         ) : null}
+        <MetisButton
+          type="borderless"
+          icon={<FilePlus2 size={17} />}
+          onClick={onCreateNew}
+          data-track="/click/aiQuestionHome/createBlank | 新建空白题单 | 无"
+        >
+          新建
+        </MetisButton>
         <MetisButton
           type="borderless"
           icon={<Save size={17} />}
@@ -95,9 +103,6 @@ export function WorkspaceHeader({
           />
           {moreOpen ? (
             <div className="header-more-menu" role="menu" aria-label="更多题单操作">
-              <button type="button" role="menuitem" onClick={() => { onCreateNew(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/createBlank | 新建空白题单 | 无">
-                <FilePlus2 size={16} /><span>新建空白组题</span>
-              </button>
               <button type="button" role="menuitem" disabled={!canUndo} onClick={() => { onUndo(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/undo | 撤销上一步 | 无">
                 <Undo2 size={16} /><span>撤销</span>
               </button>
