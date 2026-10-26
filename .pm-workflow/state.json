@@ -12,8 +12,8 @@
       "name": "Demo 创作",
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
-      "completedAt": "2026-10-26T23:30:00+08:00",
-      "iterationCount": 79,
+      "completedAt": "2026-10-26T23:50:00+08:00",
+      "iterationCount": 88,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -118,7 +118,11 @@
         "browser compact single-row library filters and responsive resource grid",
         "browser workbook detail return control regression",
         "browser 1280/1440/1600/1920 library layout inspection",
-        "production preview serves dist/client with HTTP 200"
+        "production preview serves dist/client with HTTP 200",
+        "AI assistant five shortcut prompts prefill without auto-submit",
+        "composition hub keeps four non-conversational source tools",
+        "Space quick start and insert menu route to the single AI assistant",
+        "undo is blocked while AI content operations are pending"
       ]
     },
     "2": {
@@ -439,8 +443,13 @@
       "stage": 1,
       "hash": "7f7a009",
       "message": "Stage 1: Demo 创作完成 - 迭代 79"
+    },
+    {
+      "stage": 1,
+      "hash": "3850843",
+      "message": "Stage 1: unify AI assistant shortcuts - iteration 88"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
-  "updatedAt": "2026-10-26T23:30:00+08:00"
+  "updatedAt": "2026-10-26T23:50:00+08:00"
 }
