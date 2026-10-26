@@ -35,13 +35,6 @@ interface CompositionHubProps {
 
 const sourceEntries = [
   {
-    mode: 'upload' as const,
-    title: '上传文件或图片',
-    description: '直接拖入 Word、PDF 或图片，AI 自动拆题',
-    action: '导入',
-    icon: FileScan,
-  },
-  {
     mode: 'resource' as const,
     title: '飞象题库',
     description: '按知识点、题型和难度查找平台题目',
@@ -54,6 +47,13 @@ const sourceEntries = [
     description: '从学校和个人沉淀的资料中继续选题',
     action: '打开',
     icon: School,
+  },
+  {
+    mode: 'upload' as const,
+    title: '上传文件或图片',
+    description: '直接拖入 Word、PDF 或图片，AI 自动拆题',
+    action: '导入',
+    icon: FileScan,
   },
 ]
 

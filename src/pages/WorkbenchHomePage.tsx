@@ -8,7 +8,7 @@ import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
 import type { AddQuestionMode } from '../prototype/types'
-import { PanelRightClose, X } from 'lucide-react'
+import { House, PanelRightClose, X } from 'lucide-react'
 
 const addTabLabels: Record<Exclude<AddQuestionMode, 'menu'>, string> = {
   resource: '飞象题库',
@@ -155,10 +155,12 @@ export function WorkbenchHomePage() {
                   <button
                     type="button"
                     role="tab"
+                    aria-label="添加题目首页"
+                    title="添加题目首页"
                     aria-selected={!workbench.isAddOpen}
-                    className={!workbench.isAddOpen ? 'is-active' : ''}
+                    className={`add-workspace-home${!workbench.isAddOpen ? ' is-active' : ''}`}
                     onClick={activateAddHome}
-                  >添加题目</button>
+                  ><House size={17} /></button>
                   {openAddTabs.map((mode) => (
                     <span className={`add-workspace-tab${workbench.isAddOpen && workbench.addMode === mode ? ' is-active' : ''}`} key={mode}>
                       <button
