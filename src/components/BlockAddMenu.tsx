@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
-import { BookOpen, BookOpenCheck, FileImage, FileSearch, FileText, GraduationCap, GripVertical, Heading2, Heading3, Heading4, Image, ListChecks, Minus, Network, Plus, ScanSearch, School, Sparkles, Table2, WandSparkles } from 'lucide-react'
+import { BookOpen, BookOpenCheck, FileImage, FileSearch, FileText, GripVertical, Heading2, Heading3, Heading4, Image, ListChecks, Minus, Network, Plus, ScanSearch, School, Sparkles, Table2, WandSparkles } from 'lucide-react'
 import type { AddQuestionMode, OpenAddOptions } from '../prototype/types'
 
 export type UtilityAction = 'image-search' | 'web-search' | 'heading-2' | 'heading-3' | 'heading-4' | 'table' | 'image' | 'note' | 'divider' | 'page-break'
@@ -10,7 +10,7 @@ interface BlockAddMenuProps {
   openRequest?: number
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onInsertUtility?: (action: UtilityAction) => void
-  onOpenAssistant?: (action?: 'compose' | 'create') => void
+  onOpenAssistant: () => void
 }
 
 const optionGroups = [
@@ -48,9 +48,8 @@ const searchItems = [
 ] as const
 
 const aiItems = [
-  { id: 'compose', title: 'AI 组题', description: '从题库智能挑题并组合', icon: Sparkles },
-  { id: 'create', title: 'AI 出题', description: '按要求生成原创题目', icon: WandSparkles },
-  { id: 'personalized', title: '个性化练习', description: '结合材料与学情生成练习', icon: GraduationCap },
+  { id: 'assistant', title: 'AI 助手', description: '组题、组卷、找题或找卷', icon: Sparkles },
+  { id: 'create', title: 'AI 出题工具', description: '按条件生成原创题目', icon: WandSparkles },
 ] as const
 
 export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInsertUtility, onOpenAssistant }: BlockAddMenuProps) {
@@ -63,7 +62,7 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
     const handleKeyboard = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null
       const isInteractive = Boolean(target?.closest('input, textarea, button, a, select, [contenteditable="true"]'))
-      const hasBlockingLayer = Boolean(document.querySelector('[role="dialog"][aria-modal="true"], .inline-ai-dialog'))
+      const hasBlockingLayer = Boolean(document.querySelector('[role="dialog"][aria-modal="true"]'))
       const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
       if (event.key === 'Escape') setOpen(false)
       if (event.key === '/' && !event.isComposing && !hasModifier && !event.repeat && !isInteractive && !hasBlockingLayer) {
@@ -123,9 +122,8 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
               <h4>飞象 AI</h4>
               {aiItems.map(({ id, title, icon: Icon }) => <button type="button" role="menuitem" className="is-ai" key={id} onClick={() => {
                 setOpen(false)
-                if (id === 'personalized') onOpenAdd('personalized')
-                else if (onOpenAssistant) onOpenAssistant(id)
-                else onOpenAdd(id)
+                if (id === 'create') onOpenAdd('create')
+                else onOpenAssistant()
               }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong></span></button>)}
             </section>
             {renderFlatGroup(optionGroups[0])}

@@ -10,23 +10,22 @@ import { useWorkbench } from '../hooks/useWorkbench'
 import type { AddQuestionMode } from '../prototype/types'
 import { House, PanelRightClose, X } from 'lucide-react'
 
-const addTabLabels: Record<Exclude<AddQuestionMode, 'menu'>, string> = {
+type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
+
+const addTabLabels: Record<AddTabMode, string> = {
   resource: '飞象题库',
   school: '校本题库',
   upload: '上传录题',
-  compose: 'AI 组题',
   create: 'AI 出题',
-  personalized: '个性化练习',
   manual: '手工录入',
 }
 
 export function WorkbenchHomePage() {
   const workbench = useWorkbench()
   const previousQuestionCount = useRef(workbench.document.questions.length)
-  const [quickAiOpen, setQuickAiOpen] = useState(false)
   const [sortCollapsed, setSortCollapsed] = useState(false)
   const [sidePanelOpen, setSidePanelOpen] = useState(true)
-  const [openAddTabs, setOpenAddTabs] = useState<Array<Exclude<AddQuestionMode, 'menu'>>>([])
+  const [openAddTabs, setOpenAddTabs] = useState<AddTabMode[]>([])
   const hasQuestions = workbench.document.questions.length > 0
 
   useEffect(() => {
@@ -38,20 +37,32 @@ export function WorkbenchHomePage() {
     previousQuestionCount.current = workbench.document.questions.length
   }, [workbench.document.questions.length, workbench.selectedQuestionId])
 
-  useEffect(() => {
-    if (hasQuestions) setQuickAiOpen(false)
-  }, [hasQuestions])
-
   const questionNumber = workbench.selectedQuestion
     ? workbench.document.questions.findIndex((question) => question.id === workbench.selectedQuestion?.id) + 1
     : 0
+
+  const openAssistant = (prompt?: string) => {
+    setSidePanelOpen(true)
+    workbench.closeAdd()
+    if (prompt !== undefined) workbench.setComposePrompt(prompt)
+    window.requestAnimationFrame(() => {
+      document.querySelector<HTMLInputElement>('[aria-label="AI 助手要求"]')?.focus()
+    })
+  }
 
   const openAdd = (
     mode: Parameters<typeof workbench.openAdd>[0] = 'menu',
     options?: Parameters<typeof workbench.openAdd>[1],
   ) => {
+    if (mode === 'compose') {
+      openAssistant('从题库挑选 6 道一次函数基础题')
+      return
+    }
+    if (mode === 'personalized') {
+      openAssistant('根据本班一次函数常见错因，从题库挑选 6 道针对性练习')
+      return
+    }
     setSidePanelOpen(true)
-    setQuickAiOpen(false)
     if (mode !== 'menu') {
       setOpenAddTabs((current) => current.includes(mode) ? current : [...current, mode])
     }
@@ -60,11 +71,10 @@ export function WorkbenchHomePage() {
 
   const activateAddHome = () => {
     setSidePanelOpen(true)
-    setQuickAiOpen(false)
     workbench.closeAdd()
   }
 
-  const closeAddTab = (mode: Exclude<AddQuestionMode, 'menu'>) => {
+  const closeAddTab = (mode: AddTabMode) => {
     setOpenAddTabs((current) => current.filter((item) => item !== mode))
     if (workbench.isAddOpen && workbench.addMode === mode) workbench.closeAdd()
   }
@@ -85,12 +95,11 @@ export function WorkbenchHomePage() {
           <WorkspaceHeader
             documentTitle={workbench.document.title}
             questionCount={workbench.document.questions.length}
-            canUndo={workbench.canUndo}
+            canUndo={workbench.canUndo && !workbench.isContentBusy}
             onUndo={workbench.undo}
             onCreateNew={() => {
               workbench.createNewDocument()
               setSidePanelOpen(true)
-              setQuickAiOpen(false)
             }}
             sidePanelOpen={sidePanelOpen}
             onSidePanelOpen={() => setSidePanelOpen(true)}
@@ -113,20 +122,8 @@ export function WorkbenchHomePage() {
                 <EmptyCanvas
                   document={workbench.document}
                   sidePanelOpen={sidePanelOpen}
-                  aiOpen={quickAiOpen}
-                  aiStatus={workbench.composeStatus}
-                  aiError={workbench.composeError}
                   onTitleChange={workbench.setTitle}
-                  onAiOpen={() => setQuickAiOpen(true)}
-                  onAiClose={() => setQuickAiOpen(false)}
-                  onStartAi={(mode, prompt) => {
-                    if (mode === 'compose') {
-                      void workbench.composeFromBank(prompt)
-                      return
-                    }
-                    setQuickAiOpen(false)
-                    openAdd('create')
-                  }}
+                  onOpenAssistant={openAssistant}
                   onOpenAdd={openAdd}
                 />
               ) : (
@@ -144,6 +141,7 @@ export function WorkbenchHomePage() {
                   onMoveQuestion={workbench.moveQuestion}
                   onDeleteQuestion={workbench.deleteQuestion}
                   onAdd={openAdd}
+                  onOpenAssistant={() => openAssistant()}
                 />
               )}
             </div>
@@ -191,9 +189,6 @@ export function WorkbenchHomePage() {
                   listStatus={workbench.sourceListStatus}
                   addStatus={workbench.sourceAddStatus}
                   contentBusy={workbench.isContentBusy}
-                  composePrompt={workbench.composePrompt}
-                  composeError={workbench.composeError}
-                  composeStatus={workbench.composeStatus}
                   createConfig={workbench.createConfig}
                   createError={workbench.createError}
                   createStatus={workbench.createStatus}
@@ -201,13 +196,10 @@ export function WorkbenchHomePage() {
                   onModeChange={workbench.setAddMode}
                   onResourceTypeChange={(type) => void workbench.loadSources(type)}
                   onAddSource={(type, sourceId, count) => void workbench.addSource(type, sourceId, count)}
-                  onComposePromptChange={workbench.setComposePrompt}
-                  onCompose={() => void workbench.composeFromBank()}
                   onCreateConfigChange={workbench.setCreateConfig}
                   onCreate={(requestOverride) => void workbench.createQuestions(requestOverride)}
                   onAddCreated={workbench.addCreatedQuestions}
                   onUpload={() => void workbench.recognizeUpload()}
-                  onPersonalize={() => void workbench.personalizeFromUpload()}
                   onAddManual={() => void workbench.addManualQuestion()}
                   onClose={activateAddHome}
                 />

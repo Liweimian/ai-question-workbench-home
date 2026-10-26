@@ -13,6 +13,7 @@ interface DocumentCanvasProps {
   onMoveQuestion: (direction: -1 | 1) => void
   onDeleteQuestion: () => void
   onAdd: (mode?: AddQuestionMode) => void
+  onOpenAssistant: () => void
 }
 
 export function DocumentCanvas(props: DocumentCanvasProps) {
@@ -95,7 +96,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
       </div>
 
       <div className="editor-add-row">
-        <BlockAddMenu onOpenAdd={props.onAdd} />
+        <BlockAddMenu onOpenAdd={props.onAdd} onOpenAssistant={props.onOpenAssistant} />
       </div>
     </article>
   )

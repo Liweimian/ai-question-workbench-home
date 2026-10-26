@@ -1,9 +1,7 @@
 import {
   BookOpenCheck,
   BrainCircuit,
-  ChevronRight,
   FileScan,
-  GraduationCap,
   Library,
   School,
   Sparkles,
@@ -54,6 +52,41 @@ const sourceEntries = [
     action: '导入',
     icon: FileScan,
   },
+  {
+    mode: 'create' as const,
+    title: 'AI 出题工具',
+    description: '按教材、知识点与题量配置生成原创题',
+    action: '设置',
+    icon: Sparkles,
+  },
+]
+
+const aiShortcuts = [
+  {
+    id: 'personalized',
+    label: '个性化练习',
+    prompt: '根据本班一次函数常见错因，从题库挑选 6 道针对性练习',
+  },
+  {
+    id: 'compose',
+    label: 'AI 组题',
+    prompt: '从题库挑选 6 道一次函数基础题',
+  },
+  {
+    id: 'paper',
+    label: 'AI 组卷',
+    prompt: '从题库组成一份 10 道题的一次函数单元练习卷，兼顾基础与提升',
+  },
+  {
+    id: 'find-question',
+    label: 'AI 找题',
+    prompt: '从题库找 3 道一次函数图象与性质选择题，并加入当前题稿',
+  },
+  {
+    id: 'find-paper',
+    label: 'AI 找卷',
+    prompt: '从题库找一份八年级上册一次函数单元测试卷，并将其中 10 道题加入当前题稿',
+  },
 ]
 
 export function CompositionHub(props: CompositionHubProps) {
@@ -86,21 +119,28 @@ export function CompositionHub(props: CompositionHubProps) {
       </div>
 
       <footer className="composition-hub-composer">
-        <div className="composition-ai-capabilities" aria-label="AI 添加能力">
-          <button type="button" className="is-active" aria-current="true">
-            <BrainCircuit size={16} />
-            <span><strong>AI 组题</strong><small>对话描述要求，从题库挑题</small></span>
-          </button>
-          <button type="button" disabled={props.contentBusy} onClick={() => props.onOpenAdd('create')}>
-            <Sparkles size={16} />
-            <span><strong>AI 出题工具</strong><small>按教材、知识点与题量生成</small></span>
-            <ChevronRight size={14} />
-          </button>
-          <button type="button" disabled={props.contentBusy} onClick={() => props.onOpenAdd('personalized')}>
-            <GraduationCap size={16} />
-            <span><strong>个性化练习</strong><small>结合材料与学情生成</small></span>
-            <ChevronRight size={14} />
-          </button>
+        <div className="composition-chat-heading">
+          <div><BrainCircuit size={16} /><strong>AI 助手</strong></div>
+          <span>选择快捷方式，或直接描述需求</span>
+        </div>
+        <div className="composition-chat-shortcuts" role="group" aria-label="AI 助手快捷方式">
+          {aiShortcuts.map(({ id, label, prompt }) => {
+            const selected = props.composePrompt === prompt
+            return (
+              <button
+                type="button"
+                key={id}
+                className={selected ? 'is-selected' : undefined}
+                aria-pressed={selected}
+                aria-label={`${label}，填入示例要求`}
+                disabled={props.contentBusy || props.composeStatus === 'loading'}
+                onClick={() => props.onComposePromptChange(prompt)}
+                data-track={`/click/aiQuestionHome/assistantShortcut${id} | 选择${label}快捷方式 | 无`}
+              >
+                {label}
+              </button>
+            )
+          })}
         </div>
         <AiComposer
           compact

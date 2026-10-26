@@ -1,20 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, ChevronRight, FileScan, FileText, Globe2, GraduationCap, Heading2, Italic, Layers3, School, Send, Sparkles, Strikethrough, Underline } from 'lucide-react'
-import type { AddQuestionMode, AsyncStatus, LibraryInitialView, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
+import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
+import { Bold, BookOpenCheck, ChevronDown, FileScan, FileText, Globe2, Heading2, Italic, School, Send, Sparkles, Strikethrough, Underline, WandSparkles } from 'lucide-react'
+import type { AddQuestionMode, LibraryInitialView, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
 
 interface EmptyCanvasProps {
   document: WorkbenchDocument
   sidePanelOpen?: boolean
-  aiOpen: boolean
-  aiStatus: AsyncStatus
-  aiError: string
   onTitleChange: (title: string) => void
-  onAiOpen: () => void
-  onAiClose: () => void
-  onStartAi: (mode: 'compose' | 'create', prompt: string) => void
+  onOpenAssistant: (prompt?: string) => void
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
 }
 
@@ -51,45 +46,19 @@ const libraryQuickStarts: Array<{
   },
 ]
 
-const inlineAiCapabilities = [
-  { title: 'AI 组题', description: '从题库挑选并组合', icon: BrainCircuit, action: 'compose' as const },
-  { title: 'AI 出题', description: '生成原创题并预览', icon: Layers3, action: 'create' as const },
-  { title: '个性化练习', description: '结合材料与学情生成', icon: GraduationCap, action: 'personalized' as const },
-  { title: 'AI 录题', description: '识别 PDF、Word、图片', icon: FileScan, action: 'upload' as const },
-]
-
 export function EmptyCanvas(props: EmptyCanvasProps) {
-  const [prompt, setPrompt] = useState('')
-  const [inlineAiMode, setInlineAiMode] = useState<'compose' | 'create'>('compose')
   const [blockIds, setBlockIds] = useState(['initial'])
   const [hasBlockContent, setHasBlockContent] = useState(false)
-  const [activeBlockId, setActiveBlockId] = useState('initial')
   const [addMenuRequests, setAddMenuRequests] = useState<Record<string, number>>({})
   const [selectionToolbar, setSelectionToolbar] = useState<{ x: number; y: number; text: string } | null>(null)
   const [aiEditOpen, setAiEditOpen] = useState(false)
   const [customAiInstruction, setCustomAiInstruction] = useState('')
   const blockRefs = useRef(new Map<string, HTMLDivElement>())
-  const aiDialogRef = useRef<HTMLElement>(null)
   const selectedRangeRef = useRef<Range | null>(null)
-
-  const closeAi = () => {
-    props.onAiClose()
-    window.requestAnimationFrame(() => blockRefs.current.get(activeBlockId)?.focus())
-  }
-
-  useEffect(() => {
-    if (!props.aiOpen) return
-    const closeOnOutside = (event: MouseEvent) => {
-      if (!aiDialogRef.current?.contains(event.target as Node)) props.onAiClose()
-    }
-    document.addEventListener('mousedown', closeOnOutside)
-    return () => document.removeEventListener('mousedown', closeOnOutside)
-  }, [props.aiOpen, props.onAiClose])
 
   useEffect(() => {
     setBlockIds(['initial'])
     setHasBlockContent(false)
-    setActiveBlockId('initial')
     setAddMenuRequests({})
     window.requestAnimationFrame(() => blockRefs.current.get('initial')?.focus())
   }, [props.document.id])
@@ -102,7 +71,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       next.splice(index + 1, 0, nextId)
       return next
     })
-    setActiveBlockId(nextId)
     window.requestAnimationFrame(() => blockRefs.current.get(nextId)?.focus())
   }
 
@@ -121,7 +89,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
     }
     const nextId = `block-${Date.now()}`
     setBlockIds((current) => [...current, nextId])
-    setActiveBlockId(nextId)
     window.requestAnimationFrame(() => {
       const node = blockRefs.current.get(nextId)
       if (!node) return
@@ -130,22 +97,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       node.focus()
     })
     MetisMessage.success('已插入试卷结构内容')
-  }
-
-  const activateAiCapability = (action: typeof inlineAiCapabilities[number]['action']) => {
-    if (action === 'personalized' || action === 'upload') {
-      props.onOpenAdd(action)
-      return
-    }
-    if (action === 'compose') {
-      setInlineAiMode('compose')
-      setPrompt('从题库组一份一次函数练习，包含基础题和提升题')
-    }
-    if (action === 'create') {
-      setInlineAiMode('create')
-      setPrompt('围绕一次函数知识点生成一组原创题目')
-    }
-    props.onAiOpen()
   }
 
   const updateSelectionToolbar = () => {
@@ -202,7 +153,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
             <div className="empty-first-block" role="group" aria-label="题单内容块" key={blockId}>
-              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenAssistant={(action) => action ? activateAiCapability(action) : props.onAiOpen()} />
+              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenAssistant={() => props.onOpenAssistant()} />
               <div
                 className="empty-block-input"
                 ref={(node) => {
@@ -215,7 +166,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                 aria-multiline="true"
                 aria-label="输入内容，按空格唤起 AI"
                 data-placeholder="按 Space（空格）以启用 AI，或按“/”启用命令"
-                onFocus={() => setActiveBlockId(blockId)}
                 onMouseUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
                 onKeyUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
                 onInput={() => setHasBlockContent(Array.from(blockRefs.current.values()).some((node) => Boolean(node.textContent?.trim())))}
@@ -226,9 +176,9 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                     event.preventDefault()
                     if (!isEmpty) insertBlockAfter(blockId)
                   }
-                  if (isEmpty && !hasModifier && event.code === 'Space' && !event.nativeEvent.isComposing && !event.repeat && !props.aiOpen) {
+                  if (isEmpty && !hasModifier && event.code === 'Space' && !event.nativeEvent.isComposing && !event.repeat) {
                     event.preventDefault()
-                    props.onAiOpen()
+                    props.onOpenAssistant()
                   }
                   if (isEmpty && !hasModifier && event.key === '/' && !event.nativeEvent.isComposing && !event.repeat) {
                     event.preventDefault()
@@ -291,38 +241,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           </div>
         ) : null}
 
-        {props.aiOpen ? (
-          <section className="inline-ai-dialog" aria-label="AI 助手" ref={aiDialogRef}>
-            <div className="inline-ai-input">
-              <span className="inline-ai-input-prefix"><Sparkles size={17} /><strong>{inlineAiMode === 'create' ? 'AI 命题' : '飞象 AI'}</strong><ChevronDown size={14} /></span>
-              <MetisInput
-                autoFocus
-                value={prompt}
-                disabled={props.aiStatus === 'loading'}
-                onChange={(event) => setPrompt(event.target.value)}
-                placeholder="告诉 AI 你想怎么组题、组卷或命题…"
-                aria-label="AI 组题要求"
-                onKeyDown={(event) => {
-                  if (event.key === 'Escape') closeAi()
-                  if (event.key === 'Enter' && props.aiStatus !== 'loading' && !event.nativeEvent.isComposing && prompt.trim()) props.onStartAi(inlineAiMode, prompt.trim())
-                }}
-              />
-              <MetisButton type="primary" icon={<Send size={15} />} loading={props.aiStatus === 'loading'} disabled={!prompt.trim()} aria-label="发送 AI 要求" onClick={() => props.onStartAi(inlineAiMode, prompt.trim())} />
-            </div>
-            <div className="inline-ai-capabilities" aria-label="AI 助手能力">
-              <span>教学快捷能力</span>
-              <div>
-                {inlineAiCapabilities.map(({ title, description, icon: Icon, action }) => (
-                  <button type="button" key={title} onClick={() => activateAiCapability(action)}>
-                    <Icon size={16} /><span><strong>{title}</strong><small>{description}</small></span><ChevronRight size={14} />
-                  </button>
-                ))}
-              </div>
-            </div>
-            {props.aiError ? <p className="inline-ai-error" role="alert">{props.aiError}</p> : null}
-          </section>
-        ) : null}
-
         {!hasBlockContent ? <section className="empty-quick-start" aria-label="快速开始">
           <div className="quick-start-heading"><strong>快速开始</strong><span>从具体能力直接开始</span></div>
           <div className="quick-start-groups">
@@ -357,7 +275,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                   { action: 'ai-recording' as const, label: 'AI 录题', icon: FileScan },
                   { action: 'web-search' as UtilityAction, label: '联网搜题', icon: Globe2 },
                 ]).map(({ action, label, icon: Icon }) => (
-                  <button type="button" key={action} onClick={() => action === 'ai-recording' ? activateAiCapability('upload') : insertUtility(action)}>
+                  <button type="button" key={action} onClick={() => action === 'ai-recording' ? props.onOpenAdd('upload') : insertUtility(action)}>
                     <Icon size={15} /><strong>{label}</strong>
                   </button>
                 ))}
@@ -367,11 +285,12 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             <div className="quick-start-group quick-start-group--ai">
               <span>飞象 AI</span>
               <div className="quick-ai-list">
-                {inlineAiCapabilities.filter(({ action }) => action !== 'upload').map(({ title, icon: Icon, action }) => (
-                  <button type="button" key={title} onClick={() => activateAiCapability(action)}>
-                    <Icon size={15} /><strong>{title}</strong>
-                  </button>
-                ))}
+                <button type="button" onClick={() => props.onOpenAssistant()}>
+                  <Sparkles size={15} /><strong>AI 助手</strong>
+                </button>
+                <button type="button" onClick={() => props.onOpenAdd('create')}>
+                  <WandSparkles size={15} /><strong>AI 出题工具</strong>
+                </button>
               </div>
             </div>
           </div>

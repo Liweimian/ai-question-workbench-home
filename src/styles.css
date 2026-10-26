@@ -6586,72 +6586,73 @@
   background: var(--common_bg2_color);
 }
 
-.composition-ai-capabilities {
-  display: grid;
+.composition-chat-heading {
+  display: flex;
   max-width: 620px;
-  margin: 0 auto 7px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  min-height: 28px;
+  margin: 0 auto 6px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.composition-ai-capabilities button {
-  display: grid;
-  min-width: 0;
-  min-height: 48px;
-  padding: 7px 8px;
-  grid-template-columns: 18px minmax(0, 1fr) 14px;
+.composition-chat-heading > div {
+  display: flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid var(--fx-line-strong);
-  border-radius: var(--fx-radius-control);
+  color: var(--fx-primary);
+}
+
+.composition-chat-heading strong {
   color: var(--fx-text-secondary);
-  background: var(--common_bg2_color);
-  cursor: pointer;
-  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.composition-ai-capabilities button.is-active {
-  border-color: var(--theme_primary1_selected2_color);
-  color: var(--fx-primary);
-  background: var(--fx-primary-selected);
-}
-
-.composition-ai-capabilities button:hover:not(:disabled) {
-  border-color: var(--theme_primary1_selected2_color);
-  background: var(--fx-primary-selected);
-}
-
-.composition-ai-capabilities button:focus-visible {
-  outline: 2px solid var(--fx-primary);
-  outline-offset: 1px;
-}
-
-.composition-ai-capabilities button:disabled {
-  cursor: wait;
-  opacity: 0.55;
-}
-
-.composition-ai-capabilities button > svg:first-child {
-  color: var(--fx-primary);
-}
-
-.composition-ai-capabilities button > span {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.composition-ai-capabilities strong {
+.composition-chat-heading > span {
+  color: var(--fx-text-tertiary);
   font-size: 10px;
 }
 
-.composition-ai-capabilities small {
-  overflow: hidden;
-  color: var(--fx-text-tertiary);
-  font-size: 8px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.composition-chat-shortcuts {
+  display: flex;
+  max-width: 620px;
+  margin: 0 auto 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.composition-chat-shortcuts button {
+  display: inline-flex;
+  min-height: 28px;
+  padding: 4px 10px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--aiq_radius_pill);
+  color: var(--fx-text-secondary);
+  background: var(--common_bg2_color);
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 18px;
+  transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+}
+
+.composition-chat-shortcuts button:hover:not(:disabled),
+.composition-chat-shortcuts button.is-selected {
+  border-color: var(--theme_primary1_selected2_color);
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.composition-chat-shortcuts button:focus-visible {
+  outline: 2px solid var(--fx-primary);
+  outline-offset: 2px;
+}
+
+.composition-chat-shortcuts button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .composition-hub-composer .ai-composer {

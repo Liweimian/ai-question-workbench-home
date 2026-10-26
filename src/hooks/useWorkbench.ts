@@ -204,6 +204,12 @@ export function useWorkbench() {
     [document.questions, selectedQuestionId],
   )
 
+  const changeComposePrompt = useCallback((value: string) => {
+    setComposePrompt(value)
+    setComposeError('')
+    setComposeStatus('idle')
+  }, [])
+
   const invalidateRewrite = useCallback(() => {
     rewriteRequestIdRef.current += 1
     setRewriteStatus('idle')
@@ -362,7 +368,7 @@ export function useWorkbench() {
   const composeFromBank = useCallback(async (promptOverride?: string) => {
     const value = (promptOverride ?? composePrompt).trim()
     if (!value) {
-      setComposeError('请描述知识点、题量或难度要求')
+      setComposeError('请描述想组题、组卷或查找的内容')
       return
     }
     if (!beginContentOperation('compose')) return
@@ -370,11 +376,11 @@ export function useWorkbench() {
     setComposeStatus('loading')
     try {
       const questions = await workbenchRepository.composeFromBank(value)
-      appendQuestions(questions, `AI 已从题库挑选并添加 ${questions.length} 道题`)
+      appendQuestions(questions, `AI 已匹配并添加 ${questions.length} 道题`)
       setComposePrompt('')
       setComposeStatus('success')
     } catch (error) {
-      setComposeError(error instanceof Error ? error.message : '组题失败，请稍后重试')
+      setComposeError(error instanceof Error ? error.message : 'AI 处理失败，请稍后重试')
       setComposeStatus('error')
     } finally {
       finishContentOperation('compose')
@@ -585,6 +591,10 @@ export function useWorkbench() {
   }, [document.questions, invalidateRewrite, selectedQuestionId])
 
   const undo = useCallback(() => {
+    if (contentOperationRef.current) {
+      MetisMessage.info('正在处理 AI 要求，请稍候再撤销')
+      return
+    }
     if (!editor.undoDocument) return
     invalidateRewrite()
     createRequestIdRef.current += 1
@@ -621,7 +631,7 @@ export function useWorkbench() {
     historyStatus,
     historyDocuments,
     composePrompt,
-    setComposePrompt,
+    setComposePrompt: changeComposePrompt,
     composeError,
     composeStatus,
     createConfig,

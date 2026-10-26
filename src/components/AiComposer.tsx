@@ -29,12 +29,12 @@ export function AiComposer({ value, error, status, compact, disabled, kind = 'co
         <MetisInput
           value={value}
           disabled={blocked}
-          placeholder={isCreate ? '描述想原创的题目，例如：出 2 道校园情境应用题' : '描述组题要求，例如：挑选 6 道一次函数基础题'}
+          placeholder={isCreate ? '描述想原创的题目，例如：出 2 道校园情境应用题' : '描述需要 AI 帮你做什么，例如：找 3 道一次函数选择题'}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === 'Enter' && !event.nativeEvent.isComposing && !blocked) onSubmit()
           }}
-          aria-label={isCreate ? 'AI 命题要求' : 'AI 组题要求'}
+          aria-label={isCreate ? 'AI 命题要求' : 'AI 助手要求'}
         />
         <MetisButton
           type="primary"
@@ -43,10 +43,10 @@ export function AiComposer({ value, error, status, compact, disabled, kind = 'co
           loading={status === 'loading'}
           disabled={!value.trim() || blocked}
           onClick={onSubmit}
-          aria-label={isCreate ? '生成原创题' : '从题库组题'}
+          aria-label={isCreate ? '生成原创题' : '发送 AI 要求'}
           data-track={isCreate
             ? '/click/aiQuestionHome/createQuestion | 提交AI出题要求 | prompt#STRING'
-            : '/click/aiQuestionHome/composeQuestion | 提交AI组题要求 | prompt#STRING'}
+            : '/click/aiQuestionHome/composeQuestion | 提交AI助手要求 | prompt#STRING'}
         />
       </div>
       {error ? <div className="inline-error" role="alert">{error}</div> : null}

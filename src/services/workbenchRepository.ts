@@ -274,7 +274,7 @@ export const workbenchRepository: WorkbenchRepository = {
         ...cloneQuestion(question, `composed-${Date.now()}-${index}`),
         difficulty: plannedDifficulty(index, question.difficulty, plan.basic),
         sourceLabel: question.sourceLabel,
-        sourceDetail: `AI 组题命中 · ${question.sourceDetail ?? '飞象题库'}`,
+        sourceDetail: `AI 助手匹配 · ${question.sourceDetail ?? '飞象题库'}`,
         origin: 'question-bank' as const,
         verifyStatus: '已校验' as const,
       }
