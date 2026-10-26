@@ -36,6 +36,7 @@ export function CompositionHub(props: CompositionHubProps) {
   return (
     <aside className="composition-hub is-ai-first" data-sec="2" aria-label="添加题目工作区">
       <div className="composition-hub-scroll">
+        <div className="composition-hub-content">
         <section className="composition-ai-hero" aria-labelledby="assistant-heading">
           <div className="composition-ai-title"><Sparkles size={18} /><strong id="assistant-heading">想组一份什么样的练习？</strong></div>
           <AiComposer compact kind="compose" value={props.composePrompt} error={props.composeError} status={props.composeStatus} disabled={props.contentBusy} onChange={props.onComposePromptChange} onSubmit={props.onCompose} />
@@ -77,6 +78,7 @@ export function CompositionHub(props: CompositionHubProps) {
             ))}
           </div>
         </section>
+        </div>
       </div>
     </aside>
   )

@@ -6573,7 +6573,16 @@
   overflow: auto;
 }
 
-.composition-hub.is-ai-first .composition-hub-scroll { padding: 0 24px 24px; }
+.composition-hub.is-ai-first .composition-hub-scroll {
+  display: flex;
+  padding: 24px;
+  flex-direction: column;
+}
+
+.composition-hub-content {
+  width: 100%;
+  margin-block: auto;
+}
 
 .composition-ai-hero,
 .composition-action-section { width: min(100%, 620px); margin: 0 auto; }
