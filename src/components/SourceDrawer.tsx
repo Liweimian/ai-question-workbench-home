@@ -213,7 +213,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
                 {props.createError ? <div className="inline-error" role="alert">{props.createError}</div> : null}
                 {props.createPreview.length > 0 ? (
                   <div className="create-preview-block structured-create-preview">
-                    <div className="create-preview-heading"><strong>生成预览</strong><span>{props.createPreview.length} 道 · 确认后加入左侧题稿</span></div>
+                    <div className="create-preview-heading"><strong>生成预览</strong><span>{props.createPreview.length} 道 · 确认后加入右侧题稿</span></div>
                     <div className="create-preview-list">
                       {props.createPreview.map((question, index) => (
                         <article key={question.id}><span>{index + 1}</span><p>{question.stem}</p></article>

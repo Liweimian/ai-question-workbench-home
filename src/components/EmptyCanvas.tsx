@@ -157,6 +157,11 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           aria-label="题单标题"
         />
         <span>{props.document.gradeSubject} · 0 道题</span>
+        <ol className="empty-workflow-guide" aria-label="组题操作步骤">
+          <li><b>1</b><span>确认题稿名称</span></li>
+          <li className="is-current"><b>2</b><span>{props.sidePanelOpen ? '从左侧添加题目' : '打开添加题目'}</span></li>
+          <li><b>3</b><span>调整后保存或布置</span></li>
+        </ol>
       </header>
 
       <div className="editor-empty-content">
@@ -174,12 +179,8 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                 suppressContentEditableWarning
                 role="textbox"
                 aria-multiline="true"
-                aria-label={props.sidePanelOpen
-                  ? '直接输入题稿说明，添加题目请使用右侧工作区'
-                  : '直接输入内容，按空格打开 AI 助手，或按斜杠插入内容'}
-                data-placeholder={props.sidePanelOpen
-                  ? '直接输入内容，题目从右侧添加'
-                  : '直接输入内容，按 Space 打开 AI 助手，或按“/”插入内容'}
+                aria-label="题稿说明，可输入考试说明或作答要求"
+                data-placeholder="可输入考试说明、作答要求等（选填）"
                 onMouseUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
                 onKeyUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
                 onInput={syncBlockContent}
@@ -205,10 +206,10 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         </div>
 
         {props.sidePanelOpen && !hasBlockContent ? (
-          <div className="empty-result-guide" aria-hidden="true">
+          <div className="empty-result-guide" role="note" aria-label="空题稿操作提示">
             <span><FileText size={24} /></span>
-            <strong>题目会出现在这里</strong>
-            <small>从右侧选择题库、上传材料，或交给 AI 助手处理</small>
+            <strong>这里是当前题稿</strong>
+            <small>从左侧选题、上传或让 AI 帮你组题；添加后可在这里调整并保存布置</small>
           </div>
         ) : null}
 

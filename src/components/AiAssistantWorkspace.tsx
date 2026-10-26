@@ -38,7 +38,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
               <div className="ai-assistant-response-body">
                 <div className="ai-assistant-response-heading">
                   <strong>{run.status === 'loading' ? '正在处理' : run.status === 'success' ? '处理完成' : '处理遇到问题'}</strong>
-                  <span>{run.status === 'loading' ? '结果会直接加入左侧题稿' : run.status === 'success' ? '当前题稿已更新' : '可修改要求后重试'}</span>
+                  <span>{run.status === 'loading' ? '结果会直接加入右侧题稿' : run.status === 'success' ? '当前题稿已更新' : '可修改要求后重试'}</span>
                 </div>
 
                 <ol className="ai-assistant-steps">
@@ -61,8 +61,8 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
                   <div className="ai-assistant-result" role="status">
                     <span><Check size={16} /></span>
                     <div>
-                      <strong>已加入左侧题稿</strong>
-                      <p>共加入 {run.resultCount} 道题，可继续在左侧调整顺序、编辑或删除。</p>
+                      <strong>已加入右侧题稿</strong>
+                      <p>共加入 {run.resultCount} 道题，可继续在右侧调整顺序、编辑或删除。</p>
                     </div>
                   </div>
                 ) : null}
@@ -77,7 +77,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
           <div className="ai-assistant-empty">
             <span><BrainCircuit size={22} /></span>
             <strong>描述你的组题需求</strong>
-            <p>AI 会展示处理过程，并把完成的题目直接加入左侧题稿。</p>
+            <p>AI 会展示处理过程，并把完成的题目直接加入右侧题稿。</p>
           </div>
         )}
       </div>

@@ -89,7 +89,8 @@
 }
 
 .workspace-header.is-split {
-  right: auto;
+  right: 0;
+  left: auto;
   z-index: 21;
   width: 620px;
   padding-right: 10px;
@@ -103,6 +104,11 @@
 
 .workspace-header.is-split .header-workbench-brand > div {
   gap: 8px;
+}
+
+.workspace-header.is-split .header-workbench-mark,
+.workspace-header.is-split .header-workbench-brand > div > strong {
+  display: none;
 }
 
 .workspace-header.is-split .header-current-document {
@@ -2480,6 +2486,60 @@
 .editor-empty-heading span {
   color: var(--fx-text-tertiary);
   font-size: 11px;
+}
+
+.empty-workflow-guide {
+  display: flex;
+  width: 100%;
+  margin: 4px 0 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--fx-text-tertiary);
+  list-style: none;
+}
+
+.empty-workflow-guide li {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.empty-workflow-guide li + li {
+  padding-left: 17px;
+}
+
+.empty-workflow-guide li + li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--common_level5_base_color);
+  font-size: 16px;
+}
+
+.empty-workflow-guide b {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: var(--aiq_radius_pill);
+  color: var(--fx-text-tertiary);
+  background: var(--common_bg_z1_color);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.empty-workflow-guide .is-current {
+  color: var(--fx-text-secondary);
+  font-weight: 550;
+}
+
+.empty-workflow-guide .is-current b {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
 }
 
 .editor-empty-content {
@@ -5929,7 +5989,7 @@
 }
 
 .workspace-shell.is-split-source {
-  grid-template-columns: 620px minmax(560px, 1fr);
+  grid-template-columns: minmax(560px, 1fr) 620px;
 }
 
 .add-workspace {
@@ -5942,8 +6002,10 @@
   height: 100vh;
   margin-top: 0;
   background: var(--common_bg2_color);
-  border-left: 1px solid var(--fx-line-strong);
-  box-shadow: -8px 0 24px var(--common_shadow3_color);
+  grid-column: 1;
+  grid-row: 1;
+  border-right: 1px solid var(--fx-line-strong);
+  box-shadow: 8px 0 24px var(--common_shadow3_color);
 }
 
 .add-workspace-tabs {
@@ -5951,11 +6013,34 @@
   min-width: 0;
   align-items: end;
   gap: 2px;
-  padding: 0 10px;
+  padding: 0 10px 0 154px;
   overflow-x: auto;
   border-bottom: 1px solid var(--fx-line-strong);
   background: var(--common_bg1_color);
   scrollbar-width: none;
+}
+
+.add-workspace-brand {
+  display: flex;
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 16px;
+  height: 42px;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-workspace-brand .header-workbench-mark {
+  width: 30px;
+  height: 30px;
+}
+
+.add-workspace-brand strong {
+  color: var(--fx-text-primary);
+  font-size: 15px;
+  font-weight: 650;
+  white-space: nowrap;
 }
 
 .add-workspace-tabs::-webkit-scrollbar { display: none; }
@@ -6086,6 +6171,8 @@
 }
 
 .workspace-shell.is-split-source .editor-scroll {
+  grid-column: 2;
+  grid-row: 1;
   padding: 22px 22px 48px;
   background-color: var(--fx-surface-muted);
   background-image: radial-gradient(var(--fx-line-subtle) 1px, transparent 1px);
@@ -6359,8 +6446,10 @@
 /* 阶段一 · 迭代 78：编辑器成为根页面，添加能力常驻同屏。 */
 .empty-result-guide {
   display: flex;
-  min-height: 250px;
-  flex: 1;
+  min-height: 0;
+  margin-top: 36px;
+  padding: 20px 12px;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   flex-direction: column;

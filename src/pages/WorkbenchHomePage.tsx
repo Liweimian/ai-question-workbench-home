@@ -9,7 +9,7 @@ import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
 import type { AddQuestionMode, SourceRecord } from '../prototype/types'
-import { BrainCircuit, FileText, House, PanelRightClose, X } from 'lucide-react'
+import { BrainCircuit, FileText, House, PanelLeftClose, Sparkles, X } from 'lucide-react'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
@@ -280,6 +280,10 @@ export function WorkbenchHomePage() {
 
             {sidePanelOpen ? (
               <div className="add-workspace" aria-label="添加题目多任务工作区">
+                <div className="add-workspace-brand" aria-label="飞象组题">
+                  <span className="header-workbench-mark"><Sparkles size={16} /></span>
+                  <strong>飞象组题</strong>
+                </div>
                 <nav className="add-workspace-tabs" aria-label="已打开的添加方式" role="tablist">
                   <button
                     type="button"
@@ -349,7 +353,7 @@ export function WorkbenchHomePage() {
                     aria-label="收起添加题目工作区"
                     title="专注编辑"
                     onClick={collapseSidePanel}
-                  ><PanelRightClose size={17} /></button>
+                  ><PanelLeftClose size={17} /></button>
                 </nav>
                 {assistantActive && assistantTabOpen ? (
                   <AiAssistantWorkspace
