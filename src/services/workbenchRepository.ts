@@ -12,6 +12,7 @@ const localDocumentStorageKey = 'feixiang-ai-question-workbench-documents-v1'
 interface StoredDocumentEntry {
   document: WorkbenchDocument
   status: DocumentStatus
+  assignmentOutdated?: boolean
 }
 
 function readStoredDocuments(): StoredDocumentEntry[] {
@@ -25,7 +26,7 @@ function readStoredDocuments(): StoredDocumentEntry[] {
   }
 }
 
-function writeStoredDocument(document: WorkbenchDocument, status: DocumentStatus) {
+function writeStoredDocument(document: WorkbenchDocument, status: DocumentStatus, assignmentOutdated = false) {
   const snapshot = {
     ...document,
     questions: document.questions.map((question) => ({
@@ -35,7 +36,7 @@ function writeStoredDocument(document: WorkbenchDocument, status: DocumentStatus
     updatedAt: '刚刚',
   }
   const entries = [
-    { document: snapshot, status },
+    { document: snapshot, status, assignmentOutdated },
     ...readStoredDocuments().filter((entry) => entry.document.id !== snapshot.id),
   ].slice(0, 30)
   window.localStorage.setItem(localDocumentStorageKey, JSON.stringify(entries))
@@ -314,13 +315,14 @@ export const workbenchRepository: WorkbenchRepository = {
     const stored = readStoredDocuments()
     const storedIds = new Set(stored.map((entry) => entry.document.id))
     return [
-      ...stored.map(({ document, status }) => ({
+      ...stored.map(({ document, status, assignmentOutdated }) => ({
         id: document.id,
         title: document.title,
         gradeSubject: document.gradeSubject,
         questionCount: document.questions.length,
         updatedAt: document.updatedAt,
         status,
+        assignmentOutdated,
         origin: '手工组题' as const,
       })),
       ...historySummaries.filter((summary) => !storedIds.has(summary.id)).map((summary) => ({ ...summary })),
@@ -491,22 +493,24 @@ export const workbenchRepository: WorkbenchRepository = {
     return rewritten
   },
 
-  async saveDocument(document, status) {
+  async saveDocument(document, status, assignmentOutdated = false) {
     await delay(460)
-    const savedDocument = writeStoredDocument(document, status)
+    const savedDocument = writeStoredDocument(document, status, assignmentOutdated)
     return {
       document: savedDocument,
       status,
+      assignmentOutdated,
       savedAt: '刚刚',
     }
   },
 
   async assignDocument(document) {
     await delay(620)
-    const savedDocument = writeStoredDocument(document, '已布置')
+    const savedDocument = writeStoredDocument(document, '已布置', false)
     return {
       document: savedDocument,
       status: '已布置',
+      assignmentOutdated: false,
       savedAt: '刚刚',
     }
   },

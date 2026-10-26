@@ -58,6 +58,7 @@ export interface HistoryDocumentSummary {
   questionCount: number
   updatedAt: string
   status: DocumentStatus
+  assignmentOutdated?: boolean
   origin: 'AI 组题' | '手工组题' | '上传录题'
 }
 
@@ -75,6 +76,7 @@ export interface MyResourceSummary {
 export interface SaveDocumentResult {
   document: WorkbenchDocument
   status: DocumentStatus
+  assignmentOutdated?: boolean
   savedAt: string
 }
 
@@ -130,7 +132,7 @@ export interface WorkbenchRepository {
   createQuestions(request: CreateQuestionRequest): Promise<Question[]>
   createManualQuestion(): Promise<Question>
   rewrite(question: Question, request: RewriteRequest): Promise<Question>
-  saveDocument(document: WorkbenchDocument, status: Exclude<DocumentStatus, '已布置'>): Promise<SaveDocumentResult>
+  saveDocument(document: WorkbenchDocument, status: DocumentStatus, assignmentOutdated?: boolean): Promise<SaveDocumentResult>
   assignDocument(document: WorkbenchDocument): Promise<SaveDocumentResult>
   addMyResource(resource: MyResourceSummary): Promise<Question[]>
 }

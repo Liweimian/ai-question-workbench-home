@@ -81,6 +81,7 @@ const toHistorySummary = (
   document: WorkbenchDocument,
   previous?: HistoryDocumentSummary,
   status?: DocumentStatus,
+  assignmentOutdated?: boolean,
 ): HistoryDocumentSummary => ({
   id: document.id,
   title: document.title.trim() || '未命名组题',
@@ -88,6 +89,7 @@ const toHistorySummary = (
   questionCount: document.questions.length,
   updatedAt: '刚刚',
   status: status ?? previous?.status ?? '草稿',
+  assignmentOutdated: assignmentOutdated ?? previous?.assignmentOutdated ?? false,
   origin: previous?.origin ?? '手工组题',
 })
 
@@ -338,13 +340,17 @@ export function useWorkbench() {
     void loadHistoryList()
   }, [loadHistoryList])
 
-  const rememberDocument = useCallback((currentDocument: WorkbenchDocument, status?: DocumentStatus) => {
+  const rememberDocument = useCallback((
+    currentDocument: WorkbenchDocument,
+    status?: DocumentStatus,
+    persistedAssignmentOutdated?: boolean,
+  ) => {
     const snapshot = cloneDocument({ ...currentDocument, updatedAt: '刚刚' })
     sessionDocumentsRef.current.set(snapshot.id, snapshot)
     setHistoryDocuments((current) => {
       const previous = current.find((item) => item.id === snapshot.id)
       return [
-        toHistorySummary(snapshot, previous, status),
+        toHistorySummary(snapshot, previous, status, persistedAssignmentOutdated),
         ...current.filter((item) => item.id !== snapshot.id),
       ]
     })
@@ -365,16 +371,27 @@ export function useWorkbench() {
     saveRequestIdRef.current = requestId
     setDocumentSyncState('saving')
     try {
-      const requestedStatus = explicit || documentStatus === '已保存' ? '已保存' : '草稿'
-      const result = await workbenchRepository.saveDocument(snapshot, requestedStatus)
+      const requestedStatus = documentStatus === '已布置'
+        ? '已布置'
+        : explicit || documentStatus === '已保存'
+          ? '已保存'
+          : '草稿'
+      const persistedAssignmentOutdated = documentStatus === '已布置' ? assignmentOutdated : false
+      const result = await workbenchRepository.saveDocument(snapshot, requestedStatus, persistedAssignmentOutdated)
       if (saveRequestIdRef.current !== requestId || documentIdRef.current !== snapshot.id) return false
       const latest = latestDocumentRef.current
       const snapshotFingerprint = documentFingerprint(snapshot)
       const latestFingerprint = documentFingerprint(latest)
       savedDocumentRef.current = { id: snapshot.id, fingerprint: snapshotFingerprint }
       const effectiveStatus = documentStatus === '已布置' ? '已布置' : result.status
+      const effectiveAssignmentOutdated = result.assignmentOutdated ?? persistedAssignmentOutdated
       setDocumentStatus(effectiveStatus)
-      rememberDocument(latestFingerprint === snapshotFingerprint ? result.document : latest, effectiveStatus)
+      setAssignmentOutdated(effectiveAssignmentOutdated)
+      rememberDocument(
+        latestFingerprint === snapshotFingerprint ? result.document : latest,
+        effectiveStatus,
+        effectiveAssignmentOutdated,
+      )
       setDocumentSyncState(latestFingerprint === snapshotFingerprint ? 'saved' : 'dirty')
       if (explicit) MetisMessage.success('题单已保存，并同步到我的资源')
       return true
@@ -385,7 +402,7 @@ export function useWorkbench() {
       }
       return false
     }
-  }, [documentStatus, rememberDocument])
+  }, [assignmentOutdated, documentStatus, rememberDocument])
 
   const assignDocument = useCallback(async () => {
     if (autoSaveTimerRef.current !== null) {
@@ -409,7 +426,7 @@ export function useWorkbench() {
       savedDocumentRef.current = { id: snapshot.id, fingerprint: snapshotFingerprint }
       setDocumentStatus('已布置')
       setAssignmentOutdated(false)
-      rememberDocument(latestFingerprint === snapshotFingerprint ? result.document : latest, '已布置')
+      rememberDocument(latestFingerprint === snapshotFingerprint ? result.document : latest, '已布置', false)
       setDocumentSyncState(latestFingerprint === snapshotFingerprint ? 'saved' : 'dirty')
       MetisMessage.success('题单已保存并布置成功')
       return true
@@ -430,9 +447,10 @@ export function useWorkbench() {
     const fingerprint = documentFingerprint(document)
     if (savedDocumentRef.current.id !== document.id) {
       savedDocumentRef.current = { id: document.id, fingerprint }
-      setDocumentStatus(historyDocuments.find((item) => item.id === document.id)?.status ?? '草稿')
+      const historyDocument = historyDocuments.find((item) => item.id === document.id)
+      setDocumentStatus(historyDocument?.status ?? '草稿')
       setDocumentSyncState('clean')
-      setAssignmentOutdated(false)
+      setAssignmentOutdated(historyDocument?.assignmentOutdated ?? false)
       return
     }
     if (savedDocumentRef.current.fingerprint === fingerprint || isUntouchedBlankDocument(document)) return
