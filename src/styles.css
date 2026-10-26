@@ -1902,7 +1902,7 @@
   width: min(100%, var(--workbench-editor-max-width));
   min-height: 100%;
   margin: 0 auto;
-  padding: 18px 20px 56px;
+  padding: 0 20px 56px;
   border: 1px solid var(--fx-line-strong);
   border-radius: var(--fx-radius-card);
   background: var(--common_bg2_color);
@@ -1913,6 +1913,11 @@
   position: relative;
   padding: 0 12px 4px;
   text-align: center;
+}
+
+.editor-document-heading .document-format-toolbar {
+  width: calc(100% + 64px);
+  margin-left: -32px;
 }
 
 .document-format-toolbar {
@@ -1965,6 +1970,7 @@
 
 .editor-title-input {
   width: 100%;
+  margin-top: 2px;
   color: var(--fx-text-primary) !important;
   font-family: var(--fx-font-display) !important;
   font-size: 22px !important;
@@ -2640,12 +2646,13 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 64px 64px 22px;
+  padding: 0 0 22px;
   flex-direction: column;
 }
 
 .empty-title-input {
-  width: 100%;
+  width: calc(100% - 128px);
+  margin: 0 auto;
   color: var(--fx-text-primary) !important;
   font-family: var(--fx-font-display) !important;
   font-size: 22px !important;
@@ -6236,7 +6243,11 @@
 }
 
 .workspace-shell.is-split-source .editor-empty-heading {
-  padding: 20px 42px 12px;
+  padding: 0 0 12px;
+}
+
+.workspace-shell.is-split-source .empty-title-input {
+  width: calc(100% - 84px);
 }
 
 .workspace-shell.is-split-source .editor-empty-content {
@@ -6309,8 +6320,12 @@
 }
 
 .workspace-shell.is-library-expanded .editor-empty-heading {
-  padding-right: 26px;
-  padding-left: 26px;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.workspace-shell.is-library-expanded .empty-title-input {
+  width: calc(100% - 52px);
 }
 
 .workspace-shell.is-library-expanded .editor-empty-content {
