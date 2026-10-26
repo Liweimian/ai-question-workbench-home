@@ -47,8 +47,12 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(false)
   }
 
+  const libraryPanelOpen = sidePanelOpen
+    && workbench.isAddOpen
+    && (workbench.addMode === 'resource' || workbench.addMode === 'school')
+
   const shellClassName = sidePanelOpen
-    ? 'workspace-shell is-split-source'
+    ? `workspace-shell is-split-source${libraryPanelOpen ? ' is-library-expanded' : ''}`
     : `workspace-shell${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`
 
   return (

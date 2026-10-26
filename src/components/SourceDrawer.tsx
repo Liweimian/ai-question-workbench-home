@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { MetisButton } from '@yuanfudao/metis-web-component'
 import {
+  ArrowLeft,
   BrainCircuit,
   FilePenLine,
   Files,
@@ -114,7 +115,19 @@ export function SourceDrawer(props: SourceDrawerProps) {
       >
         <header className="add-question-header">
           <div className="add-question-title">
-            <div>
+            {docked && props.mode !== 'menu' ? (
+              <MetisButton
+                type="borderless"
+                icon={<ArrowLeft size={17} />}
+                className="add-question-back"
+                aria-label="返回添加题目"
+                onClick={props.onClose}
+                data-track="/click/aiQuestionHome/backCompositionHub | 返回添加题目 | 无"
+              >
+                添加题目
+              </MetisButton>
+            ) : null}
+            <div className="add-question-heading-copy">
               <div data-picker-detail-nav className={libraryDetailOpen ? '' : 'is-hidden'} />
               {!libraryDetailOpen ? <h2>{modeTitles[props.mode]}</h2> : null}
               {props.mode === 'menu' ? <p>一个入口，选择这次要怎样添加题目</p> : null}
@@ -122,7 +135,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
           </div>
           <div className="add-question-header-actions">
             <div data-picker-selection-actions />
-            <MetisButton type="borderless" icon={<X size={18} />} aria-label="关闭添加题目" onClick={props.onClose} />
+            {!docked ? <MetisButton type="borderless" icon={<X size={18} />} aria-label="关闭添加题目" onClick={props.onClose} /> : null}
           </div>
         </header>
 

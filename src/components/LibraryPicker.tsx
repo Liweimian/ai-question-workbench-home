@@ -151,7 +151,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
       <div className={`legacy-detail-stage${props.record.sourceType === 'workbook' ? ' has-directory' : ''}`}>
         {props.record.sourceType === 'workbook' ? (
           <aside className="legacy-workbook-directory" aria-label={`${props.record.title}目录`}>
-            <button type="button" className="legacy-workbook-back"><ArrowLeft size={15} />练习册</button>
+            <button type="button" className="legacy-workbook-back" onClick={props.onReturnHome}><ArrowLeft size={15} />返回练习册</button>
             <h2>{props.record.title}</h2>
             <div className="legacy-directory-tree" role="tree" aria-label="教材章节目录">
               {workbookDirectory.map((chapter, chapterIndex) => (

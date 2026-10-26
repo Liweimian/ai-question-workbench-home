@@ -5907,6 +5907,11 @@
   grid-template-columns: minmax(540px, 52%) minmax(560px, 48%);
 }
 
+/* 阶段一 · 迭代 79：进入具体题库时，保留编辑器锚点并优先扩展选题空间。 */
+.workspace-shell.is-split-source.is-library-expanded {
+  grid-template-columns: minmax(420px, 35%) minmax(700px, 65%);
+}
+
 .workspace-shell.is-split-source .editor-scroll {
   padding: 22px 22px 48px;
   background-color: var(--fx-surface-muted);
@@ -5988,6 +5993,194 @@
 /* 方案二右侧出现分类树时，为卡片留出可读宽度。 */
 .add-question-panel.is-docked .library-browser.has-sidebar .library-record-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workspace-shell.is-library-expanded .editor-scroll {
+  padding-right: 14px;
+  padding-left: 14px;
+}
+
+.workspace-shell.is-library-expanded .editor-empty-heading {
+  padding-right: 26px;
+  padding-left: 26px;
+}
+
+.workspace-shell.is-library-expanded .editor-empty-content {
+  padding-right: 26px;
+  padding-left: 26px;
+}
+
+.workspace-shell.is-library-expanded .add-question-layer--library.is-docked {
+  z-index: 20;
+  height: 100%;
+  margin-top: 0;
+}
+
+.workspace-shell.is-library-expanded .add-question-panel--library.is-docked {
+  height: 100%;
+  box-shadow: -10px 0 28px var(--common_shadow3_color);
+}
+
+.add-question-panel.is-docked .add-question-title {
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+}
+
+.add-question-panel.is-docked .add-question-heading-copy {
+  min-width: 0;
+}
+
+.add-question-panel.is-docked .add-question-back {
+  min-width: auto !important;
+  height: 32px !important;
+  padding: 0 8px !important;
+  flex: 0 0 auto;
+  color: var(--fx-text-secondary) !important;
+  border-radius: var(--fx-radius-control) !important;
+}
+
+.add-question-panel.is-docked .add-question-back:hover {
+  color: var(--fx-primary) !important;
+  background: var(--fx-primary-selected) !important;
+}
+
+.add-question-panel.is-docked .add-question-back::after {
+  width: 1px;
+  height: 18px;
+  margin-left: 10px;
+  background: var(--fx-line-strong);
+  content: '';
+}
+
+.workspace-shell.is-library-expanded .add-question-panel--library .add-question-header {
+  min-height: 48px;
+  padding: 6px 12px;
+  gap: 10px;
+}
+
+.workspace-shell.is-library-expanded .add-question-panel--library .add-question-title {
+  gap: 6px;
+}
+
+.workspace-shell.is-library-expanded .add-question-panel--library .add-question-title h2 {
+  font-size: 15px;
+}
+
+.workspace-shell.is-library-expanded .picker-detail-header-nav {
+  gap: 7px;
+}
+
+.workspace-shell.is-library-expanded .library-picker.is-dialog .library-resource-tabs {
+  min-height: 40px;
+  gap: 12px;
+  padding: 0 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.workspace-shell.is-library-expanded .library-picker.is-dialog .library-resource-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.workspace-shell.is-library-expanded .library-picker.is-dialog .library-resource-tabs button {
+  min-height: 40px;
+  padding: 0 5px;
+}
+
+.workspace-shell.is-library-expanded .library-browser.has-sidebar,
+.workspace-shell.is-library-expanded .chapter-picker-browser {
+  grid-template-columns: 160px minmax(0, 1fr);
+}
+
+.workspace-shell.is-library-expanded .add-question-panel.is-docked .library-filter-row {
+  align-items: center;
+  flex-direction: row;
+  gap: 8px;
+  padding: 6px 10px;
+}
+
+.workspace-shell.is-library-expanded .add-question-panel.is-docked .library-filter-chips {
+  flex: 1;
+  flex-wrap: nowrap;
+  gap: 5px;
+  overflow: hidden;
+}
+
+.workspace-shell.is-library-expanded .add-question-panel.is-docked .library-filter-chips button {
+  height: 28px;
+  padding: 0 8px;
+}
+
+.workspace-shell.is-library-expanded .add-question-panel.is-docked .library-search {
+  width: 220px;
+}
+
+.workspace-shell.is-library-expanded .library-list-heading {
+  padding: 6px 12px 4px;
+}
+
+.workspace-shell.is-library-expanded .library-list-heading h3 {
+  font-size: 13px;
+}
+
+.workspace-shell.is-library-expanded .library-record-scroll {
+  padding: 3px 10px 10px;
+}
+
+.workspace-shell.is-library-expanded .library-record-grid {
+  gap: 10px;
+}
+
+.workspace-shell.is-library-expanded .library-resource-card,
+.workspace-shell.is-library-expanded .library-card-main {
+  min-height: 112px;
+}
+
+.workspace-shell.is-library-expanded .library-resource-card {
+  border-radius: 14px;
+}
+
+.workspace-shell.is-library-expanded .library-card-main {
+  padding: 13px 72px 12px 15px;
+}
+
+.workspace-shell.is-library-expanded .library-card-tags {
+  gap: 4px;
+}
+
+.workspace-shell.is-library-expanded .library-card-tags em {
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.workspace-shell.is-library-expanded .library-card-copy > strong {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.workspace-shell.is-library-expanded .library-card-favorite {
+  top: 12px;
+  right: 11px;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 10px;
+}
+
+.workspace-shell.is-library-expanded .library-card-date {
+  right: 14px;
+  bottom: 11px;
+  gap: 4px;
+  font-size: 10px;
+}
+
+@media (min-width: 1600px) {
+  .workspace-shell.is-library-expanded .add-question-panel.is-docked .library-browser.has-sidebar .library-record-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 /* 阶段一 · 迭代 78：编辑器成为根页面，添加能力常驻同屏。 */
