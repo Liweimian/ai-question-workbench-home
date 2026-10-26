@@ -24,7 +24,7 @@ interface LibraryDetailTab {
 const addTabLabels: Record<AddTabMode, string> = {
   resource: '飞象题库',
   school: '校本题库',
-  upload: '上传录题',
+  upload: 'AI 智能录题',
   create: 'AI 出题',
   manual: '手工录入',
 }

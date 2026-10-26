@@ -49,7 +49,7 @@ const sourceEntries = [
   },
   {
     mode: 'upload' as const,
-    title: '上传文件或图片',
+    title: 'AI 智能录题',
     description: '上传 Word、PDF 或图片，自动识别并拆分题目',
     action: '去上传',
     icon: FileScan,

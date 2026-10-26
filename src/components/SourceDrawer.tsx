@@ -57,7 +57,7 @@ const commandOptions: Array<{
 }> = [
   { mode: 'resource', title: '飞象题库选题', description: '浏览练习册、试卷、同步题单和专题', tag: '平台资源', icon: Search },
   { mode: 'school', title: '校本题库选题', description: '浏览本校沉淀的试卷、练习册和章节题目', tag: '本校资源', icon: School },
-  { mode: 'upload', title: '上传文件 AI 录题', description: '识别 PDF、Word 或图片中的原题', tag: '材料转题目', icon: FileUp },
+  { mode: 'upload', title: 'AI 智能录题', description: '识别 PDF、Word 或图片中的原题', tag: '材料转题目', icon: FileUp },
   { mode: 'create', title: 'AI 出题工具', description: '按教材、知识点和题量生成原创题', tag: '原创 · 待校验', icon: Sparkles },
   { mode: 'manual', title: '手工录入', description: '添加一道空白题并继续编辑', tag: '空白题', icon: FilePenLine },
 ]
@@ -68,7 +68,7 @@ const modeTitles: Record<AddQuestionMode, string> = {
   school: '从校本题库选题',
   compose: 'AI 组题',
   create: 'AI 出题工具',
-  upload: '上传文件 AI 录题',
+  upload: 'AI 智能录题',
   personalized: '上传材料生成个性化练习',
   manual: '手工录入',
 }
