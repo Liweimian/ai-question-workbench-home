@@ -112,7 +112,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
         aria-label="添加题目"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        {!docked || libraryDetailOpen || props.mode === 'resource' || props.mode === 'school' ? (
+        {!docked || libraryDetailOpen ? (
           <header className="add-question-header">
             <div className="add-question-title">
               <div className="add-question-heading-copy">
@@ -122,7 +122,6 @@ export function SourceDrawer(props: SourceDrawerProps) {
               </div>
             </div>
             <div className="add-question-header-actions">
-              <div data-picker-selection-actions />
               {!docked ? <MetisButton type="borderless" icon={<X size={18} />} aria-label="关闭添加题目" onClick={props.onClose} /> : null}
             </div>
           </header>
