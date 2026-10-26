@@ -1916,16 +1916,19 @@
 }
 
 .document-format-toolbar {
-  display: inline-flex;
-  min-height: 42px;
-  margin: 10px auto 2px;
-  padding: 0 10px;
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  margin: 0 0 10px;
+  padding: 0 16px;
+  box-sizing: border-box;
   align-items: center;
-  gap: 4px;
-  border: 1px solid var(--fx-line-strong);
-  border-radius: var(--fx-radius-control);
-  background: var(--common_bg2_color);
-  box-shadow: 0 4px 14px var(--common_shadow3_color);
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  border-radius: var(--fx-radius-card);
+  background: var(--fx-surface-muted);
+  box-shadow: none;
 }
 
 .document-format-toolbar label {
@@ -1960,15 +1963,11 @@
   font-weight: 600;
 }
 
-.editor-empty-heading .document-format-toolbar {
-  margin-top: 12px;
-}
-
 .editor-title-input {
   width: 100%;
   color: var(--fx-text-primary) !important;
   font-family: var(--fx-font-display) !important;
-  font-size: 24px !important;
+  font-size: 22px !important;
   font-weight: 600 !important;
   text-align: center !important;
 }
@@ -2649,8 +2648,8 @@
   width: 100%;
   color: var(--fx-text-primary) !important;
   font-family: var(--fx-font-display) !important;
-  font-size: 32px !important;
-  font-weight: 650 !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
 }
 
 .empty-title-input,

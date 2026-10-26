@@ -117,13 +117,13 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   return (
     <article className={`editor-empty${props.sidePanelOpen ? ' is-linked-workspace' : ''}`} data-sec="3" aria-label="空白题单编辑区">
       <header className="editor-empty-heading">
+        <DocumentFormatToolbar value={{ ...defaultDocumentFormat, ...props.document.format }} onChange={props.onDocumentFormatChange} />
         <MetisInput
           value={props.document.title}
           onChange={(event) => props.onTitleChange(event.target.value)}
           className="empty-title-input"
           aria-label="题单标题"
         />
-        <DocumentFormatToolbar value={{ ...defaultDocumentFormat, ...props.document.format }} onChange={props.onDocumentFormatChange} />
       </header>
 
       <div className="editor-empty-content">

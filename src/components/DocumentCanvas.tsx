@@ -154,13 +154,13 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
       } as React.CSSProperties}
     >
       <header className="editor-document-heading">
+        <DocumentFormatToolbar value={documentFormat} onChange={props.onDocumentFormatChange} />
         <MetisInput
           value={props.document.title}
           onChange={(event) => props.onTitleChange(event.target.value)}
           className="editor-title-input"
           aria-label="题单标题"
         />
-        <DocumentFormatToolbar value={documentFormat} onChange={props.onDocumentFormatChange} />
       </header>
 
       {props.document.intro?.trim() ? (
