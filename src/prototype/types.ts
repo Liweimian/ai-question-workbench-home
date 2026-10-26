@@ -12,6 +12,21 @@ export type QuestionOrigin = 'question-bank' | 'ai-original' | 'upload' | 'manua
 export type DocumentStatus = '草稿' | '已保存' | '已布置'
 export type DocumentSyncState = 'clean' | 'dirty' | 'saving' | 'saved' | 'error'
 export type MyResourceKind = '试卷' | '题单' | '题目' | '文件' | '练习册'
+export type QuestionType = '选择题' | '填空题' | '解答题'
+
+export interface DocumentFormat {
+  fontFamily: 'serif' | 'sans' | 'kaiti'
+  fontSize: '14' | '16' | '18'
+  lineHeight: '1.5' | '1.7' | '2'
+  letterSpacing: '0' | '0.5' | '1'
+}
+
+export const defaultDocumentFormat: DocumentFormat = {
+  fontFamily: 'serif',
+  fontSize: '16',
+  lineHeight: '1.7',
+  letterSpacing: '0',
+}
 
 export interface AiAssistantRun {
   id: EntityId
@@ -24,7 +39,7 @@ export interface AiAssistantRun {
 
 export interface Question {
   id: EntityId
-  type: '选择题' | '填空题' | '解答题'
+  type: QuestionType
   stem: string
   options?: string[]
   answer: string
@@ -47,6 +62,8 @@ export interface WorkbenchDocument {
   title: string
   gradeSubject: string
   intro?: string
+  format?: DocumentFormat
+  sectionTitles?: Partial<Record<QuestionType, string>>
   questions: Question[]
   updatedAt: string
 }

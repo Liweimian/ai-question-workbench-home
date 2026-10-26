@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
 import { blankDocument } from '../data/workbenchData'
+import { defaultDocumentFormat } from '../prototype/types'
 import type {
   AddQuestionMode,
   AiAssistantRun,
@@ -8,6 +9,7 @@ import type {
   CreateQuestionRequest,
   DocumentStatus,
   DocumentSyncState,
+  DocumentFormat,
   HistoryDocumentSummary,
   InspectorView,
   LibraryInitialView,
@@ -15,6 +17,7 @@ import type {
   OpenAddOptions,
   Question,
   QuestionPatch,
+  QuestionType,
   ResourceType,
   RewriteRequest,
   SourceRecord,
@@ -44,6 +47,8 @@ interface EditorState {
 type EditorAction =
   | { type: 'set-title'; title: string }
   | { type: 'set-intro'; intro: string }
+  | { type: 'set-format'; patch: Partial<DocumentFormat> }
+  | { type: 'set-section-title'; questionType: QuestionType; title: string }
   | { type: 'update-question'; questionId: string; patch: QuestionPatch }
   | { type: 'append'; questions: Question[] }
   | { type: 'load-document'; document: WorkbenchDocument }
@@ -62,12 +67,16 @@ const cloneQuestions = (questions: Question[]) => questions.map(cloneQuestion)
 
 const cloneDocument = (document: WorkbenchDocument): WorkbenchDocument => ({
   ...document,
+  format: document.format ? { ...document.format } : undefined,
+  sectionTitles: document.sectionTitles ? { ...document.sectionTitles } : undefined,
   questions: cloneQuestions(document.questions),
 })
 
 const documentFingerprint = (document: WorkbenchDocument) => JSON.stringify({
   title: document.title,
   intro: document.intro ?? '',
+  format: document.format ?? defaultDocumentFormat,
+  sectionTitles: document.sectionTitles ?? {},
   questions: document.questions,
 })
 
@@ -105,6 +114,32 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     return {
       document: { ...state.document, intro: action.intro, updatedAt: '刚刚' },
       undoDocument: state.undoDocument,
+    }
+  }
+
+  if (action.type === 'set-format') {
+    const nextFormat = {
+      ...defaultDocumentFormat,
+      ...state.document.format,
+      ...action.patch,
+    }
+    if (JSON.stringify(nextFormat) === JSON.stringify({ ...defaultDocumentFormat, ...state.document.format })) return state
+    return {
+      document: { ...state.document, format: nextFormat, updatedAt: '刚刚' },
+      undoDocument: cloneDocument(state.document),
+    }
+  }
+
+  if (action.type === 'set-section-title') {
+    const title = action.title.trim()
+    if (!title || state.document.sectionTitles?.[action.questionType] === title) return state
+    return {
+      document: {
+        ...state.document,
+        sectionTitles: { ...state.document.sectionTitles, [action.questionType]: title },
+        updatedAt: '刚刚',
+      },
+      undoDocument: cloneDocument(state.document),
     }
   }
 
@@ -879,6 +914,8 @@ export function useWorkbench() {
     document,
     setTitle: (title: string) => dispatch({ type: 'set-title', title }),
     setIntro: (intro: string) => dispatch({ type: 'set-intro', intro }),
+    setDocumentFormat: (patch: Partial<DocumentFormat>) => dispatch({ type: 'set-format', patch }),
+    setSectionTitle: (questionType: QuestionType, title: string) => dispatch({ type: 'set-section-title', questionType, title }),
     selectedQuestion,
     selectedQuestionId,
     inspectorView,

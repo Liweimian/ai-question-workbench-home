@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { ArrowDown, ArrowUp, Bold, GripVertical, Italic, Omega, Radical, Send, Sparkles, Trash2, Underline } from 'lucide-react'
-import type { AddQuestionMode, QuestionPatch, WorkbenchDocument } from '../prototype/types'
+import { ArrowDown, ArrowUp, Bold, GripVertical, Italic, Omega, Radical, Send, SlidersHorizontal, Sparkles, Trash2, Underline } from 'lucide-react'
+import { defaultDocumentFormat } from '../prototype/types'
+import type { AddQuestionMode, DocumentFormat, QuestionPatch, QuestionType, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 
 interface DocumentCanvasProps {
@@ -13,8 +14,16 @@ interface DocumentCanvasProps {
   onMoveQuestion: (direction: -1 | 1) => void
   onDeleteQuestion: () => void
   onQuestionChange: (questionId: string, patch: QuestionPatch) => void
+  onDocumentFormatChange: (patch: Partial<DocumentFormat>) => void
+  onSectionTitleChange: (questionType: QuestionType, title: string) => void
   onAdd: (mode?: AddQuestionMode) => void
   onOpenAssistant: () => void
+}
+
+type QuestionStyle = DocumentFormat & {
+  bold: boolean
+  italic: boolean
+  underline: boolean
 }
 
 interface EditableQuestionTextProps {
@@ -65,11 +74,101 @@ function EditableQuestionText({ value, multiline = false, ariaLabel, onCommit }:
     : <input {...shared} className="editor-question-inline-input is-option" />
 }
 
-export function DocumentCanvas(props: DocumentCanvasProps) {
-  const [questionStyles, setQuestionStyles] = useState<Record<string, { fontFamily: string; fontSize: string; lineHeight: string; letterSpacing: string; bold: boolean; italic: boolean; underline: boolean }>>({})
-  const [editRequirement, setEditRequirement] = useState('')
+interface EditableSectionTitleProps {
+  number: number
+  questionType: QuestionType
+  value: string
+  onCommit: (questionType: QuestionType, title: string) => void
+}
+
+const sectionNumbers = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十']
+
+function EditableSectionTitle({ number, questionType, value, onCommit }: EditableSectionTitleProps) {
+  const [draft, setDraft] = useState(value)
+  const cancelBlurRef = useRef(false)
+  useEffect(() => setDraft(value), [value])
+  const commit = () => {
+    if (cancelBlurRef.current) {
+      cancelBlurRef.current = false
+      setDraft(value)
+      return
+    }
+    const nextValue = draft.trim()
+    if (!nextValue) {
+      setDraft(value)
+      return
+    }
+    if (nextValue !== value) onCommit(questionType, nextValue)
+  }
   return (
-    <article className="editor-document" data-sec="3" aria-label="题单编辑区">
+    <div className="editor-question-section" aria-label={`第 ${number} 个题目模块`}>
+      <span>{sectionNumbers[number - 1] ?? number}、</span>
+      <input
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur()
+          if (event.key === 'Escape') {
+            cancelBlurRef.current = true
+            setDraft(value)
+            event.currentTarget.blur()
+          }
+        }}
+        aria-label={`修改${questionType}模块名称`}
+        title="点击修改模块名称"
+      />
+    </div>
+  )
+}
+
+export function DocumentCanvas(props: DocumentCanvasProps) {
+  const [questionStyles, setQuestionStyles] = useState<Record<string, QuestionStyle>>({})
+  const [editRequirement, setEditRequirement] = useState('')
+  const [formatOpen, setFormatOpen] = useState(false)
+  const formatRef = useRef<HTMLDivElement>(null)
+  const documentFormat = { ...defaultDocumentFormat, ...props.document.format }
+  const questionRows = useMemo(() => {
+    let sectionNumber = 0
+    return props.document.questions.map((question, index) => {
+      const beginsSection = index === 0 || props.document.questions[index - 1]?.type !== question.type
+      if (beginsSection) sectionNumber += 1
+      return { question, index, sectionNumber: beginsSection ? sectionNumber : null }
+    })
+  }, [props.document.questions])
+
+  useEffect(() => {
+    setQuestionStyles({})
+  }, [props.document.format, props.document.id])
+
+  useEffect(() => {
+    if (!formatOpen) return
+    const closeOnOutside = (event: MouseEvent) => {
+      if (!formatRef.current?.contains(event.target as Node)) setFormatOpen(false)
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setFormatOpen(false)
+    }
+    document.addEventListener('mousedown', closeOnOutside)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutside)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [formatOpen])
+
+  return (
+    <article
+      className="editor-document"
+      data-sec="3"
+      aria-label="题单编辑区"
+      style={{
+        '--document-font-family': documentFormat.fontFamily === 'sans' ? 'var(--fx-font-body)' : documentFormat.fontFamily === 'kaiti' ? '"Kaiti SC", "STKaiti", serif' : '"Songti SC", "STSong", serif',
+        '--document-font-size': `${documentFormat.fontSize}px`,
+        '--document-line-height': documentFormat.lineHeight,
+        '--document-letter-spacing': `${documentFormat.letterSpacing}px`,
+      } as React.CSSProperties}
+    >
       <header className="editor-document-heading">
         <MetisInput
           value={props.document.title}
@@ -77,6 +176,27 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
           className="editor-title-input"
           aria-label="题单标题"
         />
+        <div className="editor-global-format" ref={formatRef}>
+          <MetisButton
+            type="bordered"
+            icon={<SlidersHorizontal size={15} />}
+            aria-haspopup="dialog"
+            aria-expanded={formatOpen}
+            onClick={() => setFormatOpen((open) => !open)}
+          >全局格式</MetisButton>
+          {formatOpen ? (
+            <div className="editor-global-format-popover" role="dialog" aria-label="题单全局格式设置">
+              <strong>全局格式</strong>
+              <p>统一调整当前题单内所有题目的正文样式。</p>
+              <div className="editor-global-format-grid">
+                <label>字体<select value={documentFormat.fontFamily} onChange={(event) => props.onDocumentFormatChange({ fontFamily: event.target.value as DocumentFormat['fontFamily'] })}><option value="serif">宋体</option><option value="sans">黑体</option><option value="kaiti">楷体</option></select></label>
+                <label>字号<select value={documentFormat.fontSize} onChange={(event) => props.onDocumentFormatChange({ fontSize: event.target.value as DocumentFormat['fontSize'] })}><option value="14">小五</option><option value="16">五号</option><option value="18">小四</option></select></label>
+                <label>行距<select value={documentFormat.lineHeight} onChange={(event) => props.onDocumentFormatChange({ lineHeight: event.target.value as DocumentFormat['lineHeight'] })}><option value="1.5">1.5</option><option value="1.7">1.7</option><option value="2">2.0</option></select></label>
+                <label>字距<select value={documentFormat.letterSpacing} onChange={(event) => props.onDocumentFormatChange({ letterSpacing: event.target.value as DocumentFormat['letterSpacing'] })}><option value="0">标准</option><option value="0.5">0.5</option><option value="1">1.0</option></select></label>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </header>
 
       {props.document.intro?.trim() ? (
@@ -84,16 +204,24 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
       ) : null}
 
       <div className="editor-question-list">
-        {props.document.questions.map((question, index) => {
+        {questionRows.map(({ question, index, sectionNumber }) => {
           const selected = question.id === props.selectedQuestionId
-          const questionStyle = questionStyles[question.id] ?? { fontFamily: 'serif', fontSize: '16', lineHeight: '1.7', letterSpacing: '0', bold: false, italic: false, underline: false }
-          const updateQuestionStyle = (key: 'fontFamily' | 'fontSize' | 'lineHeight' | 'letterSpacing' | 'bold' | 'italic' | 'underline', value: string | boolean) => {
+          const questionStyle = questionStyles[question.id] ?? { ...documentFormat, bold: false, italic: false, underline: false }
+          const updateQuestionStyle = <Key extends keyof QuestionStyle>(key: Key, value: QuestionStyle[Key]) => {
             setQuestionStyles((current) => ({ ...current, [question.id]: { ...questionStyle, [key]: value } }))
           }
           return (
+            <div className="editor-question-block" key={question.id}>
+            {sectionNumber ? (
+              <EditableSectionTitle
+                number={sectionNumber}
+                questionType={question.type}
+                value={props.document.sectionTitles?.[question.type] ?? question.type}
+                onCommit={props.onSectionTitleChange}
+              />
+            ) : null}
             <section
               id={`question-${question.id}`}
-              key={question.id}
               className={`editor-question${selected ? ' is-selected' : ''}`}
               onClick={() => props.onSelectQuestion(question.id)}
               onKeyDown={(event) => {
@@ -112,10 +240,10 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
               {selected ? (
                 <div className="editor-question-tools" onClick={(event) => event.stopPropagation()}>
                   <div className="editor-question-toolbar">
-                    <label className="question-format-control" title="字体"><select aria-label="题目字体" value={questionStyle.fontFamily} onChange={(event) => updateQuestionStyle('fontFamily', event.target.value)}><option value="serif">宋体</option><option value="sans">黑体</option><option value="kaiti">楷体</option></select></label>
-                    <label className="question-format-control" title="字号"><select aria-label="题目字号" value={questionStyle.fontSize} onChange={(event) => updateQuestionStyle('fontSize', event.target.value)}><option value="14">小</option><option value="16">标准</option><option value="18">大</option></select></label>
-                    <label className="question-format-control" title="行距"><select aria-label="题目行距" value={questionStyle.lineHeight} onChange={(event) => updateQuestionStyle('lineHeight', event.target.value)}><option value="1.5">1.5</option><option value="1.7">1.7</option><option value="2">2.0</option></select></label>
-                    <label className="question-format-control" title="字距"><select aria-label="题目字距" value={questionStyle.letterSpacing} onChange={(event) => updateQuestionStyle('letterSpacing', event.target.value)}><option value="0">0</option><option value="0.5">0.5</option><option value="1">1.0</option></select></label>
+                    <label className="question-format-control" title="字体"><select aria-label="题目字体" value={questionStyle.fontFamily} onChange={(event) => updateQuestionStyle('fontFamily', event.target.value as DocumentFormat['fontFamily'])}><option value="serif">宋体</option><option value="sans">黑体</option><option value="kaiti">楷体</option></select></label>
+                    <label className="question-format-control" title="字号"><select aria-label="题目字号" value={questionStyle.fontSize} onChange={(event) => updateQuestionStyle('fontSize', event.target.value as DocumentFormat['fontSize'])}><option value="14">小</option><option value="16">标准</option><option value="18">大</option></select></label>
+                    <label className="question-format-control" title="行距"><select aria-label="题目行距" value={questionStyle.lineHeight} onChange={(event) => updateQuestionStyle('lineHeight', event.target.value as DocumentFormat['lineHeight'])}><option value="1.5">1.5</option><option value="1.7">1.7</option><option value="2">2.0</option></select></label>
+                    <label className="question-format-control" title="字距"><select aria-label="题目字距" value={questionStyle.letterSpacing} onChange={(event) => updateQuestionStyle('letterSpacing', event.target.value as DocumentFormat['letterSpacing'])}><option value="0">0</option><option value="0.5">0.5</option><option value="1">1.0</option></select></label>
                     <span className="toolbar-divider" />
                     <button type="button" className={`question-inline-tool${questionStyle.bold ? ' is-active' : ''}`} onClick={() => updateQuestionStyle('bold', !questionStyle.bold)} aria-label="加粗" title="加粗"><Bold size={15} /></button>
                     <button type="button" className={`question-inline-tool${questionStyle.italic ? ' is-active' : ''}`} onClick={() => updateQuestionStyle('italic', !questionStyle.italic)} aria-label="斜体" title="斜体"><Italic size={15} /></button>
@@ -162,6 +290,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
                 </div>
               ) : null}
             </section>
+            </div>
           )
         })}
       </div>

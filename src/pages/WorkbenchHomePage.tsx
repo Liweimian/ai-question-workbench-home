@@ -10,7 +10,7 @@ import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
 import type { AddQuestionMode, MyResourceKind, SourceRecord } from '../prototype/types'
-import { BrainCircuit, FileText, House, PanelLeftClose, Sparkles, X } from 'lucide-react'
+import { BrainCircuit, FileText, House, PanelLeftClose, PanelRightOpen, Sparkles, X } from 'lucide-react'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
@@ -40,6 +40,7 @@ export function WorkbenchHomePage() {
   const assistantTabRef = useRef<HTMLButtonElement>(null)
   const [sortCollapsed, setSortCollapsed] = useState(false)
   const [sidePanelOpen, setSidePanelOpen] = useState(true)
+  const [draftCollapsed, setDraftCollapsed] = useState(false)
   const [openAddTabs, setOpenAddTabs] = useState<AddTabMode[]>([])
   const [libraryDetailTabs, setLibraryDetailTabs] = useState<LibraryDetailTab[]>([])
   const [activeLibraryDetailKey, setActiveLibraryDetailKey] = useState<string | null>(null)
@@ -229,11 +230,12 @@ export function WorkbenchHomePage() {
   }
 
   const collapseSidePanel = () => {
+    setDraftCollapsed(false)
     setSidePanelOpen(false)
   }
 
   const shellClassName = sidePanelOpen
-    ? 'workspace-shell is-split-source'
+    ? `workspace-shell is-split-source${draftCollapsed ? ' is-draft-collapsed' : ''}`
     : `workspace-shell is-focus-editor${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`
 
   return (
@@ -261,11 +263,18 @@ export function WorkbenchHomePage() {
               setAssistantTabOpen(false)
               setAssistantActive(false)
               setSidePanelOpen(true)
+              setDraftCollapsed(false)
             }}
             onSave={() => { void workbench.saveDocument() }}
             onAssign={() => { void workbench.assignDocument() }}
             sidePanelOpen={sidePanelOpen}
-            onSidePanelOpen={() => setSidePanelOpen(true)}
+            onSidePanelOpen={() => {
+              setSidePanelOpen(true)
+              setDraftCollapsed(false)
+            }}
+            draftCollapsed={draftCollapsed}
+            onDraftCollapse={() => setDraftCollapsed(true)}
+            onDraftExpand={() => setDraftCollapsed(false)}
           />
 
           <section className={shellClassName} aria-label="飞象AI题库编辑器">
@@ -280,7 +289,7 @@ export function WorkbenchHomePage() {
               />
             ) : null}
 
-            <div className={`editor-scroll${hasQuestions ? '' : ' is-empty'}`}>
+            {!draftCollapsed ? <div className={`editor-scroll${hasQuestions ? '' : ' is-empty'}`}>
               {!hasQuestions ? (
                 <EmptyCanvas
                   document={workbench.document}
@@ -306,11 +315,20 @@ export function WorkbenchHomePage() {
                   onMoveQuestion={workbench.moveQuestion}
                   onDeleteQuestion={workbench.deleteQuestion}
                   onQuestionChange={workbench.updateQuestion}
+                  onDocumentFormatChange={workbench.setDocumentFormat}
+                  onSectionTitleChange={workbench.setSectionTitle}
                   onAdd={openAdd}
                   onOpenAssistant={() => openAssistant()}
                 />
               )}
-            </div>
+            </div> : (
+              <aside className="draft-collapsed-rail" aria-label="题稿已收起">
+                <button type="button" onClick={() => setDraftCollapsed(false)} aria-label="展开题稿">
+                  <PanelRightOpen size={17} />
+                  <span>展开题稿</span>
+                </button>
+              </aside>
+            )}
 
             {sidePanelOpen ? (
               <div className="add-workspace" aria-label="添加题目多任务工作区">

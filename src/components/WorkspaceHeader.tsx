@@ -5,6 +5,7 @@ import {
   FilePlus2,
   LoaderCircle,
   MoreHorizontal,
+  PanelRightClose,
   PanelRightOpen,
   Save,
   Send,
@@ -29,6 +30,9 @@ interface WorkspaceHeaderProps {
   onAssign: () => void
   sidePanelOpen: boolean
   onSidePanelOpen: () => void
+  draftCollapsed: boolean
+  onDraftCollapse: () => void
+  onDraftExpand: () => void
 }
 
 export function WorkspaceHeader({
@@ -47,6 +51,9 @@ export function WorkspaceHeader({
   onAssign,
   sidePanelOpen,
   onSidePanelOpen,
+  draftCollapsed,
+  onDraftCollapse,
+  onDraftExpand,
 }: WorkspaceHeaderProps) {
   const hasQuestions = questionCount > 0
   const [assignOpen, setAssignOpen] = useState(false)
@@ -99,7 +106,17 @@ export function WorkspaceHeader({
   }
 
   return (
-    <header className={`fx-page-header workspace-header${sidePanelOpen ? ' is-split' : ''}`} data-sec="1">
+    <header className={`fx-page-header workspace-header${sidePanelOpen ? ' is-split' : ''}${draftCollapsed ? ' is-draft-collapsed' : ''}`} data-sec="1">
+      {draftCollapsed ? (
+        <MetisButton
+          type="borderless"
+          icon={<PanelRightOpen size={18} />}
+          aria-label="展开题稿"
+          title="展开题稿"
+          onClick={onDraftExpand}
+        />
+      ) : (
+      <>
       <div className="header-workbench-brand" aria-label="飞象AI题库">
         <span className="header-workbench-mark"><Sparkles size={17} /></span>
         <div><strong>飞象AI题库</strong></div>
@@ -109,6 +126,15 @@ export function WorkspaceHeader({
         </span>
       </div>
       <div className="header-actions">
+        {sidePanelOpen ? (
+          <MetisButton
+            type="borderless"
+            icon={<PanelRightClose size={17} />}
+            aria-label="收起题稿"
+            title="收起题稿，扩大左侧浏览区"
+            onClick={onDraftCollapse}
+          />
+        ) : null}
         {!sidePanelOpen ? (
           <MetisButton
             type="bordered"
@@ -170,6 +196,8 @@ export function WorkspaceHeader({
           ) : null}
         </div>
       </div>
+      </>
+      )}
     </header>
   )
 }
