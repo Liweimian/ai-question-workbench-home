@@ -5967,6 +5967,10 @@
 .add-workspace-tab > button:first-child {
   height: 100%;
   padding: 0 24px 0 14px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
 }
 
 .add-workspace-tab.is-detail > button:first-child {
@@ -6011,7 +6015,7 @@
 .add-workspace-tabs > button.is-active,
 .add-workspace-tab.is-active button:first-child {
   color: var(--fx-primary);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .add-workspace-tabs > button.is-active::after,
