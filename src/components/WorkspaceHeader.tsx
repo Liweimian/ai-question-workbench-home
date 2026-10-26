@@ -51,9 +51,9 @@ export function WorkspaceHeader({
 
   return (
     <header className={`fx-page-header workspace-header${sidePanelOpen ? ' is-split' : ''}`} data-sec="1">
-      <div className="header-workbench-brand" aria-label="飞象组题工作台">
+      <div className="header-workbench-brand" aria-label="飞象AI题库">
         <span className="header-workbench-mark"><Sparkles size={17} /></span>
-        <div><strong>飞象组题</strong><small>本地草稿</small></div>
+        <div><strong>飞象AI题库</strong></div>
         <span className="header-current-document">{documentTitle?.trim() || '未命名组题'}</span>
       </div>
       <div className="header-actions">

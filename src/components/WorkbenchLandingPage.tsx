@@ -54,7 +54,7 @@ export function WorkbenchLandingPage(props: WorkbenchLandingPageProps) {
       <header className="landing-header" data-sec="1">
         <div className="landing-brand">
           <span><Sparkles size={17} /></span>
-          <div><strong>飞象 AI 组题工作台</strong><small>初中数学 · 八年级上</small></div>
+          <div><strong>飞象AI题库</strong><small>初中数学 · 八年级上</small></div>
         </div>
         <div className="landing-actions">
           <MetisButton type="bordered" icon={<FolderHeart size={17} />} onClick={props.onOpenResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无">我的资源</MetisButton>

@@ -201,15 +201,12 @@ export function WorkbenchHomePage() {
   }
 
   const collapseSidePanel = () => {
-    setActiveLibraryDetailKey(null)
-    setAssistantActive(false)
-    workbench.closeAdd()
     setSidePanelOpen(false)
   }
 
   const shellClassName = sidePanelOpen
     ? 'workspace-shell is-split-source'
-    : `workspace-shell${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`
+    : `workspace-shell is-focus-editor${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`
 
   return (
     <div className="fx-app metis-theme-aiq">
@@ -235,7 +232,7 @@ export function WorkbenchHomePage() {
             onSidePanelOpen={() => setSidePanelOpen(true)}
           />
 
-          <section className={shellClassName} aria-label="飞象组题编辑器">
+          <section className={shellClassName} aria-label="飞象AI题库编辑器">
             {!sidePanelOpen && hasQuestions ? (
               <QuestionSortPanel
                 questions={workbench.document.questions}
@@ -280,9 +277,9 @@ export function WorkbenchHomePage() {
 
             {sidePanelOpen ? (
               <div className="add-workspace" aria-label="添加题目多任务工作区">
-                <div className="add-workspace-brand" aria-label="飞象组题">
+                <div className="add-workspace-brand" aria-label="飞象AI题库">
                   <span className="header-workbench-mark"><Sparkles size={16} /></span>
-                  <strong>飞象组题</strong>
+                  <strong>飞象AI题库</strong>
                 </div>
                 <nav className="add-workspace-tabs" aria-label="已打开的添加方式" role="tablist">
                   <button

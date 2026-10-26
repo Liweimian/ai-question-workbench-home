@@ -156,7 +156,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           className="empty-title-input"
           aria-label="题单标题"
         />
-        <span>{props.document.gradeSubject} · 0 道题</span>
         <ol className="empty-workflow-guide" aria-label="组题操作步骤">
           <li><b>1</b><span>确认题稿名称</span></li>
           <li className="is-current"><b>2</b><span>{props.sidePanelOpen ? '从左侧添加题目' : '打开添加题目'}</span></li>

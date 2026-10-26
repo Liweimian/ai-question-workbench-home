@@ -114,7 +114,6 @@
 .workspace-header.is-split .header-current-document {
   max-width: 92px;
   margin-left: 2px;
-  padding-left: 10px;
 }
 
 .workspace-header.is-split .header-actions {
@@ -193,9 +192,7 @@
 .header-current-document {
   max-width: 280px;
   margin-left: 8px;
-  padding-left: 18px;
   overflow: hidden;
-  border-left: 1px solid var(--fx-line-strong);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -6177,6 +6174,21 @@
   background-color: var(--fx-surface-muted);
   background-image: radial-gradient(var(--fx-line-subtle) 1px, transparent 1px);
   background-size: 28px 28px;
+}
+
+.workspace-shell.is-focus-editor .editor-scroll.is-empty {
+  padding: 28px 32px 48px;
+  background-color: var(--fx-surface-muted);
+  background-image: radial-gradient(var(--fx-line-subtle) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.workspace-shell.is-focus-editor .editor-empty {
+  width: min(100%, 980px);
+  min-height: calc(100vh - 136px);
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-card);
+  box-shadow: 0 8px 28px var(--common_shadow3_color);
 }
 
 .workspace-shell.is-split-source .editor-empty-heading {
