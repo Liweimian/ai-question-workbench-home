@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MetisButton } from '@yuanfudao/metis-web-component'
 import {
-  ArrowLeft,
   BrainCircuit,
   FilePenLine,
   Files,
@@ -115,18 +114,6 @@ export function SourceDrawer(props: SourceDrawerProps) {
       >
         <header className="add-question-header">
           <div className="add-question-title">
-            {docked && props.mode !== 'menu' ? (
-              <MetisButton
-                type="borderless"
-                icon={<ArrowLeft size={17} />}
-                className="add-question-back"
-                aria-label="返回添加题目"
-                onClick={props.onClose}
-                data-track="/click/aiQuestionHome/backCompositionHub | 返回添加题目 | 无"
-              >
-                添加题目
-              </MetisButton>
-            ) : null}
             <div className="add-question-heading-copy">
               <div data-picker-detail-nav className={libraryDetailOpen ? '' : 'is-hidden'} />
               {!libraryDetailOpen ? <h2>{modeTitles[props.mode]}</h2> : null}

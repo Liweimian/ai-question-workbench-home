@@ -7,6 +7,18 @@ import { EmptyCanvas } from '../components/EmptyCanvas'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
+import type { AddQuestionMode } from '../prototype/types'
+import { X } from 'lucide-react'
+
+const addTabLabels: Record<Exclude<AddQuestionMode, 'menu'>, string> = {
+  resource: '飞象题库',
+  school: '校本题库',
+  upload: '上传录题',
+  compose: 'AI 组题',
+  create: 'AI 出题',
+  personalized: '个性化练习',
+  manual: '手工录入',
+}
 
 export function WorkbenchHomePage() {
   const workbench = useWorkbench()
@@ -14,6 +26,7 @@ export function WorkbenchHomePage() {
   const [quickAiOpen, setQuickAiOpen] = useState(false)
   const [sortCollapsed, setSortCollapsed] = useState(false)
   const [sidePanelOpen, setSidePanelOpen] = useState(true)
+  const [openAddTabs, setOpenAddTabs] = useState<Array<Exclude<AddQuestionMode, 'menu'>>>([])
   const hasQuestions = workbench.document.questions.length > 0
 
   useEffect(() => {
@@ -39,7 +52,21 @@ export function WorkbenchHomePage() {
   ) => {
     setSidePanelOpen(true)
     setQuickAiOpen(false)
+    if (mode !== 'menu') {
+      setOpenAddTabs((current) => current.includes(mode) ? current : [...current, mode])
+    }
     workbench.openAdd(mode, options)
+  }
+
+  const activateAddHome = () => {
+    setSidePanelOpen(true)
+    setQuickAiOpen(false)
+    workbench.closeAdd()
+  }
+
+  const closeAddTab = (mode: Exclude<AddQuestionMode, 'menu'>) => {
+    setOpenAddTabs((current) => current.filter((item) => item !== mode))
+    if (workbench.isAddOpen && workbench.addMode === mode) workbench.closeAdd()
   }
 
   const collapseSidePanel = () => {
@@ -47,12 +74,8 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(false)
   }
 
-  const libraryPanelOpen = sidePanelOpen
-    && workbench.isAddOpen
-    && (workbench.addMode === 'resource' || workbench.addMode === 'school')
-
   const shellClassName = sidePanelOpen
-    ? `workspace-shell is-split-source${libraryPanelOpen ? ' is-library-expanded' : ''}`
+    ? 'workspace-shell is-split-source'
     : `workspace-shell${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`
 
   return (
@@ -127,7 +150,30 @@ export function WorkbenchHomePage() {
             </div>
 
             {sidePanelOpen ? (
-              workbench.isAddOpen ? (
+              <div className="add-workspace" aria-label="添加题目多任务工作区">
+                <nav className="add-workspace-tabs" aria-label="已打开的添加方式">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={!workbench.isAddOpen}
+                    className={!workbench.isAddOpen ? 'is-active' : ''}
+                    onClick={activateAddHome}
+                  >添加题目</button>
+                  {openAddTabs.map((mode) => (
+                    <span className={`add-workspace-tab${workbench.isAddOpen && workbench.addMode === mode ? ' is-active' : ''}`} key={mode}>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={workbench.isAddOpen && workbench.addMode === mode}
+                        onClick={() => openAdd(mode)}
+                      >{addTabLabels[mode]}</button>
+                      <button type="button" className="add-workspace-tab-close" aria-label={`关闭${addTabLabels[mode]}`} onClick={() => closeAddTab(mode)}>
+                        <X size={13} />
+                      </button>
+                    </span>
+                  ))}
+                </nav>
+                {workbench.isAddOpen ? (
                 <SourceDrawer
                   presentation="docked"
                   mode={workbench.addMode}
@@ -155,7 +201,7 @@ export function WorkbenchHomePage() {
                   onUpload={() => void workbench.recognizeUpload()}
                   onPersonalize={() => void workbench.personalizeFromUpload()}
                   onAddManual={() => void workbench.addManualQuestion()}
-                  onClose={workbench.closeAdd}
+                  onClose={activateAddHome}
                 />
               ) : (
                 <CompositionHub
@@ -173,7 +219,8 @@ export function WorkbenchHomePage() {
                   onCompose={() => void workbench.composeFromBank()}
                   onCollapse={collapseSidePanel}
                 />
-              )
+              )}
+              </div>
             ) : hasQuestions ? (
               <QuestionInspector
                 document={workbench.document}
