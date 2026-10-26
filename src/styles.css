@@ -4001,6 +4001,10 @@
   flex-direction: column;
 }
 
+.library-picker.is-behind-detail {
+  display: none;
+}
+
 .library-resource-tabs {
   display: grid;
   flex: 0 0 auto;
@@ -5357,6 +5361,10 @@
   white-space: nowrap;
 }
 
+.legacy-workbook-directory.has-no-back > h2 {
+  margin-top: 0;
+}
+
 .legacy-directory-tree section + section {
   margin-top: 6px;
 }
@@ -5987,6 +5995,20 @@
 .add-workspace-tab > button:first-child {
   height: 100%;
   padding: 0 24px 0 14px;
+}
+
+.add-workspace-tab.is-detail > button:first-child {
+  display: inline-flex;
+  max-width: 180px;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-workspace-tab.is-detail > button:first-child > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .add-workspace-tab-close {

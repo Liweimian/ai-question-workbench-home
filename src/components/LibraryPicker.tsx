@@ -29,8 +29,10 @@ interface LibraryPickerProps {
   addStatus: AsyncStatus
   contentBusy: boolean
   showAll?: boolean
+  detailRecord?: SourceRecord | null
   onShowAllChange?: (showAll: boolean) => void
   onDetailChange?: (open: boolean) => void
+  onOpenDetail?: (record: SourceRecord) => void
   onResourceTypeChange: (type: ResourceType) => void
   onAddSource: (type: ResourceType, sourceId: string, count: number) => void
 }
@@ -117,6 +119,7 @@ interface LegacyResourceDetailProps {
   showAnswers: boolean
   contentBusy: boolean
   addStatus: AsyncStatus
+  showReturnNavigation: boolean
   onReturnHome: () => void
   onToggleAnswers: () => void
   onToggleQuestion: (questionId: string) => void
@@ -150,8 +153,8 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
       </header> : null}
       <div className={`legacy-detail-stage${props.record.sourceType === 'workbook' ? ' has-directory' : ''}`}>
         {props.record.sourceType === 'workbook' ? (
-          <aside className="legacy-workbook-directory" aria-label={`${props.record.title}目录`}>
-            <button type="button" className="legacy-workbook-back" onClick={props.onReturnHome}><ArrowLeft size={15} />返回练习册</button>
+          <aside className={`legacy-workbook-directory${props.showReturnNavigation ? '' : ' has-no-back'}`} aria-label={`${props.record.title}目录`}>
+            {props.showReturnNavigation ? <button type="button" className="legacy-workbook-back" onClick={props.onReturnHome}><ArrowLeft size={15} />返回练习册</button> : null}
             <h2>{props.record.title}</h2>
             <div className="legacy-directory-tree" role="tree" aria-label="教材章节目录">
               {workbookDirectory.map((chapter, chapterIndex) => (
@@ -231,7 +234,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const [sort, setSort] = useState<'recommended' | 'latest'>('recommended')
   const [category, setCategory] = useState('全部资源')
   const [chapterNode, setChapterNode] = useState('4.1 函数')
-  const [detailRecord, setDetailRecord] = useState<SourceRecord | null>(() => (
+  const [internalDetailRecord, setInternalDetailRecord] = useState<SourceRecord | null>(() => (
     detailResourceId ? allSourceRecords.find((record) => record.id === detailResourceId) ?? null : null
   ))
   const [showAnswers, setShowAnswers] = useState(false)
@@ -239,13 +242,17 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const [pickerDetailNavHost, setPickerDetailNavHost] = useState<HTMLElement | null>(null)
   const [favorites, setFavorites] = useState<Set<string>>(new Set(['paper-2']))
   const [pinned, setPinned] = useState<Set<string>>(new Set())
+  const detailControlled = props.detailRecord !== undefined
+  const detailRecord = detailControlled ? props.detailRecord ?? null : internalDetailRecord
 
   useEffect(() => {
     setKeyword('')
     setCategory('全部资源')
-    setDetailRecord(detailResourceId ? allSourceRecords.find((record) => record.id === detailResourceId) ?? null : null)
+    if (!detailControlled) {
+      setInternalDetailRecord(detailResourceId ? allSourceRecords.find((record) => record.id === detailResourceId) ?? null : null)
+    }
     setShowAnswers(false)
-  }, [detailResourceId, isAll, props.libraryKind, props.resourceType])
+  }, [detailControlled, detailResourceId, isAll, props.libraryKind, props.resourceType])
 
   useEffect(() => {
     if (variant === 'dialog') {
@@ -274,7 +281,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
   }, [detailRecord, props.onDetailChange])
 
   useEffect(() => {
-    if (variant !== 'dialog' || !detailRecord) {
+    if (variant !== 'dialog' || !detailRecord || detailControlled) {
       setPickerDetailNavHost(null)
       return undefined
     }
@@ -282,7 +289,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
       setPickerDetailNavHost(document.querySelector<HTMLElement>('[data-picker-detail-nav]'))
     })
     return () => window.cancelAnimationFrame(frame)
-  }, [detailRecord, variant])
+  }, [detailControlled, detailRecord, variant])
 
   const visibleRecords = useMemo(() => {
     const normalized = keyword.trim().toLowerCase()
@@ -307,7 +314,8 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
   const openRecord = (record: SourceRecord) => {
     if (variant === 'dialog') {
-      setDetailRecord(record)
+      if (props.onOpenDetail) props.onOpenDetail(record)
+      else setInternalDetailRecord(record)
       return
     }
     const targetUrl = new URL(window.location.href)
@@ -340,12 +348,12 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const addQuestionImmediately = (questionId: string) => {
     if (selectedQuestionIds.has(questionId) || props.contentBusy) return
     setSelectedQuestionIds((current) => new Set([...current, questionId]))
-    props.onAddSource(props.resourceType, 'picker-selection', 1)
+    props.onAddSource(detailRecord?.sourceType ?? props.resourceType, 'picker-selection', 1)
   }
 
   const pickerDetailNav = variant === 'dialog' && detailRecord && pickerDetailNavHost ? createPortal(
     <div className="picker-detail-header-nav">
-      <button type="button" onClick={() => setDetailRecord(null)}>{props.libraryKind === 'fly' ? '飞象题库' : '校本题库'}</button>
+      <button type="button" onClick={() => setInternalDetailRecord(null)}>{props.libraryKind === 'fly' ? '飞象题库' : '校本题库'}</button>
       <i>/</i>
       <span>{resourceTypeLabels[detailRecord.sourceType]}</span>
       <i>/</i>
@@ -354,11 +362,18 @@ export function LibraryPicker(props: LibraryPickerProps) {
     pickerDetailNavHost,
   ) : null
 
-  if (detailRecord) {
-    return (
-      <>
+  const hasSidebar = props.resourceType !== 'workbook'
+    && (variant === 'dialog' || props.resourceType === 'sync' || props.resourceType === 'special')
+  const groups = props.resourceType === 'workbook' ? [] : categoryGroups[props.resourceType]
+  const visibleSourceOptions = variant === 'dialog' && props.libraryKind === 'school'
+    ? sourceOptions.filter((option) => option.type === 'paper' || option.type === 'workbook')
+    : sourceOptions
+
+  const detailView = detailRecord ? (
+    <>
       {pickerDetailNav}
       <LegacyResourceDetail
+        key={detailRecord.id}
         record={detailRecord}
         embedded={variant === 'dialog'}
         questions={previewQuestions}
@@ -367,9 +382,10 @@ export function LibraryPicker(props: LibraryPickerProps) {
         showAnswers={showAnswers}
         contentBusy={props.contentBusy}
         addStatus={props.addStatus}
+        showReturnNavigation={!detailControlled}
         onReturnHome={() => {
           if (variant === 'dialog') {
-            setDetailRecord(null)
+            setInternalDetailRecord(null)
           } else {
             const homeUrl = new URL(window.location.href)
             homeUrl.searchParams.delete('resource')
@@ -378,9 +394,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
           }
         }}
         onToggleAnswers={() => setShowAnswers((current) => !current)}
-        onToggleQuestion={(questionId) => {
-          addQuestionImmediately(questionId)
-        }}
+        onToggleQuestion={addQuestionImmediately}
         onUseAll={() => {
           if (variant === 'dialog') {
             const unaddedQuestions = previewQuestions.filter((question) => !selectedQuestionIds.has(question.id))
@@ -395,19 +409,13 @@ export function LibraryPicker(props: LibraryPickerProps) {
           props.onAddSource(detailRecord.sourceType, detailRecord.id, previewQuestions.length)
         }}
       />
-      </>
-    )
-  }
-
-  const hasSidebar = props.resourceType !== 'workbook'
-    && (variant === 'dialog' || props.resourceType === 'sync' || props.resourceType === 'special')
-  const groups = props.resourceType === 'workbook' ? [] : categoryGroups[props.resourceType]
-  const visibleSourceOptions = variant === 'dialog' && props.libraryKind === 'school'
-    ? sourceOptions.filter((option) => option.type === 'paper' || option.type === 'workbook')
-    : sourceOptions
+    </>
+  ) : null
 
   return (
-    <div className={`library-picker ${variant === 'home' ? 'is-home' : 'is-dialog'}`}>
+    <>
+    {detailView}
+    <div className={`library-picker ${variant === 'home' ? 'is-home' : 'is-dialog'}${detailRecord ? ' is-behind-detail' : ''}`} aria-hidden={Boolean(detailRecord)}>
       {variant === 'dialog' ? <nav className="library-resource-tabs" aria-label="题库资源类型" role="tablist">
         {visibleSourceOptions.map((option) => {
           const Icon = resourceIcons[option.type]
@@ -515,7 +523,12 @@ export function LibraryPicker(props: LibraryPickerProps) {
               <div className={`library-record-grid library-record-grid--${isAll ? 'all' : props.resourceType}`}>
                 {visibleRecords.map((record) => (
                   <article className="library-resource-card" key={record.id}>
-                    <button type="button" className="library-card-main" onClick={() => openRecord(record)}>
+                    <button
+                      type="button"
+                      className="library-card-main"
+                      onClick={() => openRecord(record)}
+                      data-track="/click/aiQuestionHome/openResourceDetail | 打开资源详情 | resourceId#STRING"
+                    >
                       <span className="library-card-copy">
                         <span className="library-card-tags">
                           {getResourceCardTags(record).map((tag) => <em key={tag}>{tag}</em>)}
@@ -540,5 +553,6 @@ export function LibraryPicker(props: LibraryPickerProps) {
         </main>
       </div>}
     </div>
+    </>
   )
 }

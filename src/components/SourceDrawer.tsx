@@ -35,9 +35,11 @@ interface SourceDrawerProps {
   createError: string
   createStatus: AsyncStatus
   createPreview: Question[]
+  libraryDetail?: SourceRecord | null
   onModeChange: (mode: AddQuestionMode) => void
   onResourceTypeChange: (type: ResourceType) => void
   onAddSource: (type: ResourceType, sourceId?: string, count?: number) => void
+  onOpenLibraryDetail?: (record: SourceRecord) => void
   onCreateConfigChange: (value: CreateQuestionRequest) => void
   onCreate: (requestOverride?: CreateQuestionRequest) => void
   onAddCreated: () => void
@@ -168,7 +170,9 @@ export function SourceDrawer(props: SourceDrawerProps) {
               listStatus={props.listStatus}
               addStatus={props.addStatus}
               contentBusy={props.contentBusy}
+              detailRecord={docked ? props.libraryDetail : undefined}
               onDetailChange={setLibraryDetailOpen}
+              onOpenDetail={docked ? props.onOpenLibraryDetail : undefined}
               onResourceTypeChange={props.onResourceTypeChange}
               onAddSource={(type, sourceId, count) => props.onAddSource(type, sourceId, count)}
             />
