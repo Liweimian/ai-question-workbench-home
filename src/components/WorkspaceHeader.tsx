@@ -72,6 +72,7 @@ export function WorkspaceHeader({
     () => histories.filter((item) => item.id !== documentId).slice(0, 5),
     [documentId, histories],
   )
+  const hasPersistedDraft = histories.some((item) => item.id === documentId)
 
   const syncLabel = syncState === 'saving'
     ? '正在保存…'
@@ -85,7 +86,9 @@ export function WorkspaceHeader({
             ? '题单已保存'
             : syncState === 'saved'
               ? '草稿已自动保存'
-              : '尚未保存'
+              : hasPersistedDraft
+                ? '草稿已保存'
+                : '尚未保存'
 
   useEffect(() => {
     if (!recentOpen && !assignOpen && !moreOpen) return
