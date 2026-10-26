@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { ArrowDown, ArrowUp, Bold, GripVertical, Italic, Omega, Radical, Send, SlidersHorizontal, Sparkles, Trash2, Underline } from 'lucide-react'
+import { ArrowDown, ArrowUp, Bold, GripVertical, Italic, Omega, Radical, Send, Sparkles, Trash2, Underline } from 'lucide-react'
 import { defaultDocumentFormat } from '../prototype/types'
 import type { AddQuestionMode, DocumentFormat, QuestionPatch, QuestionType, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
+import { DocumentFormatToolbar } from './DocumentFormatToolbar'
 
 interface DocumentCanvasProps {
   document: WorkbenchDocument
@@ -125,8 +126,6 @@ function EditableSectionTitle({ number, questionType, value, onCommit }: Editabl
 export function DocumentCanvas(props: DocumentCanvasProps) {
   const [questionStyles, setQuestionStyles] = useState<Record<string, QuestionStyle>>({})
   const [editRequirement, setEditRequirement] = useState('')
-  const [formatOpen, setFormatOpen] = useState(false)
-  const formatRef = useRef<HTMLDivElement>(null)
   const documentFormat = { ...defaultDocumentFormat, ...props.document.format }
   const questionRows = useMemo(() => {
     let sectionNumber = 0
@@ -141,22 +140,6 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
     setQuestionStyles({})
   }, [props.document.format, props.document.id])
 
-  useEffect(() => {
-    if (!formatOpen) return
-    const closeOnOutside = (event: MouseEvent) => {
-      if (!formatRef.current?.contains(event.target as Node)) setFormatOpen(false)
-    }
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setFormatOpen(false)
-    }
-    document.addEventListener('mousedown', closeOnOutside)
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.removeEventListener('mousedown', closeOnOutside)
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [formatOpen])
-
   return (
     <article
       className="editor-document"
@@ -166,6 +149,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
         '--document-font-family': documentFormat.fontFamily === 'sans' ? 'var(--fx-font-body)' : documentFormat.fontFamily === 'kaiti' ? '"Kaiti SC", "STKaiti", serif' : '"Songti SC", "STSong", serif',
         '--document-font-size': `${documentFormat.fontSize}px`,
         '--document-line-height': documentFormat.lineHeight,
+        '--document-paragraph-spacing': documentFormat.paragraphSpacing,
         '--document-letter-spacing': `${documentFormat.letterSpacing}px`,
       } as React.CSSProperties}
     >
@@ -176,27 +160,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
           className="editor-title-input"
           aria-label="题单标题"
         />
-        <div className="editor-global-format" ref={formatRef}>
-          <MetisButton
-            type="bordered"
-            icon={<SlidersHorizontal size={15} />}
-            aria-haspopup="dialog"
-            aria-expanded={formatOpen}
-            onClick={() => setFormatOpen((open) => !open)}
-          >全局格式</MetisButton>
-          {formatOpen ? (
-            <div className="editor-global-format-popover" role="dialog" aria-label="题单全局格式设置">
-              <strong>全局格式</strong>
-              <p>统一调整当前题单内所有题目的正文样式。</p>
-              <div className="editor-global-format-grid">
-                <label>字体<select value={documentFormat.fontFamily} onChange={(event) => props.onDocumentFormatChange({ fontFamily: event.target.value as DocumentFormat['fontFamily'] })}><option value="serif">宋体</option><option value="sans">黑体</option><option value="kaiti">楷体</option></select></label>
-                <label>字号<select value={documentFormat.fontSize} onChange={(event) => props.onDocumentFormatChange({ fontSize: event.target.value as DocumentFormat['fontSize'] })}><option value="14">小五</option><option value="16">五号</option><option value="18">小四</option></select></label>
-                <label>行距<select value={documentFormat.lineHeight} onChange={(event) => props.onDocumentFormatChange({ lineHeight: event.target.value as DocumentFormat['lineHeight'] })}><option value="1.5">1.5</option><option value="1.7">1.7</option><option value="2">2.0</option></select></label>
-                <label>字距<select value={documentFormat.letterSpacing} onChange={(event) => props.onDocumentFormatChange({ letterSpacing: event.target.value as DocumentFormat['letterSpacing'] })}><option value="0">标准</option><option value="0.5">0.5</option><option value="1">1.0</option></select></label>
-              </div>
-            </div>
-          ) : null}
-        </div>
+        <DocumentFormatToolbar value={documentFormat} onChange={props.onDocumentFormatChange} />
       </header>
 
       {props.document.intro?.trim() ? (

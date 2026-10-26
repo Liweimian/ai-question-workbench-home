@@ -9,6 +9,7 @@ import { MyResourcesPanel } from '../components/MyResourcesPanel'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
+import { defaultDocumentFormat } from '../prototype/types'
 import type { AddQuestionMode, MyResourceKind, SourceRecord } from '../prototype/types'
 import { BrainCircuit, FileText, House, PanelLeftClose, PanelRightOpen, Sparkles, X } from 'lucide-react'
 
@@ -237,6 +238,10 @@ export function WorkbenchHomePage() {
   const shellClassName = sidePanelOpen
     ? `workspace-shell is-split-source${draftCollapsed ? ' is-draft-collapsed' : ''}`
     : `workspace-shell is-focus-editor${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`
+  const documentFormat = { ...defaultDocumentFormat, ...workbench.document.format }
+  const hasCustomDocumentFormat = Object.entries(defaultDocumentFormat).some(
+    ([key, value]) => documentFormat[key as keyof typeof documentFormat] !== value,
+  )
 
   return (
     <div className="fx-app metis-theme-aiq">
@@ -245,7 +250,7 @@ export function WorkbenchHomePage() {
           <WorkspaceHeader
             documentTitle={workbench.document.title}
             questionCount={workbench.document.questions.length}
-            canSave={workbench.document.questions.length > 0 || Boolean(workbench.document.intro?.trim()) || !['未命名组题', '未命名题单'].includes(workbench.document.title.trim())}
+            canSave={workbench.document.questions.length > 0 || Boolean(workbench.document.intro?.trim()) || hasCustomDocumentFormat || !['未命名组题', '未命名题单'].includes(workbench.document.title.trim())}
             canUndo={workbench.canUndo && !workbench.isContentBusy}
             contentBusy={workbench.isContentBusy}
             documentStatus={workbench.documentStatus}
@@ -296,6 +301,7 @@ export function WorkbenchHomePage() {
                   sidePanelOpen={sidePanelOpen}
                   onTitleChange={workbench.setTitle}
                   onIntroChange={workbench.setIntro}
+                  onDocumentFormatChange={workbench.setDocumentFormat}
                   onOpenAssistant={openAssistant}
                   onOpenAdd={openAdd}
                 />

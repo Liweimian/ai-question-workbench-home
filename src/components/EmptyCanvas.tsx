@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
 import { Bold, ChevronDown, Heading2, Italic, Send, Sparkles, Strikethrough, Underline } from 'lucide-react'
-import type { AddQuestionMode, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
+import { defaultDocumentFormat } from '../prototype/types'
+import type { AddQuestionMode, DocumentFormat, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
+import { DocumentFormatToolbar } from './DocumentFormatToolbar'
 
 interface EmptyCanvasProps {
   document: WorkbenchDocument
   sidePanelOpen?: boolean
   onTitleChange: (title: string) => void
   onIntroChange: (intro: string) => void
+  onDocumentFormatChange: (patch: Partial<DocumentFormat>) => void
   onOpenAssistant: (prompt?: string) => void
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
 }
@@ -120,6 +123,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           className="empty-title-input"
           aria-label="题单标题"
         />
+        <DocumentFormatToolbar value={{ ...defaultDocumentFormat, ...props.document.format }} onChange={props.onDocumentFormatChange} />
       </header>
 
       <div className="editor-empty-content">

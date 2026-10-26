@@ -84,6 +84,9 @@ const isUntouchedBlankDocument = (document: WorkbenchDocument) => (
   document.questions.length === 0
   && !document.intro?.trim()
   && ['未命名组题', '未命名题单'].includes(document.title.trim())
+  && Object.entries(defaultDocumentFormat).every(
+    ([key, value]) => ({ ...defaultDocumentFormat, ...document.format })[key as keyof DocumentFormat] === value,
+  )
 )
 
 const toHistorySummary = (

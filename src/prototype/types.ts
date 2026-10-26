@@ -18,6 +18,7 @@ export interface DocumentFormat {
   fontFamily: 'serif' | 'sans' | 'kaiti'
   fontSize: '14' | '16' | '18'
   lineHeight: '1.5' | '1.7' | '2'
+  paragraphSpacing: '1' | '1.5' | '2'
   letterSpacing: '0' | '0.5' | '1'
 }
 
@@ -25,6 +26,7 @@ export const defaultDocumentFormat: DocumentFormat = {
   fontFamily: 'serif',
   fontSize: '16',
   lineHeight: '1.7',
+  paragraphSpacing: '1.5',
   letterSpacing: '0',
 }
 
