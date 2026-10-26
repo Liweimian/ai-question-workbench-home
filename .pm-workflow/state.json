@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-26T23:59:00+08:00",
-      "iterationCount": 98,
+      "iterationCount": 99,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -507,6 +507,11 @@
       "stage": 1,
       "hash": "e12639e",
       "message": "Stage 1: clarify onboarding copy and balance workspace - iteration 98"
+    },
+    {
+      "stage": 1,
+      "hash": "9e1a7ed",
+      "message": "Stage 1: remove focus-mode quick start - iteration 99"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
