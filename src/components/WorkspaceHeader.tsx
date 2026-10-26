@@ -126,15 +126,6 @@ export function WorkspaceHeader({
         </span>
       </div>
       <div className="header-actions">
-        {sidePanelOpen ? (
-          <MetisButton
-            type="borderless"
-            icon={<PanelRightClose size={17} />}
-            aria-label="收起题稿"
-            title="收起题稿，扩大左侧浏览区"
-            onClick={onDraftCollapse}
-          />
-        ) : null}
         {!sidePanelOpen ? (
           <MetisButton
             type="bordered"
@@ -195,6 +186,15 @@ export function WorkspaceHeader({
             </div>
           ) : null}
         </div>
+        {sidePanelOpen ? (
+          <MetisButton
+            type="borderless"
+            icon={<PanelRightClose size={17} />}
+            aria-label="收起题稿"
+            title="收起题稿，扩大左侧浏览区"
+            onClick={onDraftCollapse}
+          />
+        ) : null}
       </div>
       </>
       )}
