@@ -77,7 +77,7 @@
   right: 0;
   left: var(--workspace-space-width);
   width: auto;
-  height: 48px;
+  height: 42px;
   padding: 0 16px;
   display: flex;
   align-items: center;
@@ -1306,7 +1306,7 @@
 }
 
 .question-inspector {
-  margin-top: 48px;
+  margin-top: 42px;
   border-left: 1px solid var(--fx-line-strong);
 }
 
@@ -1325,7 +1325,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  height: 48px;
+  height: 42px;
   padding: 0 10px 0 12px;
   flex: 0 0 auto;
   border-bottom: 1px solid var(--fx-line-strong);
@@ -1895,7 +1895,7 @@
 .editor-scroll {
   min-width: 0;
   min-height: 0;
-  margin-top: 48px;
+  margin-top: 42px;
   padding: 28px 16px 72px;
   overflow: auto;
   background: var(--fx-surface-muted);
@@ -4689,7 +4689,7 @@
   display: flex;
   min-width: 0;
   min-height: 0;
-  margin-top: 48px;
+  margin-top: 42px;
   padding: 18px 12px 28px;
   overflow: auto;
   flex-direction: column;
@@ -6003,7 +6003,7 @@
   display: flex;
   min-width: 0;
   min-height: 0;
-  margin-top: 48px;
+  margin-top: 42px;
   grid-column: 2;
   grid-row: 1;
   align-items: flex-start;
@@ -6042,7 +6042,7 @@
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-rows: 48px minmax(0, 1fr);
+  grid-template-rows: 42px minmax(0, 1fr);
   height: 100vh;
   margin-top: 0;
   background: var(--common_bg2_color);
@@ -6070,7 +6070,7 @@
   z-index: 2;
   top: 0;
   left: 16px;
-  height: 48px;
+  height: 42px;
   align-items: center;
   gap: 8px;
 }
@@ -6112,7 +6112,7 @@
 .add-workspace-tabs > button,
 .add-workspace-tab {
   position: relative;
-  height: 47px;
+  height: 41px;
   flex: 0 0 auto;
 }
 
@@ -6185,7 +6185,7 @@
 
 .add-workspace-tab-close {
   position: absolute;
-  top: 15px;
+  top: 12px;
   right: 7px;
   display: grid;
   width: 18px;

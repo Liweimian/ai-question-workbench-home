@@ -111,8 +111,8 @@ export function WorkspaceHeader({
         <MetisButton
           type="borderless"
           icon={<PanelRightOpen size={18} />}
-          aria-label="展开题稿"
-          title="展开题稿"
+          aria-label="展开组题画布"
+          title="展开组题画布"
           onClick={onDraftExpand}
         />
       ) : (
@@ -130,9 +130,11 @@ export function WorkspaceHeader({
           <MetisButton
             type="bordered"
             icon={<PanelRightOpen size={17} />}
+            aria-label="展开题库选题"
+            title="展开题库选题"
             onClick={onSidePanelOpen}
             data-track="/click/aiQuestionHome/openCompositionHub | 打开添加题目工作区 | 无"
-          >添加题目</MetisButton>
+          >展开题库选题</MetisButton>
         ) : null}
         <MetisButton
           type="borderless"
@@ -190,8 +192,8 @@ export function WorkspaceHeader({
           <MetisButton
             type="borderless"
             icon={<PanelRightClose size={17} />}
-            aria-label="收起题稿"
-            title="收起题稿，扩大左侧浏览区"
+            aria-label="收起组题画布"
+            title="收起组题画布，扩大左侧浏览区"
             onClick={onDraftCollapse}
           />
         ) : null}

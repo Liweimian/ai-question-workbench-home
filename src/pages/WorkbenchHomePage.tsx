@@ -339,10 +339,10 @@ export function WorkbenchHomePage() {
                 />
               )}
             </div> : (
-              <aside className="draft-collapsed-rail" aria-label="题稿已收起">
-                <button type="button" onClick={() => setDraftCollapsed(false)} aria-label="展开题稿">
+              <aside className="draft-collapsed-rail" aria-label="组题画布已收起">
+                <button type="button" onClick={() => setDraftCollapsed(false)} aria-label="展开组题画布" title="展开组题画布">
                   <PanelRightOpen size={17} />
-                  <span>展开题稿</span>
+                  <span>组题画布</span>
                 </button>
               </aside>
             )}
