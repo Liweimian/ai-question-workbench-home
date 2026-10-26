@@ -4,6 +4,7 @@ import { blankDocument } from '../data/workbenchData'
 import type {
   AddQuestionMode,
   AsyncStatus,
+  CreateQuestionRequest,
   HistoryDocumentSummary,
   InspectorView,
   LibraryInitialView,
@@ -17,6 +18,18 @@ import type {
 import { workbenchRepository } from '../services/workbenchRepository'
 
 type ContentOperation = 'source-add' | 'upload' | 'personalized' | 'compose' | 'create' | 'manual' | 'history-load'
+
+const defaultCreateConfig: CreateQuestionRequest = {
+  method: '知识点组合出题',
+  difficulty: '中等',
+  textbook: '人教版 · 八年级上册',
+  chapter: '第四章 一次函数',
+  allocations: [
+    { id: 'concept', knowledgePoint: '一次函数的概念', count: 2 },
+    { id: 'image', knowledgePoint: '一次函数的图象与性质', count: 2 },
+    { id: 'application', knowledgePoint: '一次函数的实际应用', count: 1 },
+  ],
+}
 
 interface EditorState {
   document: WorkbenchDocument
@@ -169,10 +182,11 @@ export function useWorkbench() {
   const [composePrompt, setComposePrompt] = useState('')
   const [composeError, setComposeError] = useState('')
   const [composeStatus, setComposeStatus] = useState<AsyncStatus>('idle')
-  const [createPrompt, setCreatePrompt] = useState('')
+  const [createConfig, setCreateConfig] = useState<CreateQuestionRequest>(defaultCreateConfig)
   const [createError, setCreateError] = useState('')
   const [createStatus, setCreateStatus] = useState<AsyncStatus>('idle')
   const [createPreview, setCreatePreview] = useState<Question[]>([])
+  const [createTargetDocumentId, setCreateTargetDocumentId] = useState<string | null>(null)
   const [rewriteStatus, setRewriteStatus] = useState<AsyncStatus>('idle')
   const [rewritePreview, setRewritePreview] = useState<Question | null>(null)
   const [rewriteTargetQuestionId, setRewriteTargetQuestionId] = useState<string | null>(null)
@@ -180,6 +194,7 @@ export function useWorkbench() {
   const contentOperationRef = useRef<ContentOperation | null>(null)
   const sourceRequestIdRef = useRef(0)
   const historyRequestIdRef = useRef(0)
+  const createRequestIdRef = useRef(0)
   const rewriteRequestIdRef = useRef(0)
   const sessionDocumentsRef = useRef(new Map<string, WorkbenchDocument>())
 
@@ -284,7 +299,6 @@ export function useWorkbench() {
     setIsAddOpen(false)
     setAddModeState('menu')
     setLibraryInitialView(undefined)
-    setCreatePreview([])
   }, [])
 
   const appendQuestions = useCallback((questions: Question[], message: string, closeWhenEmpty = true) => {
@@ -367,34 +381,65 @@ export function useWorkbench() {
     }
   }, [appendQuestions, beginContentOperation, composePrompt, finishContentOperation])
 
-  const createQuestions = useCallback(async () => {
-    const value = createPrompt.trim()
-    if (!value) {
-      setCreateError('请描述希望 AI 原创的题目')
+  const createQuestions = useCallback(async (requestOverride?: CreateQuestionRequest) => {
+    const request = requestOverride ?? createConfig
+    const total = request.allocations.reduce((sum, item) => sum + item.count, 0)
+    if (total === 0) {
+      setCreateError('请至少为一个知识点设置题量')
+      return
+    }
+    if (total > 12) {
+      setCreateError('单次最多生成 12 道题')
       return
     }
     if (!beginContentOperation('create')) return
+    const requestId = createRequestIdRef.current + 1
+    createRequestIdRef.current = requestId
     setCreateError('')
     setCreateStatus('loading')
     setCreatePreview([])
+    setCreateTargetDocumentId(document.id)
     try {
-      const questions = await workbenchRepository.createQuestions(value)
+      const questions = await workbenchRepository.createQuestions(request)
+      if (createRequestIdRef.current !== requestId) return
       setCreatePreview(questions)
       setCreateStatus('success')
     } catch (error) {
+      if (createRequestIdRef.current !== requestId) return
       setCreateError(error instanceof Error ? error.message : '出题失败，请稍后重试')
       setCreateStatus('error')
     } finally {
       finishContentOperation('create')
     }
-  }, [beginContentOperation, createPrompt, finishContentOperation])
+  }, [beginContentOperation, createConfig, document.id, finishContentOperation])
+
+  const changeCreateConfig = useCallback((value: CreateQuestionRequest) => {
+    createRequestIdRef.current += 1
+    setCreateConfig(value)
+    setCreatePreview([])
+    setCreateTargetDocumentId(null)
+    setCreateError('')
+    setCreateStatus('idle')
+  }, [])
 
   const addCreatedQuestions = useCallback(() => {
     if (createPreview.length === 0) return
+    if (contentOperationRef.current) {
+      MetisMessage.info('正在处理上一项内容，请稍候')
+      return
+    }
+    if (createTargetDocumentId !== document.id) {
+      setCreatePreview([])
+      setCreateTargetDocumentId(null)
+      setCreateError('题稿已切换，请重新生成后再加入')
+      return
+    }
     appendQuestions(createPreview, `已加入 ${createPreview.length} 道 AI 原创题，请校验`)
     setCreatePreview([])
-    setCreatePrompt('')
-  }, [appendQuestions, createPreview])
+    setCreateTargetDocumentId(null)
+    setCreateStatus('idle')
+    setCreateError('')
+  }, [appendQuestions, createPreview, createTargetDocumentId, document.id])
 
   const addManualQuestion = useCallback(async () => {
     if (!beginContentOperation('manual')) return
@@ -438,6 +483,11 @@ export function useWorkbench() {
     setAddModeState('menu')
     setLibraryInitialView(undefined)
     setCreatePreview([])
+    setCreateTargetDocumentId(null)
+    createRequestIdRef.current += 1
+    setCreateConfig(defaultCreateConfig)
+    setCreateStatus('idle')
+    setCreateError('')
     MetisMessage.success('已新建空白题单，上一份已保留在最近记录，可撤销')
   }, [document, invalidateRewrite, rememberDocument])
 
@@ -458,6 +508,9 @@ export function useWorkbench() {
       dispatch({ type: 'load-document', document: nextDocument })
       setSelectedQuestionId(nextDocument.questions[0]?.id ?? null)
       setInspectorView('info')
+      createRequestIdRef.current += 1
+      setCreatePreview([])
+      setCreateTargetDocumentId(null)
       MetisMessage.success(`已打开“${nextDocument.title}”，上一份草稿可撤销`)
     } catch {
       MetisMessage.error('历史题单加载失败，请重试')
@@ -534,6 +587,11 @@ export function useWorkbench() {
   const undo = useCallback(() => {
     if (!editor.undoDocument) return
     invalidateRewrite()
+    createRequestIdRef.current += 1
+    setCreatePreview([])
+    setCreateTargetDocumentId(null)
+    setCreateStatus('idle')
+    setCreateError('')
     const restored = editor.undoDocument
     dispatch({ type: 'undo' })
     setSelectedQuestionId(restored.questions[0]?.id ?? null)
@@ -566,8 +624,8 @@ export function useWorkbench() {
     setComposePrompt,
     composeError,
     composeStatus,
-    createPrompt,
-    setCreatePrompt,
+    createConfig,
+    setCreateConfig: changeCreateConfig,
     createError,
     createStatus,
     createPreview,

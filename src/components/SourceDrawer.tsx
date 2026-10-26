@@ -6,6 +6,7 @@ import {
   Files,
   FileUp,
   GraduationCap,
+  Minus,
   Plus,
   School,
   Search,
@@ -16,6 +17,7 @@ import {
 import type {
   AddQuestionMode,
   AsyncStatus,
+  CreateQuestionRequest,
   LibraryInitialView,
   Question,
   ResourceType,
@@ -36,7 +38,7 @@ interface SourceDrawerProps {
   composePrompt: string
   composeError: string
   composeStatus: AsyncStatus
-  createPrompt: string
+  createConfig: CreateQuestionRequest
   createError: string
   createStatus: AsyncStatus
   createPreview: Question[]
@@ -45,8 +47,8 @@ interface SourceDrawerProps {
   onAddSource: (type: ResourceType, sourceId?: string, count?: number) => void
   onComposePromptChange: (value: string) => void
   onCompose: () => void
-  onCreatePromptChange: (value: string) => void
-  onCreate: () => void
+  onCreateConfigChange: (value: CreateQuestionRequest) => void
+  onCreate: (requestOverride?: CreateQuestionRequest) => void
   onAddCreated: () => void
   onUpload: () => void
   onPersonalize: () => void
@@ -65,7 +67,7 @@ const commandOptions: Array<{
   { mode: 'school', title: '校本题库选题', description: '浏览本校沉淀的试卷、练习册和章节题目', tag: '本校资源', icon: School },
   { mode: 'upload', title: '上传文件 AI 录题', description: '识别 PDF、Word 或图片中的原题', tag: '材料转题目', icon: FileUp },
   { mode: 'compose', title: 'AI 组题', description: '根据要求从题库智能挑选，保留真实来源', tag: 'AI 对话能力', icon: BrainCircuit },
-  { mode: 'create', title: 'AI 命题', description: '生成全新题目，先预览再加入当前题单', tag: '原创 · 待校验', icon: Sparkles },
+  { mode: 'create', title: 'AI 出题工具', description: '按教材、知识点和题量生成原创题', tag: '原创 · 待校验', icon: Sparkles },
   { mode: 'personalized', title: '上传材料生成个性化练习', description: '结合上传材料与学情生成针对性练习', tag: 'AI 个性化', icon: GraduationCap },
   { mode: 'manual', title: '手工录入', description: '添加一道空白题并继续编辑', tag: '空白题', icon: FilePenLine },
 ]
@@ -75,15 +77,36 @@ const modeTitles: Record<AddQuestionMode, string> = {
   resource: '从飞象题库选题',
   school: '从校本题库选题',
   compose: 'AI 组题',
-  create: 'AI 命题',
+  create: 'AI 出题工具',
   upload: '上传文件 AI 录题',
   personalized: '上传材料生成个性化练习',
   manual: '手工录入',
 }
 
+const structuredKnowledgeExamples: Record<string, string> = {
+  concept: '判断一次函数与正比例函数',
+  image: '图象、增减性与截距',
+  application: '方案比较与情境建模',
+}
+
 export function SourceDrawer(props: SourceDrawerProps) {
   const [libraryDetailOpen, setLibraryDetailOpen] = useState(false)
   const docked = props.presentation === 'docked'
+  const createTotal = props.createConfig.allocations.reduce((sum, item) => sum + item.count, 0)
+
+  const updateCreateCount = (id: string, delta: number) => {
+    const nextAllocations = props.createConfig.allocations.map((item) => {
+      if (item.id !== id) return item
+      const maxForItem = Math.min(10, item.count + Math.max(0, 12 - createTotal))
+      return { ...item, count: Math.max(0, Math.min(maxForItem, item.count + delta)) }
+    })
+    props.onCreateConfigChange({ ...props.createConfig, allocations: nextAllocations })
+  }
+
+  const generateStructuredQuestions = () => {
+    if (createTotal === 0 || props.contentBusy) return
+    props.onCreate(props.createConfig)
+  }
 
   useEffect(() => { setLibraryDetailOpen(false) }, [props.mode])
 
@@ -188,38 +211,57 @@ export function SourceDrawer(props: SourceDrawerProps) {
           ) : null}
 
           {props.mode === 'create' ? (
-            <div className="add-mode-content ai-mode-content">
-              <div className="ai-mode-intro ai-mode-intro--create">
-                <Sparkles size={21} />
-                <div><strong>生成全新题目</strong><p>原创结果会标记“AI 原创 · 待校验”，确认后再加入当前题单。</p></div>
-              </div>
-              <AiComposer
-                compact
-                kind="create"
-                value={props.createPrompt}
-                error={props.createError}
-                status={props.createStatus}
-                disabled={props.contentBusy}
-                onChange={props.onCreatePromptChange}
-                onSubmit={props.onCreate}
-              />
-              {props.createPreview.length > 0 ? (
-                <div className="create-preview-block">
-                  <div className="create-preview-heading"><strong>生成预览</strong><span>{props.createPreview.length} 道 · AI 原创 · 待校验</span></div>
-                  <div className="create-preview-list">
-                    {props.createPreview.slice(0, 3).map((question, index) => (
-                      <article key={question.id}><span>{index + 1}</span><p>{question.stem}</p></article>
-                    ))}
+            <div className="structured-create-tool">
+              <aside className="structured-create-settings" aria-label="AI 出题设置">
+                <div className="structured-create-heading"><Sparkles size={19} /><div><h3>AI 生成题目</h3><p>按教材、知识点与题量生成原创题</p></div></div>
+                <section>
+                  <h4>设置出题条件</h4>
+                  <label>出题方式<select value={props.createConfig.method} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, method: event.target.value as CreateQuestionRequest['method'] })}><option>知识点组合出题</option><option>逐知识点出题</option><option>综合情境出题</option></select></label>
+                  <label>整体难度<select value={props.createConfig.difficulty} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, difficulty: event.target.value as CreateQuestionRequest['difficulty'] })}><option>基础</option><option>中等</option><option>提升</option></select></label>
+                </section>
+                <section>
+                  <h4>选择教材及章节</h4>
+                  <div className="structured-textbook">{props.createConfig.textbook}</div>
+                  <div className="structured-chapter-tree">
+                    <strong>{props.createConfig.chapter}</strong>
+                    {props.createConfig.allocations.map((item) => <span key={item.id}>✓ {item.knowledgePoint}</span>)}
                   </div>
-                  <MetisButton type="primary" block icon={<Plus size={16} />} onClick={props.onAddCreated}>加入当前题单</MetisButton>
+                </section>
+              </aside>
+              <section className="structured-create-main" aria-label="AI 出题题量与预览">
+                <header><div><h3>设置知识点题量</h3><p>每个知识点可单独调整，当前共 {createTotal} 道</p></div><span>AI 原创 · 待校验</span></header>
+                <div className="structured-count-grid">
+                  {props.createConfig.allocations.map((item) => (
+                    <article key={item.id}>
+                      <div><strong>{item.knowledgePoint}</strong><small>示例：{structuredKnowledgeExamples[item.id] ?? '围绕当前知识点生成'}</small></div>
+                      <div className="structured-stepper" aria-label={`${item.knowledgePoint}题量`}>
+                        <button type="button" aria-label={`减少${item.knowledgePoint}题量`} disabled={props.contentBusy || item.count === 0} onClick={() => updateCreateCount(item.id, -1)}><Minus size={14} /></button>
+                        <strong>{item.count}</strong>
+                        <button type="button" aria-label={`增加${item.knowledgePoint}题量`} disabled={props.contentBusy || item.count === 10 || createTotal >= 12} onClick={() => updateCreateCount(item.id, 1)}><Plus size={14} /></button>
+                      </div>
+                    </article>
+                  ))}
                 </div>
-              ) : (
-                <div className="prompt-example-list">
-                  <button type="button" onClick={() => props.onCreatePromptChange('原创 2 道校园义卖情境的一次函数应用题')}>校园情境应用题</button>
-                  <button type="button" onClick={() => props.onCreatePromptChange('生成 3 道一次函数开放性探究题')}>开放性探究题</button>
-                  <button type="button" onClick={() => props.onCreatePromptChange('出 4 道中等难度一次函数填空题')}>中等难度填空题</button>
-                </div>
-              )}
+                {props.createError ? <div className="inline-error" role="alert">{props.createError}</div> : null}
+                {props.createPreview.length > 0 ? (
+                  <div className="create-preview-block structured-create-preview">
+                    <div className="create-preview-heading"><strong>生成预览</strong><span>{props.createPreview.length} 道 · 确认后加入左侧题稿</span></div>
+                    <div className="create-preview-list">
+                      {props.createPreview.map((question, index) => (
+                        <article key={question.id}><span>{index + 1}</span><p>{question.stem}</p></article>
+                      ))}
+                    </div>
+                    <div className="structured-create-actions">
+                      <MetisButton type="bordered" disabled={props.contentBusy} onClick={generateStructuredQuestions}>重新生成</MetisButton>
+                      <MetisButton type="primary" icon={<Plus size={16} />} disabled={props.contentBusy} onClick={props.onAddCreated}>加入当前题单</MetisButton>
+                    </div>
+                  </div>
+                ) : (
+                  <MetisButton type="primary" className="structured-generate" icon={<Sparkles size={17} />} loading={props.createStatus === 'loading'} disabled={props.contentBusy || createTotal === 0} onClick={generateStructuredQuestions}>
+                    生成 {createTotal} 道题
+                  </MetisButton>
+                )}
+              </section>
             </div>
           ) : null}
 

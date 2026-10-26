@@ -73,6 +73,20 @@ export interface RewriteRequest {
   prompt?: string
 }
 
+export interface CreateQuestionAllocation {
+  id: string
+  knowledgePoint: string
+  count: number
+}
+
+export interface CreateQuestionRequest {
+  method: '知识点组合出题' | '逐知识点出题' | '综合情境出题'
+  difficulty: Difficulty
+  textbook: string
+  chapter: string
+  allocations: CreateQuestionAllocation[]
+}
+
 export interface WorkbenchRepository {
   listHistory(): Promise<HistoryDocumentSummary[]>
   loadDocument(documentId: EntityId): Promise<WorkbenchDocument>
@@ -81,7 +95,7 @@ export interface WorkbenchRepository {
   recognizeUpload(): Promise<Question[]>
   personalizeFromUpload(): Promise<Question[]>
   composeFromBank(prompt: string): Promise<Question[]>
-  createQuestions(prompt: string): Promise<Question[]>
+  createQuestions(request: CreateQuestionRequest): Promise<Question[]>
   createManualQuestion(): Promise<Question>
   rewrite(question: Question, request: RewriteRequest): Promise<Question>
 }

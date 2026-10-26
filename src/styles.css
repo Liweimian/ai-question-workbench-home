@@ -5664,7 +5664,7 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: var(--fx-surface-page);
+  background: var(--common_bg2_color);
 }
 
 .chapter-picker-tree {
@@ -6586,35 +6586,72 @@
   background: var(--common_bg2_color);
 }
 
-.composition-ai-mode-bar {
-  display: flex;
+.composition-ai-capabilities {
+  display: grid;
   max-width: 620px;
   margin: 0 auto 7px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.composition-ai-capabilities button {
+  display: grid;
+  min-width: 0;
+  min-height: 48px;
+  padding: 7px 8px;
+  grid-template-columns: 18px minmax(0, 1fr) 14px;
   align-items: center;
   gap: 6px;
-  color: var(--fx-primary);
-}
-
-.composition-ai-mode-bar span {
-  color: var(--fx-text-tertiary);
-  font-size: 9px;
-}
-
-.composition-ai-mode-bar select {
-  height: 26px;
-  padding: 0 22px 0 7px;
   border: 1px solid var(--fx-line-strong);
-  border-radius: 7px;
+  border-radius: var(--fx-radius-control);
   color: var(--fx-text-secondary);
   background: var(--common_bg2_color);
   cursor: pointer;
-  font-size: 11px;
-  font-weight: 600;
+  text-align: left;
 }
 
-.composition-ai-mode-bar select:focus-visible {
+.composition-ai-capabilities button.is-active {
+  border-color: var(--theme_primary1_selected2_color);
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.composition-ai-capabilities button:hover:not(:disabled) {
+  border-color: var(--theme_primary1_selected2_color);
+  background: var(--fx-primary-selected);
+}
+
+.composition-ai-capabilities button:focus-visible {
   outline: 2px solid var(--fx-primary);
   outline-offset: 1px;
+}
+
+.composition-ai-capabilities button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.composition-ai-capabilities button > svg:first-child {
+  color: var(--fx-primary);
+}
+
+.composition-ai-capabilities button > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.composition-ai-capabilities strong {
+  font-size: 10px;
+}
+
+.composition-ai-capabilities small {
+  overflow: hidden;
+  color: var(--fx-text-tertiary);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .composition-hub-composer .ai-composer {
@@ -6629,41 +6666,217 @@
   padding-bottom: 4px;
 }
 
-.composition-create-mode,
-.composition-personalized-mode {
-  max-width: 620px;
-  margin: 0 auto;
+/* 迭代 87：AI 出题是结构化工具，不与 AI 组题共用对话框。 */
+.structured-create-tool {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  grid-template-columns: 248px minmax(0, 1fr);
+  background: var(--fx-surface-page);
 }
 
-.composition-create-preview {
+.structured-create-settings {
+  min-height: 0;
+  padding: 18px 16px;
+  overflow: auto;
+  border-right: 1px solid var(--fx-line-strong);
+  background: var(--common_bg2_color);
+}
+
+.structured-create-heading {
   display: flex;
-  width: 100%;
-  margin-top: 8px;
-  padding: 9px 11px;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border: 1px solid var(--theme_primary1_selected2_color);
-  border-radius: var(--fx-radius-control);
+  gap: 9px;
+  margin-bottom: 20px;
   color: var(--fx-primary);
-  background: var(--fx-primary-selected);
-  cursor: pointer;
+}
+
+.structured-create-heading h3,
+.structured-create-main h3,
+.structured-create-settings h4 {
+  margin: 0;
+  color: var(--fx-text-primary);
+}
+
+.structured-create-heading h3,
+.structured-create-main h3 {
+  font-size: 15px;
+}
+
+.structured-create-heading p,
+.structured-create-main header p {
+  margin: 3px 0 0;
+  color: var(--fx-text-tertiary);
+  font-size: 10px;
+}
+
+.structured-create-settings section {
+  margin-top: 20px;
+}
+
+.structured-create-settings h4 {
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.structured-create-settings label {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 10px;
+  color: var(--fx-text-secondary);
+  font-size: 10px;
+}
+
+.structured-create-settings select,
+.structured-textbook {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--fx-line-subtle);
+  border-radius: var(--fx-radius-control);
+  color: var(--fx-text-secondary);
+  background: var(--fx-surface-muted);
   font-size: 11px;
 }
 
-.composition-create-preview > span {
+.structured-textbook {
   display: flex;
-  min-width: 0;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  align-items: center;
 }
 
-.composition-create-preview small {
+.structured-chapter-tree {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: var(--fx-radius-control);
+  background: var(--fx-surface-muted);
+}
+
+.structured-chapter-tree strong {
+  color: var(--fx-text-primary);
+  font-size: 11px;
+}
+
+.structured-chapter-tree span {
+  padding-left: 8px;
+  color: var(--fx-primary);
+  font-size: 10px;
+}
+
+.structured-create-main {
+  min-width: 0;
+  min-height: 0;
+  padding: 18px;
+  overflow: auto;
+}
+
+.structured-create-main > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.structured-create-main > header > span {
+  padding: 4px 7px;
+  border-radius: 6px;
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.structured-count-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.structured-count-grid article {
+  display: flex;
+  min-height: 104px;
+  padding: 13px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-card);
+  background: var(--common_bg2_color);
+}
+
+.structured-count-grid article > div:first-child {
+  display: grid;
+  gap: 5px;
+}
+
+.structured-count-grid article strong {
+  color: var(--fx-text-primary);
+  font-size: 12px;
+}
+
+.structured-count-grid article small {
   color: var(--fx-text-tertiary);
   font-size: 9px;
 }
 
-.composition-personalized-mode button {
-  min-height: 48px !important;
+.structured-stepper {
+  display: grid;
+  width: 104px;
+  height: 30px;
+  align-self: flex-end;
+  grid-template-columns: 30px 1fr 30px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.structured-stepper button,
+.structured-stepper > strong {
+  display: grid;
+  min-width: 0;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: var(--fx-text-secondary);
+  background: var(--common_bg2_color);
+}
+
+.structured-stepper button {
+  cursor: pointer;
+}
+
+.structured-stepper button:hover:not(:disabled) {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.structured-stepper button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.structured-stepper > strong {
+  border-right: 1px solid var(--fx-line-strong);
+  border-left: 1px solid var(--fx-line-strong);
+  font-size: 12px;
+}
+
+.structured-generate {
+  min-width: 150px !important;
+  margin-top: 16px;
+}
+
+.structured-create-preview {
+  margin-top: 16px;
+}
+
+.structured-create-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
 }

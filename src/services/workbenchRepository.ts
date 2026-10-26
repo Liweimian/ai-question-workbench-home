@@ -4,7 +4,7 @@ import {
   historySummaries,
   sourceRecords,
 } from '../data/workbenchData'
-import type { Difficulty, Question, ResourceType, WorkbenchRepository } from '../prototype/types'
+import type { CreateQuestionRequest, Difficulty, Question, ResourceType, WorkbenchRepository } from '../prototype/types'
 
 const delay = (duration: number) => new Promise((resolve) => window.setTimeout(resolve, duration))
 
@@ -28,6 +28,174 @@ function getRequestedQuestionPlan(prompt: string) {
 function plannedDifficulty(index: number, fallback: Difficulty, basic: number | null): Difficulty {
   if (basic === null) return fallback
   return index < basic ? '基础' : '提升'
+}
+
+type GeneratedQuestionContent = Pick<Question, 'type' | 'stem' | 'options' | 'answer' | 'analysis' | 'estimatedMinutes' | 'score'>
+
+function createConceptQuestion(method: CreateQuestionRequest['method'], variant: number): GeneratedQuestionContent {
+  const coefficient = 2 + (variant % 3)
+  const intercept = 1 + variant
+  if (method === '逐知识点出题') {
+    return {
+      type: '选择题',
+      stem: `下列函数中，y 是 x 的一次函数的是（　　）`,
+      options: [`A. y = ${coefficient}x + ${intercept}`, 'B. y = x² + 1', 'C. y = 1/x', 'D. y = √x'],
+      answer: 'A',
+      analysis: `形如 y = kx + b（k ≠ 0）的函数是一次函数。A 中 x 的次数为 1，且系数 ${coefficient} ≠ 0。`,
+      estimatedMinutes: 2,
+      score: 3,
+    }
+  }
+  if (method === '综合情境出题') {
+    return {
+      type: '解答题',
+      stem: `某共享自习室基础费用为 ${intercept + 4} 元，使用后每小时增加 ${coefficient} 元。设使用 x 小时的总费用为 y 元，写出 y 与 x 的关系式，并说明它是否为一次函数。`,
+      answer: `y = ${coefficient}x + ${intercept + 4}，是一次函数。`,
+      analysis: `基础费用是常数项 ${intercept + 4}，每小时增加 ${coefficient} 元是一次项系数，因此 y = ${coefficient}x + ${intercept + 4}；${coefficient} ≠ 0，故为一次函数。`,
+      estimatedMinutes: 4,
+      score: 5,
+    }
+  }
+  const parameter = 1 + variant
+  return {
+    type: '填空题',
+    stem: `若函数 y = (m - ${parameter})x + ${intercept} 是一次函数，则 m 应满足 ______。`,
+    answer: `m ≠ ${parameter}`,
+    analysis: `一次函数中 x 的系数不能为 0，因此 m - ${parameter} ≠ 0，即 m ≠ ${parameter}。`,
+    estimatedMinutes: 3,
+    score: 4,
+  }
+}
+
+function createGraphQuestion(method: CreateQuestionRequest['method'], variant: number): GeneratedQuestionContent {
+  const slope = 2 + (variant % 3)
+  const intercept = 2 + variant
+  if (method === '逐知识点出题') {
+    return {
+      type: '填空题',
+      stem: `一次函数 y = -${slope}x + ${intercept} 的图象从左向右 ______（填“上升”或“下降”），与 y 轴的交点坐标为 ______。`,
+      answer: `下降；（0，${intercept}）`,
+      analysis: `一次项系数 -${slope} < 0，所以 y 随 x 增大而减小；令 x = 0，得 y = ${intercept}。`,
+      estimatedMinutes: 3,
+      score: 4,
+    }
+  }
+  if (method === '综合情境出题') {
+    const start = 18 + variant
+    return {
+      type: '解答题',
+      stem: `冷却实验中，物体温度 T（℃）与时间 t（分钟）满足 T = ${start} - ${slope}t（0 ≤ t ≤ 5）。说明温度随时间怎样变化，并求图象与 T 轴的交点。`,
+      answer: `温度随时间增大而降低；交点为（0，${start}）。`,
+      analysis: `函数的一次项系数 -${slope} < 0，图象从左向右下降；t = 0 时 T = ${start}，故与 T 轴交于（0，${start}）。`,
+      estimatedMinutes: 4,
+      score: 5,
+    }
+  }
+  const x = 2
+  const y = slope * x + intercept
+  return {
+    type: '解答题',
+    stem: `一次函数图象经过点 A（0，${intercept}）和 B（${x}，${y}）。求函数解析式，并判断 y 随 x 增大如何变化。`,
+    answer: `y = ${slope}x + ${intercept}；y 随 x 增大而增大。`,
+    analysis: `由 A 点得 b = ${intercept}；再把 B 点代入，${y} = ${x}k + ${intercept}，解得 k = ${slope}。因为 k > 0，所以 y 随 x 增大而增大。`,
+    estimatedMinutes: 5,
+    score: 6,
+  }
+}
+
+function createApplicationQuestion(method: CreateQuestionRequest['method'], variant: number): GeneratedQuestionContent {
+  const unitPrice = 2 + (variant % 3)
+  const basePrice = 5 + variant
+  if (method === '逐知识点出题') {
+    const x1 = 3
+    const x2 = 7
+    const y1 = unitPrice * x1 + basePrice
+    const y2 = unitPrice * x2 + basePrice
+    return {
+      type: '解答题',
+      stem: `某项服务费用 y（元）与使用量 x（单位）成一次函数关系。使用 ${x1} 个单位收费 ${y1} 元，使用 ${x2} 个单位收费 ${y2} 元，求 y 与 x 的函数关系式。`,
+      answer: `y = ${unitPrice}x + ${basePrice}`,
+      analysis: `设 y = kx + b，将两组数据代入，得 ${x1}k + b = ${y1}，${x2}k + b = ${y2}，解得 k = ${unitPrice}，b = ${basePrice}。`,
+      estimatedMinutes: 6,
+      score: 7,
+    }
+  }
+  if (method === '综合情境出题') {
+    const daily = 4 + variant
+    const start = 20 + variant * 2
+    const target = start + daily * 8
+    return {
+      type: '解答题',
+      stem: `小明已有 ${start} 元，此后每天存 ${daily} 元。设经过 x 天后的存款为 y 元。（1）写出 y 与 x 的函数关系式；（2）至少经过多少天，存款能达到 ${target} 元？`,
+      answer: `（1）y = ${daily}x + ${start}；（2）8 天。`,
+      analysis: `初始存款是常数项 ${start}，每天增加 ${daily} 元，所以 y = ${daily}x + ${start}。令 y ≥ ${target}，得 x ≥ 8。`,
+      estimatedMinutes: 6,
+      score: 7,
+    }
+  }
+  const planA = unitPrice + 1
+  const planB = unitPrice
+  const fixed = 8 + variant
+  const breakEven = fixed
+  return {
+    type: '解答题',
+    stem: `打印店有两种收费方案：A 方案每页 ${planA} 角；B 方案先收 ${fixed} 角服务费，再按每页 ${planB} 角收费。分别写出费用 y（角）与页数 x 的关系式，并求两种方案费用相同时的页数。`,
+    answer: `A：y = ${planA}x；B：y = ${planB}x + ${fixed}；${breakEven} 页时费用相同。`,
+    analysis: `令 ${planA}x = ${planB}x + ${fixed}，因为两种方案每页价差为 1 角，解得 x = ${breakEven}。`,
+    estimatedMinutes: 7,
+    score: 8,
+  }
+}
+
+function adaptGeneratedDifficulty(
+  content: GeneratedQuestionContent,
+  difficulty: Difficulty,
+  knowledgePoint: string,
+): GeneratedQuestionContent {
+  if (difficulty === '基础') return content
+  if (difficulty === '中等') {
+    return {
+      ...content,
+      stem: `${content.stem} 请写出关键判断或计算依据。`,
+      analysis: `${content.analysis} 作答时需保留关键判断或计算步骤。`,
+      estimatedMinutes: content.estimatedMinutes + 1,
+      score: content.score + 1,
+    }
+  }
+  const conditionHint = knowledgePoint.includes('概念')
+    ? '需注意一次项系数不为 0，并明确变量的取值范围。'
+    : knowledgePoint.includes('图象') || knowledgePoint.includes('性质')
+      ? '需说明增减性由一次项系数的符号决定，并核对截距或关键点。'
+      : '需检验自变量取值符合实际情境，且计算结果具有实际意义。'
+  return {
+    ...content,
+    stem: `${content.stem} 完成后，再指出一个容易忽略的限制条件并说明理由。`,
+    answer: `${content.answer}；限制条件需结合题意说明。`,
+    analysis: `${content.analysis} ${conditionHint}`,
+    estimatedMinutes: content.estimatedMinutes + 2,
+    score: content.score + 2,
+  }
+}
+
+function createGeneratedContent(
+  knowledgePoint: string,
+  method: CreateQuestionRequest['method'],
+  difficulty: Difficulty,
+  variant: number,
+): GeneratedQuestionContent {
+  let content: GeneratedQuestionContent
+  if (knowledgePoint.includes('概念')) content = createConceptQuestion(method, variant)
+  else if (knowledgePoint.includes('图象') || knowledgePoint.includes('性质')) content = createGraphQuestion(method, variant)
+  else if (knowledgePoint.includes('应用')) content = createApplicationQuestion(method, variant)
+  else content = {
+    type: '解答题',
+    stem: `围绕“${knowledgePoint}”完成一道知识梳理题，并写出关键步骤。`,
+    answer: '答案应包含结论与完整推导过程。',
+    analysis: `本题用于检测“${knowledgePoint}”的概念理解与方法表达。`,
+    estimatedMinutes: 5,
+    score: 6,
+  }
+  return adaptGeneratedDifficulty(content, difficulty, knowledgePoint)
 }
 
 export const workbenchRepository: WorkbenchRepository = {
@@ -113,21 +281,25 @@ export const workbenchRepository: WorkbenchRepository = {
     })
   },
 
-  async createQuestions(prompt: string) {
+  async createQuestions(request) {
     await delay(960)
-    if (prompt.includes('模拟失败')) throw new Error('AI 命题服务暂时不可用，请稍后重试')
-    const plan = getRequestedQuestionPlan(prompt)
-    return Array.from({ length: plan.count }, (_, index) => {
-      const question = baseQuestions[(index + 1) % baseQuestions.length]
-      const round = Math.floor(index / baseQuestions.length) + 1
+    const plannedQuestions = request.allocations
+      .filter((item) => item.count > 0)
+      .flatMap((item) => Array.from({ length: item.count }, (_, allocationIndex) => ({
+        knowledgePoint: item.knowledgePoint,
+        allocationIndex,
+      })))
+      .slice(0, 12)
+    if (plannedQuestions.length === 0) throw new Error('请至少为一个知识点设置题量')
+    return plannedQuestions.map(({ knowledgePoint, allocationIndex }, index) => {
+      const content = createGeneratedContent(knowledgePoint, request.method, request.difficulty, allocationIndex)
       return {
-        ...cloneQuestion(question, `created-${Date.now()}-${index}`),
-        stem: index === 0
-          ? `根据“${prompt}”原创：${question.stem}`
-          : `${question.stem}（AI 原创变式 ${round}）`,
-        difficulty: plannedDifficulty(index, question.difficulty, plan.basic),
+        id: `created-${Date.now()}-${index}`,
+        ...content,
+        knowledgePoint,
+        difficulty: request.difficulty,
         sourceLabel: 'AI 原创',
-        sourceDetail: '根据教师要求实时生成',
+        sourceDetail: `${request.textbook} · ${request.chapter} · ${request.method}`,
         origin: 'ai-original' as const,
         verifyStatus: '待校验' as const,
         usageCount: 0,

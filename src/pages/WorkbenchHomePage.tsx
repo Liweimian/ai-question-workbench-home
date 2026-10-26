@@ -125,7 +125,6 @@ export function WorkbenchHomePage() {
                       return
                     }
                     setQuickAiOpen(false)
-                    workbench.setCreatePrompt(prompt)
                     openAdd('create')
                   }}
                   onOpenAdd={openAdd}
@@ -195,7 +194,7 @@ export function WorkbenchHomePage() {
                   composePrompt={workbench.composePrompt}
                   composeError={workbench.composeError}
                   composeStatus={workbench.composeStatus}
-                  createPrompt={workbench.createPrompt}
+                  createConfig={workbench.createConfig}
                   createError={workbench.createError}
                   createStatus={workbench.createStatus}
                   createPreview={workbench.createPreview}
@@ -204,8 +203,8 @@ export function WorkbenchHomePage() {
                   onAddSource={(type, sourceId, count) => void workbench.addSource(type, sourceId, count)}
                   onComposePromptChange={workbench.setComposePrompt}
                   onCompose={() => void workbench.composeFromBank()}
-                  onCreatePromptChange={workbench.setCreatePrompt}
-                  onCreate={() => void workbench.createQuestions()}
+                  onCreateConfigChange={workbench.setCreateConfig}
+                  onCreate={(requestOverride) => void workbench.createQuestions(requestOverride)}
                   onAddCreated={workbench.addCreatedQuestions}
                   onUpload={() => void workbench.recognizeUpload()}
                   onPersonalize={() => void workbench.personalizeFromUpload()}
@@ -221,18 +220,11 @@ export function WorkbenchHomePage() {
                   composePrompt={workbench.composePrompt}
                   composeError={workbench.composeError}
                   composeStatus={workbench.composeStatus}
-                  createPrompt={workbench.createPrompt}
-                  createError={workbench.createError}
-                  createStatus={workbench.createStatus}
-                  createPreview={workbench.createPreview}
                   onOpenAdd={openAdd}
                   onOpenDocument={(documentId) => void workbench.openHistoryDocument(documentId)}
                   onReloadHistory={() => void workbench.reloadHistory()}
                   onComposePromptChange={workbench.setComposePrompt}
                   onCompose={() => void workbench.composeFromBank()}
-                  onCreatePromptChange={workbench.setCreatePrompt}
-                  onCreate={() => void workbench.createQuestions()}
-                  onPersonalize={() => void workbench.personalizeFromUpload()}
                   onCollapse={collapseSidePanel}
                 />
               )}
