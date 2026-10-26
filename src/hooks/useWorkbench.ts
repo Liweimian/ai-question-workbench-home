@@ -3,6 +3,7 @@ import { MetisMessage } from '@yuanfudao/metis-web-component'
 import { blankDocument } from '../data/workbenchData'
 import type {
   AddQuestionMode,
+  AiAssistantRun,
   AsyncStatus,
   CreateQuestionRequest,
   HistoryDocumentSummary,
@@ -38,6 +39,7 @@ interface EditorState {
 
 type EditorAction =
   | { type: 'set-title'; title: string }
+  | { type: 'set-intro'; intro: string }
   | { type: 'append'; questions: Question[] }
   | { type: 'load-document'; document: WorkbenchDocument }
   | { type: 'apply-rewrite'; selectedQuestionId: string; preview: Question; mode: 'replace' | 'append' }
@@ -75,6 +77,13 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
   if (action.type === 'set-title') {
     return {
       document: { ...state.document, title: action.title, updatedAt: '刚刚' },
+      undoDocument: state.undoDocument,
+    }
+  }
+
+  if (action.type === 'set-intro') {
+    return {
+      document: { ...state.document, intro: action.intro, updatedAt: '刚刚' },
       undoDocument: state.undoDocument,
     }
   }
@@ -182,6 +191,7 @@ export function useWorkbench() {
   const [composePrompt, setComposePrompt] = useState('')
   const [composeError, setComposeError] = useState('')
   const [composeStatus, setComposeStatus] = useState<AsyncStatus>('idle')
+  const [assistantRun, setAssistantRun] = useState<AiAssistantRun | null>(null)
   const [createConfig, setCreateConfig] = useState<CreateQuestionRequest>(defaultCreateConfig)
   const [createError, setCreateError] = useState('')
   const [createStatus, setCreateStatus] = useState<AsyncStatus>('idle')
@@ -195,10 +205,14 @@ export function useWorkbench() {
   const sourceRequestIdRef = useRef(0)
   const historyRequestIdRef = useRef(0)
   const createRequestIdRef = useRef(0)
+  const assistantRequestIdRef = useRef(0)
+  const assistantStepTimersRef = useRef<number[]>([])
   const rewriteRequestIdRef = useRef(0)
   const sessionDocumentsRef = useRef(new Map<string, WorkbenchDocument>())
 
   const document = editor.document
+  const documentIdRef = useRef(document.id)
+  documentIdRef.current = document.id
   const selectedQuestion = useMemo(
     () => document.questions.find((question) => question.id === selectedQuestionId) ?? null,
     [document.questions, selectedQuestionId],
@@ -207,8 +221,24 @@ export function useWorkbench() {
   const changeComposePrompt = useCallback((value: string) => {
     setComposePrompt(value)
     setComposeError('')
-    setComposeStatus('idle')
+    setComposeStatus((current) => current === 'loading' ? current : 'idle')
   }, [])
+
+  const clearAssistantStepTimers = useCallback(() => {
+    assistantStepTimersRef.current.forEach((timer) => window.clearTimeout(timer))
+    assistantStepTimersRef.current = []
+  }, [])
+
+  const clearAssistantRun = useCallback(() => {
+    assistantRequestIdRef.current += 1
+    clearAssistantStepTimers()
+    setAssistantRun(null)
+    setComposePrompt('')
+    setComposeStatus('idle')
+    setComposeError('')
+  }, [clearAssistantStepTimers])
+
+  useEffect(() => clearAssistantStepTimers, [clearAssistantStepTimers])
 
   const invalidateRewrite = useCallback(() => {
     rewriteRequestIdRef.current += 1
@@ -372,20 +402,53 @@ export function useWorkbench() {
       return
     }
     if (!beginContentOperation('compose')) return
+    const targetDocumentId = document.id
+    const requestId = assistantRequestIdRef.current + 1
+    assistantRequestIdRef.current = requestId
+    clearAssistantStepTimers()
     setComposeError('')
     setComposeStatus('loading')
+    setAssistantRun({
+      id: `assistant-${Date.now()}`,
+      prompt: value,
+      status: 'loading',
+      activeStep: 0,
+      resultCount: 0,
+    })
+    assistantStepTimersRef.current = [240, 540].map((delay, index) => window.setTimeout(() => {
+      if (assistantRequestIdRef.current !== requestId) return
+      setAssistantRun((current) => current?.status === 'loading'
+        ? { ...current, activeStep: index + 1 }
+        : current)
+    }, delay))
     try {
       const questions = await workbenchRepository.composeFromBank(value)
-      appendQuestions(questions, `AI 已匹配并添加 ${questions.length} 道题`)
+      if (assistantRequestIdRef.current !== requestId || documentIdRef.current !== targetDocumentId) return
+      appendQuestions(questions, `AI 已匹配并添加 ${questions.length} 道题`, false)
       setComposePrompt('')
       setComposeStatus('success')
+      setAssistantRun((current) => current ? {
+        ...current,
+        status: 'success',
+        activeStep: 3,
+        resultCount: questions.length,
+        errorMessage: undefined,
+      } : current)
     } catch (error) {
-      setComposeError(error instanceof Error ? error.message : 'AI 处理失败，请稍后重试')
+      if (assistantRequestIdRef.current !== requestId) return
+      const errorMessage = error instanceof Error ? error.message : 'AI 处理失败，请稍后重试'
+      setComposeError(errorMessage)
       setComposeStatus('error')
+      setAssistantRun((current) => current ? {
+        ...current,
+        status: 'error',
+        errorMessage,
+      } : current)
     } finally {
+      clearAssistantStepTimers()
       finishContentOperation('compose')
     }
-  }, [appendQuestions, beginContentOperation, composePrompt, finishContentOperation])
+  }, [appendQuestions, beginContentOperation, clearAssistantStepTimers, composePrompt, document.id, finishContentOperation])
 
   const createQuestions = useCallback(async (requestOverride?: CreateQuestionRequest) => {
     const request = requestOverride ?? createConfig
@@ -466,11 +529,11 @@ export function useWorkbench() {
   const createNewDocument = useCallback(() => {
     if (contentOperationRef.current) {
       MetisMessage.info('正在处理上一项内容，请稍候')
-      return
+      return false
     }
-    if (document.questions.length === 0 && ['未命名组题', '未命名题单'].includes(document.title.trim())) {
+    if (document.questions.length === 0 && !document.intro?.trim() && ['未命名组题', '未命名题单'].includes(document.title.trim())) {
       MetisMessage.info('当前已经是一份空白题单')
-      return
+      return false
     }
 
     rememberDocument(document)
@@ -494,8 +557,10 @@ export function useWorkbench() {
     setCreateConfig(defaultCreateConfig)
     setCreateStatus('idle')
     setCreateError('')
+    clearAssistantRun()
     MetisMessage.success('已新建空白题单，上一份已保留在最近记录，可撤销')
-  }, [document, invalidateRewrite, rememberDocument])
+    return true
+  }, [clearAssistantRun, document, invalidateRewrite, rememberDocument])
 
   const openHistoryDocument = useCallback(async (documentId: string) => {
     if (document.id === documentId) {
@@ -517,13 +582,14 @@ export function useWorkbench() {
       createRequestIdRef.current += 1
       setCreatePreview([])
       setCreateTargetDocumentId(null)
+      clearAssistantRun()
       MetisMessage.success(`已打开“${nextDocument.title}”，上一份草稿可撤销`)
     } catch {
       MetisMessage.error('历史题单加载失败，请重试')
     } finally {
       finishContentOperation('history-load')
     }
-  }, [beginContentOperation, document, finishContentOperation, invalidateRewrite, rememberDocument])
+  }, [beginContentOperation, clearAssistantRun, document, finishContentOperation, invalidateRewrite, rememberDocument])
 
   const selectQuestion = useCallback((questionId: string) => {
     invalidateRewrite()
@@ -602,12 +668,13 @@ export function useWorkbench() {
     setCreateTargetDocumentId(null)
     setCreateStatus('idle')
     setCreateError('')
+    clearAssistantRun()
     const restored = editor.undoDocument
     dispatch({ type: 'undo' })
     setSelectedQuestionId(restored.questions[0]?.id ?? null)
     setInspectorView('info')
     MetisMessage.success('已撤销上一步操作')
-  }, [editor.undoDocument, invalidateRewrite])
+  }, [clearAssistantRun, editor.undoDocument, invalidateRewrite])
 
   const editQuestion = useCallback(() => {
     MetisMessage.info('已进入题目编辑演示，正文修改暂不写入服务端')
@@ -616,6 +683,7 @@ export function useWorkbench() {
   return {
     document,
     setTitle: (title: string) => dispatch({ type: 'set-title', title }),
+    setIntro: (intro: string) => dispatch({ type: 'set-intro', intro }),
     selectedQuestion,
     selectedQuestionId,
     inspectorView,
@@ -634,6 +702,8 @@ export function useWorkbench() {
     setComposePrompt: changeComposePrompt,
     composeError,
     composeStatus,
+    assistantRun,
+    clearAssistantRun,
     createConfig,
     setCreateConfig: changeCreateConfig,
     createError,

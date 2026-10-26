@@ -116,43 +116,42 @@ export function CompositionHub(props: CompositionHubProps) {
           </div>
         </section>
 
+        <section className="composition-hub-composer" aria-labelledby="assistant-heading">
+          <div className="composition-chat-heading">
+            <div><BrainCircuit size={16} /><strong id="assistant-heading">AI 助手</strong></div>
+            <span>发送后在 AI 助手 Tab 查看处理过程</span>
+          </div>
+          <div className="composition-chat-shortcuts" role="group" aria-label="AI 助手快捷方式">
+            {aiShortcuts.map(({ id, label, prompt }) => {
+              const selected = props.composePrompt === prompt
+              return (
+                <button
+                  type="button"
+                  key={id}
+                  className={selected ? 'is-selected' : undefined}
+                  aria-pressed={selected}
+                  aria-label={`${label}，填入示例要求`}
+                  disabled={props.contentBusy || props.composeStatus === 'loading'}
+                  onClick={() => props.onComposePromptChange(prompt)}
+                  data-track={`/click/aiQuestionHome/assistantShortcut${id} | 选择${label}快捷方式 | 无`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+          <AiComposer
+            compact
+            kind="compose"
+            value={props.composePrompt}
+            error={props.composeError}
+            status={props.composeStatus}
+            disabled={props.contentBusy}
+            onChange={props.onComposePromptChange}
+            onSubmit={props.onCompose}
+          />
+        </section>
       </div>
-
-      <footer className="composition-hub-composer">
-        <div className="composition-chat-heading">
-          <div><BrainCircuit size={16} /><strong>AI 助手</strong></div>
-          <span>选择快捷方式，或直接描述需求</span>
-        </div>
-        <div className="composition-chat-shortcuts" role="group" aria-label="AI 助手快捷方式">
-          {aiShortcuts.map(({ id, label, prompt }) => {
-            const selected = props.composePrompt === prompt
-            return (
-              <button
-                type="button"
-                key={id}
-                className={selected ? 'is-selected' : undefined}
-                aria-pressed={selected}
-                aria-label={`${label}，填入示例要求`}
-                disabled={props.contentBusy || props.composeStatus === 'loading'}
-                onClick={() => props.onComposePromptChange(prompt)}
-                data-track={`/click/aiQuestionHome/assistantShortcut${id} | 选择${label}快捷方式 | 无`}
-              >
-                {label}
-              </button>
-            )
-          })}
-        </div>
-        <AiComposer
-          compact
-          kind="compose"
-          value={props.composePrompt}
-          error={props.composeError}
-          status={props.composeStatus}
-          disabled={props.contentBusy}
-          onChange={props.onComposePromptChange}
-          onSubmit={props.onCompose}
-        />
-      </footer>
     </aside>
   )
 }

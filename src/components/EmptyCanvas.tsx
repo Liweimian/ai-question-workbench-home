@@ -9,6 +9,7 @@ interface EmptyCanvasProps {
   document: WorkbenchDocument
   sidePanelOpen?: boolean
   onTitleChange: (title: string) => void
+  onIntroChange: (intro: string) => void
   onOpenAssistant: (prompt?: string) => void
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
 }
@@ -48,20 +49,37 @@ const libraryQuickStarts: Array<{
 
 export function EmptyCanvas(props: EmptyCanvasProps) {
   const [blockIds, setBlockIds] = useState(['initial'])
-  const [hasBlockContent, setHasBlockContent] = useState(false)
+  const [hasBlockContent, setHasBlockContent] = useState(Boolean(props.document.intro?.trim()))
   const [addMenuRequests, setAddMenuRequests] = useState<Record<string, number>>({})
   const [selectionToolbar, setSelectionToolbar] = useState<{ x: number; y: number; text: string } | null>(null)
   const [aiEditOpen, setAiEditOpen] = useState(false)
   const [customAiInstruction, setCustomAiInstruction] = useState('')
   const blockRefs = useRef(new Map<string, HTMLDivElement>())
+  const blockIdsRef = useRef(blockIds)
   const selectedRangeRef = useRef<Range | null>(null)
+  blockIdsRef.current = blockIds
 
   useEffect(() => {
+    blockIdsRef.current = ['initial']
     setBlockIds(['initial'])
-    setHasBlockContent(false)
+    setHasBlockContent(Boolean(props.document.intro?.trim()))
     setAddMenuRequests({})
-    window.requestAnimationFrame(() => blockRefs.current.get('initial')?.focus())
+    window.requestAnimationFrame(() => {
+      const initialBlock = blockRefs.current.get('initial')
+      if (!initialBlock) return
+      initialBlock.textContent = props.document.intro ?? ''
+      initialBlock.focus()
+    })
   }, [props.document.id])
+
+  const syncBlockContent = () => {
+    const intro = blockIdsRef.current
+      .map((blockId) => blockRefs.current.get(blockId)?.textContent?.trim() ?? '')
+      .filter(Boolean)
+      .join('\n')
+    setHasBlockContent(Boolean(intro))
+    props.onIntroChange(intro)
+  }
 
   const insertBlockAfter = (blockId: string) => {
     const nextId = `block-${Date.now()}`
@@ -93,7 +111,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       const node = blockRefs.current.get(nextId)
       if (!node) return
       node.textContent = presets[action]
-      setHasBlockContent(true)
+      syncBlockContent()
       node.focus()
     })
     MetisMessage.success('已插入试卷结构内容')
@@ -131,7 +149,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   }
 
   return (
-    <article className="editor-empty" data-sec="3" aria-label="空白题单编辑区">
+    <article className={`editor-empty${props.sidePanelOpen ? ' is-linked-workspace' : ''}`} data-sec="3" aria-label="空白题单编辑区">
       <header className="editor-empty-heading">
         <MetisInput
           value={props.document.title}
@@ -143,13 +161,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       </header>
 
       <div className="editor-empty-content">
-        {props.sidePanelOpen && !hasBlockContent ? (
-          <div className="empty-result-guide" aria-hidden="true">
-            <span><FileText size={24} /></span>
-            <strong>从右侧添加题目</strong>
-            <small>题库、上传和 AI 生成的内容会直接进入这份题稿</small>
-          </div>
-        ) : null}
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
             <div className="empty-first-block" role="group" aria-label="题单内容块" key={blockId}>
@@ -164,11 +175,15 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                 suppressContentEditableWarning
                 role="textbox"
                 aria-multiline="true"
-                aria-label="输入内容，按空格唤起 AI"
-                data-placeholder="按 Space（空格）以启用 AI，或按“/”启用命令"
+                aria-label={props.sidePanelOpen
+                  ? '直接输入题稿说明，添加题目请使用右侧工作区'
+                  : '直接输入内容，按空格打开 AI 助手，或按斜杠插入内容'}
+                data-placeholder={props.sidePanelOpen
+                  ? '直接输入内容，题目从右侧添加'
+                  : '直接输入内容，按 Space 打开 AI 助手，或按“/”插入内容'}
                 onMouseUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
                 onKeyUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
-                onInput={() => setHasBlockContent(Array.from(blockRefs.current.values()).some((node) => Boolean(node.textContent?.trim())))}
+                onInput={syncBlockContent}
                 onKeyDown={(event) => {
                   const isEmpty = !event.currentTarget.textContent?.trim()
                   const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
@@ -189,6 +204,14 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             </div>
           ))}
         </div>
+
+        {props.sidePanelOpen && !hasBlockContent ? (
+          <div className="empty-result-guide" aria-hidden="true">
+            <span><FileText size={24} /></span>
+            <strong>题目会出现在这里</strong>
+            <small>从右侧选择题库、上传材料，或交给 AI 助手处理</small>
+          </div>
+        ) : null}
 
         {selectionToolbar ? (
           <div

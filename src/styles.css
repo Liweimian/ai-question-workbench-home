@@ -1885,6 +1885,15 @@
   font-size: 12px;
 }
 
+.editor-document-intro {
+  margin: 0 62px 12px;
+  color: var(--fx-text-secondary);
+  font-size: 14px;
+  line-height: 22px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .editor-document-summary {
   display: flex;
   align-items: center;
@@ -2533,6 +2542,8 @@
   color: var(--fx-text-primary);
   font-size: 15px;
   line-height: 22px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .empty-block-input:empty::before {
@@ -6004,6 +6015,12 @@
   gap: 6px;
 }
 
+.add-workspace-tab.is-assistant > button:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .add-workspace-tab.is-detail > button:first-child > span {
   min-width: 0;
   overflow: hidden;
@@ -6024,6 +6041,11 @@
 }
 
 .add-workspace-tab-close:hover { background: var(--fx-fill-hover); }
+
+.add-workspace-tab-close:disabled {
+  cursor: wait;
+  opacity: 0.45;
+}
 
 .add-workspace-tabs > button.is-active,
 .add-workspace-tab.is-active button:first-child {
@@ -6369,7 +6391,24 @@
 
 .workspace-shell.is-split-source .empty-block-list {
   flex: 0 0 auto;
-  border-top: 1px solid var(--fx-line-subtle);
+  border-top: 0;
+}
+
+.editor-empty.is-linked-workspace .empty-first-block .block-add-control-row {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.editor-empty.is-linked-workspace .empty-first-block:hover .block-add-control-row,
+.editor-empty.is-linked-workspace .empty-first-block:focus-within .block-add-control-row,
+.editor-empty.is-linked-workspace .empty-first-block:has(.block-add-trigger[aria-expanded="true"]) .block-add-control-row {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.editor-empty.is-linked-workspace .empty-first-block .block-drag-handle {
+  display: none;
 }
 
 .composition-hub {
@@ -6412,7 +6451,7 @@
 
 .composition-hub-scroll {
   min-height: 0;
-  padding: 30px 34px 20px;
+  padding: 30px 34px 34px;
   flex: 1;
   overflow: auto;
 }
@@ -6420,7 +6459,7 @@
 .composition-source-section,
 .composition-recent-section {
   width: min(100%, 620px);
-  margin: 0 auto 26px;
+  margin: 0 auto 16px;
 }
 
 .composition-section-heading {
@@ -6611,16 +6650,18 @@
 }
 
 .composition-hub-composer {
-  padding: 10px 18px 14px;
-  border-top: 1px solid var(--fx-line-strong);
-  background: var(--common_bg2_color);
+  width: min(100%, 620px);
+  margin: 0 auto;
+  padding: 14px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-card);
+  background: var(--common_bg_z1_color);
 }
 
 .composition-chat-heading {
   display: flex;
-  max-width: 620px;
   min-height: 28px;
-  margin: 0 auto 6px;
+  margin: 0 0 6px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -6646,8 +6687,7 @@
 
 .composition-chat-shortcuts {
   display: flex;
-  max-width: 620px;
-  margin: 0 auto 8px;
+  margin: 0 0 8px;
   flex-wrap: wrap;
   gap: 6px;
 }
@@ -6686,8 +6726,7 @@
 }
 
 .composition-hub-composer .ai-composer {
-  max-width: 620px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .composition-hub-composer .ai-composer-input {
@@ -6695,6 +6734,228 @@
   align-items: center;
   padding-top: 4px;
   padding-bottom: 4px;
+}
+
+.ai-assistant-workspace {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex-direction: column;
+  background: var(--common_bg2_color);
+}
+
+.ai-assistant-conversation {
+  min-height: 0;
+  padding: 32px 34px;
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.ai-assistant-user-message,
+.ai-assistant-response,
+.ai-assistant-empty,
+.ai-assistant-followup .ai-composer {
+  width: min(100%, 680px);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.ai-assistant-user-message {
+  display: flex;
+  margin-bottom: 24px;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-assistant-user-message > span {
+  color: var(--fx-text-tertiary);
+  font-size: 10px;
+}
+
+.ai-assistant-user-message p {
+  max-width: 78%;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--fx-radius-card) var(--fx-radius-card) var(--system-border-radius-s) var(--fx-radius-card);
+  color: var(--fx-text-primary);
+  background: var(--fx-primary-selected);
+  font-size: 13px;
+  line-height: 22px;
+  overflow-wrap: anywhere;
+}
+
+.ai-assistant-response {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 11px;
+}
+
+.ai-assistant-avatar,
+.ai-assistant-empty > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: var(--aiq_radius_pill);
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.ai-assistant-response-body {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-card);
+  background: var(--common_bg_z1_color);
+}
+
+.ai-assistant-response-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.ai-assistant-response-heading strong {
+  color: var(--fx-text-primary);
+  font-size: 14px;
+}
+
+.ai-assistant-response-heading span {
+  color: var(--fx-text-tertiary);
+  font-size: 10px;
+}
+
+.ai-assistant-steps {
+  display: grid;
+  margin: 14px 0 0;
+  padding: 0;
+  gap: 8px;
+  list-style: none;
+}
+
+.ai-assistant-steps li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  color: var(--fx-text-tertiary);
+  font-size: 12px;
+}
+
+.ai-assistant-steps li > span:first-child {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: var(--aiq_radius_pill);
+  color: var(--fx-text-tertiary);
+  background: var(--common_bg2_color);
+}
+
+.ai-assistant-steps li.is-active,
+.ai-assistant-steps li.is-complete {
+  color: var(--fx-text-secondary);
+}
+
+.ai-assistant-steps li.is-active > span:first-child {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.ai-assistant-steps li.is-active svg {
+  animation: spin 900ms linear infinite;
+}
+
+.ai-assistant-steps li.is-complete > span:first-child {
+  color: var(--common_success1_color);
+  background: var(--common_success2_color);
+}
+
+.ai-assistant-steps li.is-error,
+.ai-assistant-steps li.is-error > span:first-child {
+  color: var(--common_danger1_color);
+}
+
+.ai-assistant-steps li.is-error > span:first-child {
+  background: var(--common_danger2_color);
+}
+
+.ai-assistant-result {
+  display: grid;
+  margin-top: 14px;
+  padding: 11px 12px;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  border-radius: var(--fx-radius-control);
+  color: var(--common_success1_color);
+  background: var(--common_success2_color);
+}
+
+.ai-assistant-result > span {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+}
+
+.ai-assistant-result strong {
+  font-size: 12px;
+}
+
+.ai-assistant-result p {
+  margin: 3px 0 0;
+  color: var(--fx-text-secondary);
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.ai-assistant-run-error {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: var(--fx-radius-control);
+  color: var(--common_danger1_color);
+  background: var(--common_danger2_color);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.ai-assistant-empty {
+  display: flex;
+  min-height: 320px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--fx-text-tertiary);
+  text-align: center;
+}
+
+.ai-assistant-empty strong {
+  color: var(--fx-text-secondary);
+  font-size: 14px;
+}
+
+.ai-assistant-empty p {
+  margin: 0;
+  font-size: 11px;
+}
+
+.ai-assistant-followup {
+  padding: 12px 18px 14px;
+  border-top: 1px solid var(--fx-line-strong);
+  background: var(--common_bg2_color);
+}
+
+.ai-assistant-followup .ai-composer-input {
+  min-height: 56px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  align-items: center;
 }
 
 /* 迭代 87：AI 出题是结构化工具，不与 AI 组题共用对话框。 */

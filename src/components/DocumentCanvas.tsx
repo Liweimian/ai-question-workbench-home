@@ -30,6 +30,10 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
         />
       </header>
 
+      {props.document.intro?.trim() ? (
+        <div className="editor-document-intro">{props.document.intro}</div>
+      ) : null}
+
       <div className="editor-question-list">
         {props.document.questions.map((question, index) => {
           const selected = question.id === props.selectedQuestionId

@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { QuestionInspector } from '../components/AiInspector'
+import { AiAssistantWorkspace } from '../components/AiAssistantWorkspace'
 import { CompositionHub } from '../components/CompositionHub'
 import { QuestionSortPanel } from '../components/QuestionSortPanel'
 import { DocumentCanvas } from '../components/DocumentCanvas'
@@ -8,7 +9,7 @@ import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
 import type { AddQuestionMode, SourceRecord } from '../prototype/types'
-import { FileText, House, PanelRightClose, X } from 'lucide-react'
+import { BrainCircuit, FileText, House, PanelRightClose, X } from 'lucide-react'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
@@ -34,11 +35,15 @@ function isLibraryTabMode(mode: AddTabMode): mode is LibraryTabMode {
 export function WorkbenchHomePage() {
   const workbench = useWorkbench()
   const previousQuestionCount = useRef(workbench.document.questions.length)
+  const previousDocumentId = useRef(workbench.document.id)
+  const assistantTabRef = useRef<HTMLButtonElement>(null)
   const [sortCollapsed, setSortCollapsed] = useState(false)
   const [sidePanelOpen, setSidePanelOpen] = useState(true)
   const [openAddTabs, setOpenAddTabs] = useState<AddTabMode[]>([])
   const [libraryDetailTabs, setLibraryDetailTabs] = useState<LibraryDetailTab[]>([])
   const [activeLibraryDetailKey, setActiveLibraryDetailKey] = useState<string | null>(null)
+  const [assistantTabOpen, setAssistantTabOpen] = useState(false)
+  const [assistantActive, setAssistantActive] = useState(false)
   const hasQuestions = workbench.document.questions.length > 0
   const activeLibraryDetail = libraryDetailTabs.find((tab) => tab.key === activeLibraryDetailKey) ?? null
 
@@ -51,6 +56,21 @@ export function WorkbenchHomePage() {
     previousQuestionCount.current = workbench.document.questions.length
   }, [workbench.document.questions.length, workbench.selectedQuestionId])
 
+  useEffect(() => {
+    if (previousDocumentId.current === workbench.document.id) return
+    previousDocumentId.current = workbench.document.id
+    setAssistantTabOpen(false)
+    setAssistantActive(false)
+  }, [workbench.document.id])
+
+  useEffect(() => {
+    if (!assistantTabOpen || !assistantActive) return
+    window.requestAnimationFrame(() => {
+      assistantTabRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      assistantTabRef.current?.focus()
+    })
+  }, [assistantActive, assistantTabOpen])
+
   const questionNumber = workbench.selectedQuestion
     ? workbench.document.questions.findIndex((question) => question.id === workbench.selectedQuestion?.id) + 1
     : 0
@@ -58,6 +78,13 @@ export function WorkbenchHomePage() {
   const openAssistant = (prompt?: string) => {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
+    if (prompt === undefined && workbench.assistantRun) {
+      workbench.closeAdd()
+      setAssistantTabOpen(true)
+      setAssistantActive(true)
+      return
+    }
+    setAssistantActive(false)
     workbench.closeAdd()
     if (prompt !== undefined) workbench.setComposePrompt(prompt)
     window.requestAnimationFrame(() => {
@@ -79,6 +106,7 @@ export function WorkbenchHomePage() {
     }
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
+    setAssistantActive(false)
     if (mode !== 'menu') {
       setOpenAddTabs((current) => current.includes(mode) ? current : [...current, mode])
     }
@@ -88,12 +116,14 @@ export function WorkbenchHomePage() {
   const activateAddTab = (mode: AddTabMode) => {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
+    setAssistantActive(false)
     if (!workbench.isAddOpen || workbench.addMode !== mode) workbench.openAdd(mode)
   }
 
   const openLibraryDetail = (libraryMode: LibraryTabMode, record: SourceRecord) => {
     const key = `${libraryMode}:${record.id}`
     setSidePanelOpen(true)
+    setAssistantActive(false)
     setOpenAddTabs((current) => current.includes(libraryMode) ? current : [...current, libraryMode])
     setLibraryDetailTabs((current) => current.some((tab) => tab.key === key)
       ? current
@@ -109,6 +139,7 @@ export function WorkbenchHomePage() {
 
   const activateLibraryDetail = (tab: LibraryDetailTab) => {
     setSidePanelOpen(true)
+    setAssistantActive(false)
     setActiveLibraryDetailKey(tab.key)
     if (!workbench.isAddOpen || workbench.addMode !== tab.libraryMode) {
       workbench.openAdd(tab.libraryMode, { libraryView: tab.record.sourceType })
@@ -118,7 +149,34 @@ export function WorkbenchHomePage() {
   const activateAddHome = () => {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
+    setAssistantActive(false)
     workbench.closeAdd()
+  }
+
+  const submitAssistant = () => {
+    if (!workbench.composePrompt.trim() || workbench.isContentBusy || workbench.composeStatus === 'loading') {
+      void workbench.composeFromBank()
+      return
+    }
+    setSidePanelOpen(true)
+    setActiveLibraryDetailKey(null)
+    workbench.closeAdd()
+    setAssistantTabOpen(true)
+    setAssistantActive(true)
+    void workbench.composeFromBank()
+  }
+
+  const activateAssistantTab = () => {
+    setSidePanelOpen(true)
+    setActiveLibraryDetailKey(null)
+    workbench.closeAdd()
+    setAssistantActive(true)
+  }
+
+  const closeAssistantTab = () => {
+    workbench.clearAssistantRun()
+    setAssistantTabOpen(false)
+    if (assistantActive) setAssistantActive(false)
   }
 
   const closeAddTab = (mode: AddTabMode) => {
@@ -144,6 +202,7 @@ export function WorkbenchHomePage() {
 
   const collapseSidePanel = () => {
     setActiveLibraryDetailKey(null)
+    setAssistantActive(false)
     workbench.closeAdd()
     setSidePanelOpen(false)
   }
@@ -160,10 +219,16 @@ export function WorkbenchHomePage() {
             documentTitle={workbench.document.title}
             questionCount={workbench.document.questions.length}
             canUndo={workbench.canUndo && !workbench.isContentBusy}
-            onUndo={workbench.undo}
+            onUndo={() => {
+              setAssistantTabOpen(false)
+              setAssistantActive(false)
+              workbench.undo()
+            }}
             onCreateNew={() => {
-              workbench.createNewDocument()
+              if (!workbench.createNewDocument()) return
               setActiveLibraryDetailKey(null)
+              setAssistantTabOpen(false)
+              setAssistantActive(false)
               setSidePanelOpen(true)
             }}
             sidePanelOpen={sidePanelOpen}
@@ -188,6 +253,7 @@ export function WorkbenchHomePage() {
                   document={workbench.document}
                   sidePanelOpen={sidePanelOpen}
                   onTitleChange={workbench.setTitle}
+                  onIntroChange={workbench.setIntro}
                   onOpenAssistant={openAssistant}
                   onOpenAdd={openAdd}
                 />
@@ -220,8 +286,8 @@ export function WorkbenchHomePage() {
                     role="tab"
                     aria-label="添加题目首页"
                     title="添加题目首页"
-                    aria-selected={!workbench.isAddOpen && !activeLibraryDetail}
-                    className={`add-workspace-home${!workbench.isAddOpen && !activeLibraryDetail ? ' is-active' : ''}`}
+                    aria-selected={!workbench.isAddOpen && !activeLibraryDetail && !assistantActive}
+                    className={`add-workspace-home${!workbench.isAddOpen && !activeLibraryDetail && !assistantActive ? ' is-active' : ''}`}
                     onClick={activateAddHome}
                   ><House size={17} /></button>
                   {openAddTabs.map((mode) => (
@@ -256,6 +322,27 @@ export function WorkbenchHomePage() {
                       )) : null}
                     </Fragment>
                   ))}
+                  {assistantTabOpen ? (
+                    <span className={`add-workspace-tab is-assistant${assistantActive ? ' is-active' : ''}`}>
+                      <button
+                        type="button"
+                        role="tab"
+                        ref={assistantTabRef}
+                        aria-selected={assistantActive}
+                        onClick={activateAssistantTab}
+                        data-track="/click/aiQuestionHome/switchAssistantTab | 切换AI助手任务 | 无"
+                      ><BrainCircuit size={14} /><span>AI 助手</span></button>
+                      <button
+                        type="button"
+                        className="add-workspace-tab-close"
+                        aria-label={workbench.composeStatus === 'loading' ? 'AI 助手正在处理，暂不可关闭' : '关闭 AI 助手'}
+                        disabled={workbench.composeStatus === 'loading'}
+                        onClick={closeAssistantTab}
+                      >
+                        <X size={13} />
+                      </button>
+                    </span>
+                  ) : null}
                   <button
                     type="button"
                     className="add-workspace-collapse"
@@ -264,53 +351,63 @@ export function WorkbenchHomePage() {
                     onClick={collapseSidePanel}
                   ><PanelRightClose size={17} /></button>
                 </nav>
-                {workbench.isAddOpen ? (
-                <SourceDrawer
-                  presentation="docked"
-                  mode={workbench.addMode}
-                  libraryInitialView={workbench.libraryInitialView}
-                  resourceType={workbench.resourceType}
-                  records={workbench.sourceRecords}
-                  listStatus={workbench.sourceListStatus}
-                  addStatus={workbench.sourceAddStatus}
-                  contentBusy={workbench.isContentBusy}
-                  createConfig={workbench.createConfig}
-                  createError={workbench.createError}
-                  createStatus={workbench.createStatus}
-                  createPreview={workbench.createPreview}
-                  libraryDetail={activeLibraryDetail?.libraryMode === workbench.addMode ? activeLibraryDetail.record : null}
-                  onModeChange={workbench.setAddMode}
-                  onResourceTypeChange={(type) => void workbench.loadSources(type)}
-                  onAddSource={(type, sourceId, count) => void workbench.addSource(type, sourceId, count)}
-                  onOpenLibraryDetail={(record) => {
-                    if (workbench.addMode === 'resource' || workbench.addMode === 'school') {
-                      openLibraryDetail(workbench.addMode, record)
-                    }
-                  }}
-                  onCreateConfigChange={workbench.setCreateConfig}
-                  onCreate={(requestOverride) => void workbench.createQuestions(requestOverride)}
-                  onAddCreated={workbench.addCreatedQuestions}
-                  onUpload={() => void workbench.recognizeUpload()}
-                  onAddManual={() => void workbench.addManualQuestion()}
-                  onClose={activeLibraryDetail ? () => closeLibraryDetailTab(activeLibraryDetail) : activateAddHome}
-                />
-              ) : (
-                <CompositionHub
-                  currentDocumentId={workbench.document.id}
-                  histories={workbench.historyDocuments}
-                  historyStatus={workbench.historyStatus}
-                  contentBusy={workbench.isContentBusy}
-                  composePrompt={workbench.composePrompt}
-                  composeError={workbench.composeError}
-                  composeStatus={workbench.composeStatus}
-                  onOpenAdd={openAdd}
-                  onOpenDocument={(documentId) => void workbench.openHistoryDocument(documentId)}
-                  onReloadHistory={() => void workbench.reloadHistory()}
-                  onComposePromptChange={workbench.setComposePrompt}
-                  onCompose={() => void workbench.composeFromBank()}
-                  onCollapse={collapseSidePanel}
-                />
-              )}
+                {assistantActive && assistantTabOpen ? (
+                  <AiAssistantWorkspace
+                    run={workbench.assistantRun}
+                    prompt={workbench.composePrompt}
+                    error={workbench.composeError}
+                    status={workbench.composeStatus}
+                    contentBusy={workbench.isContentBusy}
+                    onPromptChange={workbench.setComposePrompt}
+                    onSubmit={submitAssistant}
+                  />
+                ) : workbench.isAddOpen ? (
+                  <SourceDrawer
+                    presentation="docked"
+                    mode={workbench.addMode}
+                    libraryInitialView={workbench.libraryInitialView}
+                    resourceType={workbench.resourceType}
+                    records={workbench.sourceRecords}
+                    listStatus={workbench.sourceListStatus}
+                    addStatus={workbench.sourceAddStatus}
+                    contentBusy={workbench.isContentBusy}
+                    createConfig={workbench.createConfig}
+                    createError={workbench.createError}
+                    createStatus={workbench.createStatus}
+                    createPreview={workbench.createPreview}
+                    libraryDetail={activeLibraryDetail?.libraryMode === workbench.addMode ? activeLibraryDetail.record : null}
+                    onModeChange={workbench.setAddMode}
+                    onResourceTypeChange={(type) => void workbench.loadSources(type)}
+                    onAddSource={(type, sourceId, count) => void workbench.addSource(type, sourceId, count)}
+                    onOpenLibraryDetail={(record) => {
+                      if (workbench.addMode === 'resource' || workbench.addMode === 'school') {
+                        openLibraryDetail(workbench.addMode, record)
+                      }
+                    }}
+                    onCreateConfigChange={workbench.setCreateConfig}
+                    onCreate={(requestOverride) => void workbench.createQuestions(requestOverride)}
+                    onAddCreated={workbench.addCreatedQuestions}
+                    onUpload={() => void workbench.recognizeUpload()}
+                    onAddManual={() => void workbench.addManualQuestion()}
+                    onClose={activeLibraryDetail ? () => closeLibraryDetailTab(activeLibraryDetail) : activateAddHome}
+                  />
+                ) : (
+                  <CompositionHub
+                    currentDocumentId={workbench.document.id}
+                    histories={workbench.historyDocuments}
+                    historyStatus={workbench.historyStatus}
+                    contentBusy={workbench.isContentBusy}
+                    composePrompt={workbench.composePrompt}
+                    composeError={workbench.composeError}
+                    composeStatus={workbench.composeStatus}
+                    onOpenAdd={openAdd}
+                    onOpenDocument={(documentId) => void workbench.openHistoryDocument(documentId)}
+                    onReloadHistory={() => void workbench.reloadHistory()}
+                    onComposePromptChange={workbench.setComposePrompt}
+                    onCompose={submitAssistant}
+                    onCollapse={collapseSidePanel}
+                  />
+                )}
               </div>
             ) : hasQuestions ? (
               <QuestionInspector

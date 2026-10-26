@@ -10,6 +10,15 @@ export type InspectorView = 'info' | 'ai'
 export type Difficulty = '基础' | '中等' | '提升'
 export type QuestionOrigin = 'question-bank' | 'ai-original' | 'upload' | 'manual'
 
+export interface AiAssistantRun {
+  id: EntityId
+  prompt: string
+  status: Extract<AsyncStatus, 'loading' | 'success' | 'error'>
+  activeStep: number
+  resultCount: number
+  errorMessage?: string
+}
+
 export interface Question {
   id: EntityId
   type: '选择题' | '填空题' | '解答题'
@@ -32,6 +41,7 @@ export interface WorkbenchDocument {
   id: EntityId
   title: string
   gradeSubject: string
+  intro?: string
   questions: Question[]
   updatedAt: string
 }
