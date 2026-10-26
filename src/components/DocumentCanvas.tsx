@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
 import { ArrowDown, ArrowUp, Bold, GripVertical, Italic, Omega, Radical, Send, Sparkles, Trash2, Underline } from 'lucide-react'
-import type { AddQuestionMode, WorkbenchDocument } from '../prototype/types'
+import type { AddQuestionMode, QuestionPatch, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 
 interface DocumentCanvasProps {
@@ -12,8 +12,57 @@ interface DocumentCanvasProps {
   onRewriteRequirement: (requirement: string) => void
   onMoveQuestion: (direction: -1 | 1) => void
   onDeleteQuestion: () => void
+  onQuestionChange: (questionId: string, patch: QuestionPatch) => void
   onAdd: (mode?: AddQuestionMode) => void
   onOpenAssistant: () => void
+}
+
+interface EditableQuestionTextProps {
+  value: string
+  multiline?: boolean
+  ariaLabel: string
+  onCommit: (value: string) => void
+}
+
+function EditableQuestionText({ value, multiline = false, ariaLabel, onCommit }: EditableQuestionTextProps) {
+  const [draft, setDraft] = useState(value)
+  const cancelBlurRef = useRef(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => setDraft(value), [value])
+  useEffect(() => {
+    if (!multiline || !textareaRef.current) return
+    textareaRef.current.style.height = 'auto'
+    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+  }, [draft, multiline])
+  const commit = () => {
+    if (cancelBlurRef.current) {
+      cancelBlurRef.current = false
+      setDraft(value)
+      return
+    }
+    const nextValue = draft.trim()
+    if (nextValue && nextValue !== value) onCommit(nextValue)
+    if (!nextValue) setDraft(value)
+  }
+  const shared = {
+    value: draft,
+    'aria-label': ariaLabel,
+    onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setDraft(event.target.value),
+    onBlur: commit,
+    onClick: (event: React.MouseEvent) => event.stopPropagation(),
+    onKeyDown: (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      event.stopPropagation()
+      if (event.key === 'Escape') {
+        cancelBlurRef.current = true
+        setDraft(value)
+        event.currentTarget.blur()
+      }
+      if (!multiline && event.key === 'Enter') event.currentTarget.blur()
+    },
+  }
+  return multiline
+    ? <textarea {...shared} ref={textareaRef} className="editor-question-inline-input is-stem" rows={1} />
+    : <input {...shared} className="editor-question-inline-input is-option" />
 }
 
 export function DocumentCanvas(props: DocumentCanvasProps) {
@@ -87,11 +136,29 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
               ) : null}
               <div className="editor-question-mainline">
                 <span className="editor-question-number">{index + 1}.</span>
-                <div className="editor-question-stem">{question.stem}</div>
+                {selected ? (
+                  <EditableQuestionText
+                    value={question.stem}
+                    multiline
+                    ariaLabel={`编辑第 ${index + 1} 题题干`}
+                    onCommit={(stem) => props.onQuestionChange(question.id, { stem })}
+                  />
+                ) : <div className="editor-question-stem">{question.stem}</div>}
               </div>
               {question.options ? (
                 <div className="editor-question-options">
-                  {question.options.map((option) => <span key={option}>{option}</span>)}
+                  {question.options.map((option, optionIndex) => selected ? (
+                    <EditableQuestionText
+                      key={`${question.id}-option-${optionIndex}`}
+                      value={option}
+                      ariaLabel={`编辑第 ${index + 1} 题选项 ${optionIndex + 1}`}
+                      onCommit={(nextOption) => {
+                        const options = [...(question.options ?? [])]
+                        options[optionIndex] = nextOption
+                        props.onQuestionChange(question.id, { options })
+                      }}
+                    />
+                  ) : <span key={`${question.id}-option-${optionIndex}`}>{option}</span>)}
                 </div>
               ) : null}
             </section>

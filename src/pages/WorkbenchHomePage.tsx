@@ -9,7 +9,7 @@ import { MyResourcesPanel } from '../components/MyResourcesPanel'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
-import type { AddQuestionMode, SourceRecord } from '../prototype/types'
+import type { AddQuestionMode, MyResourceKind, SourceRecord } from '../prototype/types'
 import { BrainCircuit, FileText, House, PanelLeftClose, Sparkles, X } from 'lucide-react'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
@@ -47,6 +47,7 @@ export function WorkbenchHomePage() {
   const [assistantActive, setAssistantActive] = useState(false)
   const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
   const [myResourcesActive, setMyResourcesActive] = useState(false)
+  const [myResourcesInitialKind, setMyResourcesInitialKind] = useState<MyResourceKind | '全部'>('全部')
   const hasQuestions = workbench.document.questions.length > 0
   const activeLibraryDetail = libraryDetailTabs.find((tab) => tab.key === activeLibraryDetailKey) ?? null
 
@@ -191,7 +192,8 @@ export function WorkbenchHomePage() {
     if (assistantActive) setAssistantActive(false)
   }
 
-  const openMyResources = () => {
+  const openMyResources = (initialKind: MyResourceKind | '全部' = '全部') => {
+    setMyResourcesInitialKind(initialKind)
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
@@ -239,9 +241,17 @@ export function WorkbenchHomePage() {
       <main className="fx-content workbench-page">
         <div className="fx-zoom-area workbench-zoom-area">
           <WorkspaceHeader
+            documentId={workbench.document.id}
             documentTitle={workbench.document.title}
             questionCount={workbench.document.questions.length}
+            canSave={workbench.document.questions.length > 0 || Boolean(workbench.document.intro?.trim()) || !['未命名组题', '未命名题单'].includes(workbench.document.title.trim())}
             canUndo={workbench.canUndo && !workbench.isContentBusy}
+            contentBusy={workbench.isContentBusy}
+            documentStatus={workbench.documentStatus}
+            syncState={workbench.documentSyncState}
+            assignmentOutdated={workbench.assignmentOutdated}
+            histories={workbench.historyDocuments}
+            historyStatus={workbench.historyStatus}
             onUndo={() => {
               setAssistantTabOpen(false)
               setAssistantActive(false)
@@ -254,6 +264,11 @@ export function WorkbenchHomePage() {
               setAssistantActive(false)
               setSidePanelOpen(true)
             }}
+            onSave={() => { void workbench.saveDocument() }}
+            onAssign={() => { void workbench.assignDocument() }}
+            onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
+            onReloadHistory={() => { void workbench.reloadHistory() }}
+            onOpenAllDocuments={() => openMyResources('题单')}
             sidePanelOpen={sidePanelOpen}
             onSidePanelOpen={() => setSidePanelOpen(true)}
           />
@@ -295,6 +310,7 @@ export function WorkbenchHomePage() {
                   }}
                   onMoveQuestion={workbench.moveQuestion}
                   onDeleteQuestion={workbench.deleteQuestion}
+                  onQuestionChange={workbench.updateQuestion}
                   onAdd={openAdd}
                   onOpenAssistant={() => openAssistant()}
                 />
@@ -376,7 +392,7 @@ export function WorkbenchHomePage() {
                         type="button"
                         role="tab"
                         aria-selected={myResourcesActive}
-                        onClick={openMyResources}
+                        onClick={() => openMyResources(myResourcesInitialKind)}
                         data-track="/click/aiQuestionHome/switchMyResourcesTab | 切换我的资源任务 | 无"
                       ><span>我的资源</span></button>
                       <button type="button" className="add-workspace-tab-close" aria-label="关闭我的资源" onClick={closeMyResourcesTab}>
@@ -393,7 +409,16 @@ export function WorkbenchHomePage() {
                   ><PanelLeftClose size={17} /></button>
                 </nav>
                 {myResourcesActive && myResourcesTabOpen ? (
-                  <MyResourcesPanel />
+                  <MyResourcesPanel
+                    initialKind={myResourcesInitialKind}
+                    histories={workbench.historyDocuments}
+                    currentDocumentId={workbench.document.id}
+                    contentBusy={workbench.isContentBusy || workbench.documentSyncState === 'dirty' || workbench.documentSyncState === 'saving'}
+                    pendingResourceId={workbench.myResourcePendingId}
+                    addedResourceIds={workbench.myResourceAddedIds}
+                    onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
+                    onAddResource={(resource) => { void workbench.addMyResource(resource) }}
+                  />
                 ) : assistantActive && assistantTabOpen ? (
                   <AiAssistantWorkspace
                     run={workbench.assistantRun}
@@ -436,17 +461,12 @@ export function WorkbenchHomePage() {
                   />
                 ) : (
                   <CompositionHub
-                    currentDocumentId={workbench.document.id}
-                    histories={workbench.historyDocuments}
-                    historyStatus={workbench.historyStatus}
                     contentBusy={workbench.isContentBusy}
                     composePrompt={workbench.composePrompt}
                     composeError={workbench.composeError}
                     composeStatus={workbench.composeStatus}
                     onOpenAdd={openAdd}
-                    onOpenMyResources={openMyResources}
-                    onOpenDocument={(documentId) => void workbench.openHistoryDocument(documentId)}
-                    onReloadHistory={() => void workbench.reloadHistory()}
+                    onOpenMyResources={() => openMyResources('全部')}
                     onComposePromptChange={workbench.setComposePrompt}
                     onCompose={submitAssistant}
                     onCollapse={collapseSidePanel}

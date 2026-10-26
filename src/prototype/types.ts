@@ -9,6 +9,9 @@ export type AddQuestionMode = 'menu' | 'resource' | 'school' | 'compose' | 'crea
 export type InspectorView = 'info' | 'ai'
 export type Difficulty = '基础' | '中等' | '提升'
 export type QuestionOrigin = 'question-bank' | 'ai-original' | 'upload' | 'manual'
+export type DocumentStatus = '草稿' | '已保存' | '已布置'
+export type DocumentSyncState = 'clean' | 'dirty' | 'saving' | 'saved' | 'error'
+export type MyResourceKind = '试卷' | '题单' | '题目' | '文件' | '练习册'
 
 export interface AiAssistantRun {
   id: EntityId
@@ -37,6 +40,8 @@ export interface Question {
   usageCount?: number
 }
 
+export type QuestionPatch = Partial<Pick<Question, 'stem' | 'options' | 'answer' | 'analysis' | 'score'>>
+
 export interface WorkbenchDocument {
   id: EntityId
   title: string
@@ -52,8 +57,25 @@ export interface HistoryDocumentSummary {
   gradeSubject: string
   questionCount: number
   updatedAt: string
-  status: '草稿' | '已保存' | '已布置'
+  status: DocumentStatus
   origin: 'AI 组题' | '手工组题' | '上传录题'
+}
+
+export interface MyResourceSummary {
+  id: EntityId
+  title: string
+  kind: MyResourceKind
+  detail: string
+  updatedAt: string
+  folder: string
+  questionCount?: number
+  documentId?: EntityId
+}
+
+export interface SaveDocumentResult {
+  document: WorkbenchDocument
+  status: DocumentStatus
+  savedAt: string
 }
 
 export interface SourceOption {
@@ -108,4 +130,7 @@ export interface WorkbenchRepository {
   createQuestions(request: CreateQuestionRequest): Promise<Question[]>
   createManualQuestion(): Promise<Question>
   rewrite(question: Question, request: RewriteRequest): Promise<Question>
+  saveDocument(document: WorkbenchDocument, status: Exclude<DocumentStatus, '已布置'>): Promise<SaveDocumentResult>
+  assignDocument(document: WorkbenchDocument): Promise<SaveDocumentResult>
+  addMyResource(resource: MyResourceSummary): Promise<Question[]>
 }

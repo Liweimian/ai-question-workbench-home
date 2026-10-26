@@ -4,15 +4,125 @@ import {
   historySummaries,
   sourceRecords,
 } from '../data/workbenchData'
-import type { CreateQuestionRequest, Difficulty, Question, ResourceType, WorkbenchRepository } from '../prototype/types'
+import type { CreateQuestionRequest, Difficulty, DocumentStatus, MyResourceSummary, Question, ResourceType, WorkbenchDocument, WorkbenchRepository } from '../prototype/types'
 
 const delay = (duration: number) => new Promise((resolve) => window.setTimeout(resolve, duration))
+const localDocumentStorageKey = 'feixiang-ai-question-workbench-documents-v1'
+
+interface StoredDocumentEntry {
+  document: WorkbenchDocument
+  status: DocumentStatus
+}
+
+function readStoredDocuments(): StoredDocumentEntry[] {
+  try {
+    const value = window.localStorage.getItem(localDocumentStorageKey)
+    if (!value) return []
+    const parsed = JSON.parse(value) as StoredDocumentEntry[]
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function writeStoredDocument(document: WorkbenchDocument, status: DocumentStatus) {
+  const snapshot = {
+    ...document,
+    questions: document.questions.map((question) => ({
+      ...question,
+      options: question.options ? [...question.options] : undefined,
+    })),
+    updatedAt: '刚刚',
+  }
+  const entries = [
+    { document: snapshot, status },
+    ...readStoredDocuments().filter((entry) => entry.document.id !== snapshot.id),
+  ].slice(0, 30)
+  window.localStorage.setItem(localDocumentStorageKey, JSON.stringify(entries))
+  return snapshot
+}
 
 const cloneQuestion = (question: Question, suffix: string): Question => ({
   ...question,
   id: `${question.id}-${suffix}`,
   options: question.options ? [...question.options] : undefined,
 })
+
+function createMyResourceQuestion(resource: MyResourceSummary, index: number): Question {
+  const variant = index + 1
+  const templateIndex = index % 4
+  const common = {
+    id: `my-resource-${resource.id}-${Date.now()}-${index}`,
+    sourceLabel: resource.title,
+    sourceDetail: `我的资源 · ${resource.kind} · 第 ${variant} 题`,
+    origin: 'question-bank' as const,
+    verifyStatus: '已校验' as const,
+    usageCount: 0,
+  }
+  if (templateIndex === 0) {
+    const coefficient = 2 + (variant % 4)
+    const x = 1 + (variant % 3)
+    const intercept = 1 + (variant % 5)
+    const answer = coefficient * x - intercept
+    return {
+      ...common,
+      type: '选择题',
+      stem: `已知一次函数 y = ${coefficient}x - ${intercept}，当 x = ${x} 时，y 的值是（　　）`,
+      options: [`A. ${answer - 1}`, `B. ${answer}`, `C. ${answer + 1}`, `D. ${answer + 2}`],
+      answer: 'B',
+      analysis: `将 x = ${x} 代入 y = ${coefficient}x - ${intercept}，得 y = ${answer}。`,
+      knowledgePoint: '一次函数求值',
+      difficulty: '基础',
+      estimatedMinutes: 2,
+      score: 3,
+    }
+  }
+  if (templateIndex === 1) {
+    const x = 2 + (variant % 4)
+    const coefficient = 1 + (variant % 5)
+    const intercept = 1 + (variant % 3)
+    const y = coefficient * x + intercept
+    return {
+      ...common,
+      type: '填空题',
+      stem: `若点 A（${x}，${y}）在一次函数 y = kx + ${intercept} 的图象上，则 k = ______。`,
+      answer: `${coefficient}`,
+      analysis: `代入点 A 的坐标，得 ${y} = ${x}k + ${intercept}，解得 k = ${coefficient}。`,
+      knowledgePoint: '待定系数法',
+      difficulty: '中等',
+      estimatedMinutes: 3,
+      score: 4,
+    }
+  }
+  if (templateIndex === 2) {
+    const rate = 2 + (variant % 4)
+    const start = 5 + (variant % 5)
+    return {
+      ...common,
+      type: '解答题',
+      stem: `某服务项目收取 ${start} 元基础费，之后每增加 1 个计费单位加收 ${rate} 元。写出总费用 y（元）与计费单位 x 之间的函数关系式。`,
+      answer: `y = ${rate}x + ${start}`,
+      analysis: `基础费 ${start} 元是常数项，每单位费用 ${rate} 元是一次项系数，所以 y = ${rate}x + ${start}。`,
+      knowledgePoint: '一次函数实际应用',
+      difficulty: '中等',
+      estimatedMinutes: 5,
+      score: 6,
+    }
+  }
+  const slope = 1 + (variant % 5)
+  const intercept = 2 + (variant % 6)
+  return {
+    ...common,
+    type: '填空题',
+    stem: `一次函数 y = -${slope}x + ${intercept} 的图象从左向右 ______，与 y 轴交于点 ______。`,
+    answer: `下降；（0，${intercept}）`,
+    analysis: `一次项系数 -${slope} < 0，所以图象下降；令 x = 0，得交点（0，${intercept}）。`,
+    knowledgePoint: '一次函数图象与性质',
+    difficulty: '基础',
+    estimatedMinutes: 3,
+    score: 4,
+  }
+}
 
 function getRequestedQuestionPlan(prompt: string) {
   const layered = prompt.match(/基础\s*(\d+)[^\d]+提升\s*(\d+)/)
@@ -201,12 +311,26 @@ function createGeneratedContent(
 export const workbenchRepository: WorkbenchRepository = {
   async listHistory() {
     await delay(280)
-    return historySummaries.map((summary) => ({ ...summary }))
+    const stored = readStoredDocuments()
+    const storedIds = new Set(stored.map((entry) => entry.document.id))
+    return [
+      ...stored.map(({ document, status }) => ({
+        id: document.id,
+        title: document.title,
+        gradeSubject: document.gradeSubject,
+        questionCount: document.questions.length,
+        updatedAt: document.updatedAt,
+        status,
+        origin: '手工组题' as const,
+      })),
+      ...historySummaries.filter((summary) => !storedIds.has(summary.id)).map((summary) => ({ ...summary })),
+    ]
   },
 
   async loadDocument(documentId) {
     await delay(420)
-    const document = historyDocuments.find((item) => item.id === documentId)
+    const document = readStoredDocuments().find((entry) => entry.document.id === documentId)?.document
+      ?? historyDocuments.find((item) => item.id === documentId)
     if (!document) throw new Error('未找到该历史题单')
     return {
       ...document,
@@ -365,5 +489,31 @@ export const workbenchRepository: WorkbenchRepository = {
       rewritten.analysis = `${question.analysis} 本题关键是先识别已知量，再代入函数关系式，最后检查计算结果与题意是否一致。`
     }
     return rewritten
+  },
+
+  async saveDocument(document, status) {
+    await delay(460)
+    const savedDocument = writeStoredDocument(document, status)
+    return {
+      document: savedDocument,
+      status,
+      savedAt: '刚刚',
+    }
+  },
+
+  async assignDocument(document) {
+    await delay(620)
+    const savedDocument = writeStoredDocument(document, '已布置')
+    return {
+      document: savedDocument,
+      status: '已布置',
+      savedAt: '刚刚',
+    }
+  },
+
+  async addMyResource(resource) {
+    await delay(520)
+    const count = Math.min(36, Math.max(1, resource.questionCount ?? 2))
+    return Array.from({ length: count }, (_, index) => createMyResourceQuestion(resource, index))
   },
 }

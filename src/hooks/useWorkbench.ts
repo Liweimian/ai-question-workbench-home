@@ -6,11 +6,15 @@ import type {
   AiAssistantRun,
   AsyncStatus,
   CreateQuestionRequest,
+  DocumentStatus,
+  DocumentSyncState,
   HistoryDocumentSummary,
   InspectorView,
   LibraryInitialView,
+  MyResourceSummary,
   OpenAddOptions,
   Question,
+  QuestionPatch,
   ResourceType,
   RewriteRequest,
   SourceRecord,
@@ -18,7 +22,7 @@ import type {
 } from '../prototype/types'
 import { workbenchRepository } from '../services/workbenchRepository'
 
-type ContentOperation = 'source-add' | 'upload' | 'personalized' | 'compose' | 'create' | 'manual' | 'history-load'
+type ContentOperation = 'source-add' | 'my-resource-add' | 'upload' | 'personalized' | 'compose' | 'create' | 'manual' | 'history-load'
 
 const defaultCreateConfig: CreateQuestionRequest = {
   method: '知识点组合出题',
@@ -40,6 +44,7 @@ interface EditorState {
 type EditorAction =
   | { type: 'set-title'; title: string }
   | { type: 'set-intro'; intro: string }
+  | { type: 'update-question'; questionId: string; patch: QuestionPatch }
   | { type: 'append'; questions: Question[] }
   | { type: 'load-document'; document: WorkbenchDocument }
   | { type: 'apply-rewrite'; selectedQuestionId: string; preview: Question; mode: 'replace' | 'append' }
@@ -60,16 +65,29 @@ const cloneDocument = (document: WorkbenchDocument): WorkbenchDocument => ({
   questions: cloneQuestions(document.questions),
 })
 
+const documentFingerprint = (document: WorkbenchDocument) => JSON.stringify({
+  title: document.title,
+  intro: document.intro ?? '',
+  questions: document.questions,
+})
+
+const isUntouchedBlankDocument = (document: WorkbenchDocument) => (
+  document.questions.length === 0
+  && !document.intro?.trim()
+  && ['未命名组题', '未命名题单'].includes(document.title.trim())
+)
+
 const toHistorySummary = (
   document: WorkbenchDocument,
   previous?: HistoryDocumentSummary,
+  status?: DocumentStatus,
 ): HistoryDocumentSummary => ({
   id: document.id,
   title: document.title.trim() || '未命名组题',
   gradeSubject: document.gradeSubject,
   questionCount: document.questions.length,
   updatedAt: '刚刚',
-  status: '草稿',
+  status: status ?? previous?.status ?? '草稿',
   origin: previous?.origin ?? '手工组题',
 })
 
@@ -85,6 +103,21 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     return {
       document: { ...state.document, intro: action.intro, updatedAt: '刚刚' },
       undoDocument: state.undoDocument,
+    }
+  }
+
+  if (action.type === 'update-question') {
+    const index = state.document.questions.findIndex((question) => question.id === action.questionId)
+    if (index < 0) return state
+    const nextQuestions = [...state.document.questions]
+    nextQuestions[index] = {
+      ...nextQuestions[index],
+      ...action.patch,
+      options: action.patch.options ? [...action.patch.options] : nextQuestions[index].options,
+    }
+    return {
+      document: { ...state.document, questions: nextQuestions, updatedAt: '刚刚' },
+      undoDocument: cloneDocument(state.document),
     }
   }
 
@@ -188,6 +221,11 @@ export function useWorkbench() {
   const [sourceAddStatus, setSourceAddStatus] = useState<AsyncStatus>('idle')
   const [historyStatus, setHistoryStatus] = useState<AsyncStatus>('idle')
   const [historyDocuments, setHistoryDocuments] = useState<HistoryDocumentSummary[]>([])
+  const [documentStatus, setDocumentStatus] = useState<DocumentStatus>('草稿')
+  const [documentSyncState, setDocumentSyncState] = useState<DocumentSyncState>('clean')
+  const [assignmentOutdated, setAssignmentOutdated] = useState(false)
+  const [myResourcePendingId, setMyResourcePendingId] = useState<string | null>(null)
+  const [myResourceAddedIds, setMyResourceAddedIds] = useState<Set<string>>(new Set())
   const [composePrompt, setComposePrompt] = useState('')
   const [composeError, setComposeError] = useState('')
   const [composeStatus, setComposeStatus] = useState<AsyncStatus>('idle')
@@ -208,15 +246,25 @@ export function useWorkbench() {
   const assistantRequestIdRef = useRef(0)
   const assistantStepTimersRef = useRef<number[]>([])
   const rewriteRequestIdRef = useRef(0)
+  const saveRequestIdRef = useRef(0)
+  const autoSaveTimerRef = useRef<number | null>(null)
   const sessionDocumentsRef = useRef(new Map<string, WorkbenchDocument>())
 
   const document = editor.document
+  const latestDocumentRef = useRef(document)
+  latestDocumentRef.current = document
+  const savedDocumentRef = useRef({ id: document.id, fingerprint: documentFingerprint(document) })
   const documentIdRef = useRef(document.id)
   documentIdRef.current = document.id
   const selectedQuestion = useMemo(
     () => document.questions.find((question) => question.id === selectedQuestionId) ?? null,
     [document.questions, selectedQuestionId],
   )
+
+  useEffect(() => {
+    setMyResourceAddedIds(new Set())
+    setMyResourcePendingId(null)
+  }, [document.id])
 
   const changeComposePrompt = useCallback((value: string) => {
     setComposePrompt(value)
@@ -270,7 +318,16 @@ export function useWorkbench() {
     try {
       const summaries = await workbenchRepository.listHistory()
       if (historyRequestIdRef.current !== requestId) return
-      setHistoryDocuments(summaries)
+      setHistoryDocuments((current) => {
+        const sessionIds = new Set(sessionDocumentsRef.current.keys())
+        const sessionSummaries = Array.from(sessionDocumentsRef.current.values()).map((sessionDocument) => (
+          toHistorySummary(sessionDocument, current.find((item) => item.id === sessionDocument.id))
+        ))
+        return [
+          ...sessionSummaries,
+          ...summaries.filter((summary) => !sessionIds.has(summary.id)),
+        ]
+      })
       setHistoryStatus('success')
     } catch {
       if (historyRequestIdRef.current === requestId) setHistoryStatus('error')
@@ -281,19 +338,116 @@ export function useWorkbench() {
     void loadHistoryList()
   }, [loadHistoryList])
 
-  const rememberDocument = useCallback((currentDocument: WorkbenchDocument) => {
-    historyRequestIdRef.current += 1
+  const rememberDocument = useCallback((currentDocument: WorkbenchDocument, status?: DocumentStatus) => {
     const snapshot = cloneDocument({ ...currentDocument, updatedAt: '刚刚' })
     sessionDocumentsRef.current.set(snapshot.id, snapshot)
     setHistoryDocuments((current) => {
       const previous = current.find((item) => item.id === snapshot.id)
       return [
-        toHistorySummary(snapshot, previous),
+        toHistorySummary(snapshot, previous, status),
         ...current.filter((item) => item.id !== snapshot.id),
       ]
     })
     setHistoryStatus('success')
   }, [])
+
+  const saveDocument = useCallback(async (explicit = true) => {
+    if (autoSaveTimerRef.current !== null) {
+      window.clearTimeout(autoSaveTimerRef.current)
+      autoSaveTimerRef.current = null
+    }
+    const snapshot = cloneDocument(latestDocumentRef.current)
+    if (isUntouchedBlankDocument(snapshot)) {
+      if (explicit) MetisMessage.info('先添加题目或修改题稿名称后再保存')
+      return false
+    }
+    const requestId = saveRequestIdRef.current + 1
+    saveRequestIdRef.current = requestId
+    setDocumentSyncState('saving')
+    try {
+      const requestedStatus = explicit || documentStatus === '已保存' ? '已保存' : '草稿'
+      const result = await workbenchRepository.saveDocument(snapshot, requestedStatus)
+      if (saveRequestIdRef.current !== requestId || documentIdRef.current !== snapshot.id) return false
+      const latest = latestDocumentRef.current
+      const snapshotFingerprint = documentFingerprint(snapshot)
+      const latestFingerprint = documentFingerprint(latest)
+      savedDocumentRef.current = { id: snapshot.id, fingerprint: snapshotFingerprint }
+      const effectiveStatus = documentStatus === '已布置' ? '已布置' : result.status
+      setDocumentStatus(effectiveStatus)
+      rememberDocument(latestFingerprint === snapshotFingerprint ? result.document : latest, effectiveStatus)
+      setDocumentSyncState(latestFingerprint === snapshotFingerprint ? 'saved' : 'dirty')
+      if (explicit) MetisMessage.success('题单已保存，并同步到我的资源')
+      return true
+    } catch {
+      if (saveRequestIdRef.current === requestId && documentIdRef.current === snapshot.id) {
+        setDocumentSyncState('error')
+        if (explicit) MetisMessage.error('保存失败，请重试')
+      }
+      return false
+    }
+  }, [documentStatus, rememberDocument])
+
+  const assignDocument = useCallback(async () => {
+    if (autoSaveTimerRef.current !== null) {
+      window.clearTimeout(autoSaveTimerRef.current)
+      autoSaveTimerRef.current = null
+    }
+    const snapshot = cloneDocument(latestDocumentRef.current)
+    if (snapshot.questions.length === 0) {
+      MetisMessage.error('请先添加题目')
+      return false
+    }
+    const requestId = saveRequestIdRef.current + 1
+    saveRequestIdRef.current = requestId
+    setDocumentSyncState('saving')
+    try {
+      const result = await workbenchRepository.assignDocument(snapshot)
+      if (saveRequestIdRef.current !== requestId || documentIdRef.current !== snapshot.id) return false
+      const latest = latestDocumentRef.current
+      const snapshotFingerprint = documentFingerprint(snapshot)
+      const latestFingerprint = documentFingerprint(latest)
+      savedDocumentRef.current = { id: snapshot.id, fingerprint: snapshotFingerprint }
+      setDocumentStatus('已布置')
+      setAssignmentOutdated(false)
+      rememberDocument(latestFingerprint === snapshotFingerprint ? result.document : latest, '已布置')
+      setDocumentSyncState(latestFingerprint === snapshotFingerprint ? 'saved' : 'dirty')
+      MetisMessage.success('题单已保存并布置成功')
+      return true
+    } catch {
+      if (saveRequestIdRef.current === requestId && documentIdRef.current === snapshot.id) {
+        setDocumentSyncState('error')
+        MetisMessage.error('布置失败，请重试')
+      }
+      return false
+    }
+  }, [rememberDocument])
+
+  useEffect(() => {
+    if (autoSaveTimerRef.current !== null) {
+      window.clearTimeout(autoSaveTimerRef.current)
+      autoSaveTimerRef.current = null
+    }
+    const fingerprint = documentFingerprint(document)
+    if (savedDocumentRef.current.id !== document.id) {
+      savedDocumentRef.current = { id: document.id, fingerprint }
+      setDocumentStatus(historyDocuments.find((item) => item.id === document.id)?.status ?? '草稿')
+      setDocumentSyncState('clean')
+      setAssignmentOutdated(false)
+      return
+    }
+    if (savedDocumentRef.current.fingerprint === fingerprint || isUntouchedBlankDocument(document)) return
+    if (documentStatus === '已布置') setAssignmentOutdated(true)
+    setDocumentSyncState('dirty')
+    autoSaveTimerRef.current = window.setTimeout(() => {
+      void saveDocument(false)
+    }, 800)
+    return () => {
+      if (autoSaveTimerRef.current !== null) {
+        window.clearTimeout(autoSaveTimerRef.current)
+        autoSaveTimerRef.current = null
+      }
+    }
+  }, [document, historyDocuments, saveDocument])
 
   const loadSources = useCallback(async (type: ResourceType) => {
     const requestId = sourceRequestIdRef.current + 1
@@ -364,6 +518,25 @@ export function useWorkbench() {
       finishContentOperation('source-add')
     }
   }, [appendQuestions, beginContentOperation, finishContentOperation])
+
+  const addMyResource = useCallback(async (resource: MyResourceSummary) => {
+    if (!beginContentOperation('my-resource-add')) return false
+    const targetDocumentId = document.id
+    setMyResourcePendingId(resource.id)
+    try {
+      const questions = await workbenchRepository.addMyResource(resource)
+      if (documentIdRef.current !== targetDocumentId) return false
+      appendQuestions(questions, `已从“${resource.title}”加入 ${questions.length} 道题`, false)
+      setMyResourceAddedIds((current) => new Set(current).add(resource.id))
+      return true
+    } catch {
+      MetisMessage.error('资源加入失败，请重试')
+      return false
+    } finally {
+      setMyResourcePendingId(null)
+      finishContentOperation('my-resource-add')
+    }
+  }, [appendQuestions, beginContentOperation, document.id, finishContentOperation])
 
   const recognizeUpload = useCallback(async () => {
     if (!beginContentOperation('upload')) return
@@ -570,14 +743,14 @@ export function useWorkbench() {
     if (!beginContentOperation('history-load')) return
     invalidateRewrite()
     try {
-      rememberDocument(document)
+      if (!isUntouchedBlankDocument(document)) rememberDocument(document)
       const sessionDocument = sessionDocumentsRef.current.get(documentId)
       const nextDocument = sessionDocument
         ? cloneDocument(sessionDocument)
         : await workbenchRepository.loadDocument(documentId)
       invalidateRewrite()
       dispatch({ type: 'load-document', document: nextDocument })
-      setSelectedQuestionId(nextDocument.questions[0]?.id ?? null)
+      setSelectedQuestionId(null)
       setInspectorView('info')
       createRequestIdRef.current += 1
       setCreatePreview([])
@@ -595,6 +768,12 @@ export function useWorkbench() {
     invalidateRewrite()
     setSelectedQuestionId(questionId)
   }, [invalidateRewrite])
+
+  const updateQuestion = useCallback((questionId: string, patch: QuestionPatch) => {
+    if (!document.questions.some((question) => question.id === questionId)) return
+    invalidateRewrite()
+    dispatch({ type: 'update-question', questionId, patch })
+  }, [document.questions, invalidateRewrite])
 
   const rewrite = useCallback(async (instruction: RewriteRequest['instruction'], prompt?: string) => {
     if (!selectedQuestion) return
@@ -651,6 +830,7 @@ export function useWorkbench() {
     const nextSelection = document.questions[index + 1]?.id ?? document.questions[index - 1]?.id ?? null
     invalidateRewrite()
     dispatch({ type: 'delete', selectedQuestionId })
+    setMyResourceAddedIds(new Set())
     setSelectedQuestionId(nextSelection)
     setInspectorView('info')
     MetisMessage.success('已删除题目，可撤销')
@@ -669,16 +849,13 @@ export function useWorkbench() {
     setCreateStatus('idle')
     setCreateError('')
     clearAssistantRun()
+    setMyResourceAddedIds(new Set())
     const restored = editor.undoDocument
     dispatch({ type: 'undo' })
     setSelectedQuestionId(restored.questions[0]?.id ?? null)
     setInspectorView('info')
     MetisMessage.success('已撤销上一步操作')
   }, [clearAssistantRun, editor.undoDocument, invalidateRewrite])
-
-  const editQuestion = useCallback(() => {
-    MetisMessage.info('已进入题目编辑演示，正文修改暂不写入服务端')
-  }, [])
 
   return {
     document,
@@ -698,6 +875,11 @@ export function useWorkbench() {
     sourceAddStatus,
     historyStatus,
     historyDocuments,
+    documentStatus,
+    documentSyncState,
+    assignmentOutdated,
+    myResourcePendingId,
+    myResourceAddedIds,
     composePrompt,
     setComposePrompt: changeComposePrompt,
     composeError,
@@ -718,6 +900,7 @@ export function useWorkbench() {
     closeAdd,
     loadSources,
     addSource,
+    addMyResource,
     recognizeUpload,
     personalizeFromUpload,
     composeFromBank,
@@ -727,12 +910,14 @@ export function useWorkbench() {
     reloadHistory: loadHistoryList,
     openHistoryDocument,
     selectQuestion,
+    updateQuestion,
     rewrite,
     applyRewrite,
     moveQuestion,
     reorderQuestions,
     deleteQuestion,
-    editQuestion,
+    saveDocument,
+    assignDocument,
     undo,
   }
 }

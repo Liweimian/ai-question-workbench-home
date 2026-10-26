@@ -10,23 +10,17 @@ import {
 import type {
   AddQuestionMode,
   AsyncStatus,
-  HistoryDocumentSummary,
   OpenAddOptions,
 } from '../prototype/types'
 import { AiComposer } from './AiComposer'
 
 interface CompositionHubProps {
-  currentDocumentId: string
-  histories: HistoryDocumentSummary[]
-  historyStatus: AsyncStatus
   contentBusy: boolean
   composePrompt: string
   composeError: string
   composeStatus: AsyncStatus
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onOpenMyResources: () => void
-  onOpenDocument: (documentId: string) => void
-  onReloadHistory: () => void
   onComposePromptChange: (value: string) => void
   onCompose: () => void
   onCollapse: () => void
