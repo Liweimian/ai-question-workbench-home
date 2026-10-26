@@ -6075,10 +6075,16 @@
   height: 30px;
 }
 
-.add-workspace-brand strong {
+.add-workspace-brand select {
+  width: 96px;
+  height: 32px;
+  padding: 0 24px 0 10px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-control);
   color: var(--fx-text-primary);
-  font-size: 15px;
-  font-weight: 650;
+  background: var(--common_bg2_color);
+  font-size: 14px;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -6581,7 +6587,6 @@
 
 .composition-hub-content {
   width: 100%;
-  margin-block: auto;
 }
 
 .composition-ai-hero,

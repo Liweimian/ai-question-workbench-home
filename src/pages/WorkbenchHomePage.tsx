@@ -11,7 +11,7 @@ import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { defaultDocumentFormat } from '../prototype/types'
 import type { AddQuestionMode, MyResourceKind, SourceRecord } from '../prototype/types'
-import { BrainCircuit, FileText, House, PanelLeftClose, PanelRightOpen, Sparkles, X } from 'lucide-react'
+import { BrainCircuit, FileText, House, PanelLeftClose, PanelRightOpen, X } from 'lucide-react'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
@@ -20,6 +20,17 @@ interface LibraryDetailTab {
   key: string
   libraryMode: LibraryTabMode
   record: SourceRecord
+}
+
+function ElephantIcon() {
+  return (
+    <svg viewBox="0 0 32 32" width="20" height="20" aria-hidden="true">
+      <path d="M7.2 13.2c0-4.2 3.4-7.2 8.3-7.2 4.4 0 7.5 2.4 8.1 6.2h2.1c1.3 0 2.3 1 2.3 2.3v2.4c0 1.1-.9 2-2 2h-2.2v6.2a1.8 1.8 0 0 1-3.6 0v-4.7h-9.4v4.7a1.8 1.8 0 0 1-3.6 0V13.2Z" fill="currentColor" />
+      <path d="M23.5 13.2v7.2c0 2.4 1.2 3.8 3.3 3.8 1.1 0 2-.4 2.7-1.1" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+      <circle cx="18.9" cy="11.4" r="1.2" fill="white" />
+      <path d="M9.4 10.1c-2.2-.5-4.1.9-4.1 3 0 2.2 1.7 3.6 4.1 3.2" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
 }
 
 const addTabLabels: Record<AddTabMode, string> = {
@@ -338,9 +349,13 @@ export function WorkbenchHomePage() {
 
             {sidePanelOpen ? (
               <div className="add-workspace" aria-label="添加题目多任务工作区">
-                <div className="add-workspace-brand" aria-label="飞象AI题库">
-                  <span className="header-workbench-mark"><Sparkles size={16} /></span>
-                  <strong>飞象AI题库</strong>
+                <div className="add-workspace-brand" aria-label="选择学段科目">
+                  <span className="header-workbench-mark"><ElephantIcon /></span>
+                  <select aria-label="学段科目" defaultValue="初中数学">
+                    <option>小学数学</option>
+                    <option>初中数学</option>
+                    <option>高中数学</option>
+                  </select>
                 </div>
                 <nav className="add-workspace-tabs" aria-label="已打开的添加方式" role="tablist">
                   <button
