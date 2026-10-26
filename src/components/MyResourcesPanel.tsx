@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { BookOpenCheck, ChevronDown, Download, FileQuestion, FileText, Folder, FolderPlus, ListChecks, MoreHorizontal, Search, Star, Upload } from 'lucide-react'
+import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
+import { BookOpenCheck, ChevronDown, Download, FileQuestion, FileText, Folder, FolderPlus, ListChecks, MoreHorizontal, Search, Star } from 'lucide-react'
 
 type SpaceTab = 'created' | 'favorites'
 type ResourceKind = '全部' | '试卷' | '题单' | '题目' | '文件' | '练习册'
@@ -55,14 +55,11 @@ export function MyResourcesPanel() {
       </nav>
     </aside>
     <main className="resource-workbench-main">
-      <header className="resource-workbench-header">
-        <div className="resource-header-actions">
-          {space === 'created' ? <MetisButton type="bordered" icon={<Upload size={16} />} onClick={() => MetisMessage.info('已打开上传文件演示')}>上传文件</MetisButton> : null}
+      <div className="resource-content-toolbar">
+        <div className="resource-kind-tabs" role="tablist" aria-label="资源类型">
+          {kinds.map((item) => <button key={item} type="button" role="tab" aria-selected={kind === item} onClick={() => setKind(item)}>{item}</button>)}
           <label className="resource-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索资源" /></label>
         </div>
-      </header>
-      <div className="resource-content-toolbar">
-        <div className="resource-kind-tabs" role="tablist" aria-label="资源类型">{kinds.map((item) => <button key={item} type="button" role="tab" aria-selected={kind === item} onClick={() => setKind(item)}>{item}</button>)}</div>
         <div className="resource-batch-actions">{selectedIds.size > 0 ? <><span>已选 {selectedIds.size} 项</span><button type="button" onClick={() => MetisMessage.info('已下载所选资源')}>下载</button><button type="button" onClick={() => MetisMessage.info('已移动所选资源')}>移动</button></> : null}</div>
       </div>
       <section className="resource-manage-list" aria-label="资源列表">
