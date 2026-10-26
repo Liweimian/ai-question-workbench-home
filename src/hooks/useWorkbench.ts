@@ -348,11 +348,11 @@ export function useWorkbench() {
     MetisMessage.success(message)
   }, [closeAdd, document.questions.length, invalidateRewrite])
 
-  const addSource = useCallback(async (type: ResourceType, sourceId?: string, count?: number) => {
+  const addSource = useCallback(async (type: ResourceType, sourceId?: string, count?: number, selectedQuestions?: Question[]) => {
     if (!beginContentOperation('source-add')) return false
     setSourceAddStatus('loading')
     try {
-      const questions = await workbenchRepository.addSource(type, sourceId, count)
+      const questions = await workbenchRepository.addSource(type, sourceId, count, selectedQuestions)
       appendQuestions(questions, `已从题库添加 ${questions.length} 道题，可继续选题`, false)
       setSourceAddStatus('success')
       return true

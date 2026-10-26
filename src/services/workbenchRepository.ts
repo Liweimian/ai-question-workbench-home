@@ -219,7 +219,7 @@ export const workbenchRepository: WorkbenchRepository = {
     return sourceRecords.filter((record) => record.sourceType === resourceType)
   },
 
-  async addSource(resourceType: ResourceType, sourceId?: string, count = 2) {
+  async addSource(resourceType: ResourceType, sourceId?: string, count = 2, selectedQuestions?: Question[]) {
     await delay(520)
     const labelMap: Record<ResourceType, string> = {
       workbook: '53 天天练',
@@ -228,10 +228,12 @@ export const workbenchRepository: WorkbenchRepository = {
       special: '一次函数思维进阶专题',
     }
     const selectedSource = sourceRecords.find((record) => record.id === sourceId)
-    return Array.from({ length: Math.min(12, Math.max(1, count)) }, (_, index) => {
-      const question = baseQuestions[index % baseQuestions.length]
+    const requestedQuestions = selectedQuestions?.length
+      ? selectedQuestions
+      : Array.from({ length: Math.min(12, Math.max(1, count)) }, (_, index) => baseQuestions[index % baseQuestions.length])
+    return requestedQuestions.map((question, index) => {
       return ({
-      ...cloneQuestion(question, `${resourceType}-${sourceId ?? Date.now()}-${index}`),
+      ...cloneQuestion(question, `${resourceType}-${sourceId ?? 'selection'}-${Date.now()}-${index}`),
       sourceLabel: selectedSource?.title ?? labelMap[resourceType],
       sourceDetail: selectedSource?.meta ?? question.sourceDetail,
       origin: 'question-bank' as const,

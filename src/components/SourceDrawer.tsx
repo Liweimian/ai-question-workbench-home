@@ -38,7 +38,7 @@ interface SourceDrawerProps {
   libraryDetail?: SourceRecord | null
   onModeChange: (mode: AddQuestionMode) => void
   onResourceTypeChange: (type: ResourceType) => void
-  onAddSource: (type: ResourceType, sourceId?: string, count?: number) => Promise<boolean>
+  onAddSource: (type: ResourceType, sourceId?: string, count?: number, selectedQuestions?: Question[]) => Promise<boolean>
   onOpenLibraryDetail?: (record: SourceRecord) => void
   onCreateConfigChange: (value: CreateQuestionRequest) => void
   onCreate: (requestOverride?: CreateQuestionRequest) => void
@@ -174,7 +174,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
               onDetailChange={setLibraryDetailOpen}
               onOpenDetail={docked ? props.onOpenLibraryDetail : undefined}
               onResourceTypeChange={props.onResourceTypeChange}
-              onAddSource={(type, sourceId, count) => props.onAddSource(type, sourceId, count)}
+              onAddSource={(type, sourceId, count, selectedQuestions) => props.onAddSource(type, sourceId, count, selectedQuestions)}
             />
           ) : null}
 

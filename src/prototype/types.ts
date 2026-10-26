@@ -101,7 +101,7 @@ export interface WorkbenchRepository {
   listHistory(): Promise<HistoryDocumentSummary[]>
   loadDocument(documentId: EntityId): Promise<WorkbenchDocument>
   loadSource(resourceType: ResourceType): Promise<SourceRecord[]>
-  addSource(resourceType: ResourceType, sourceId?: EntityId, count?: number): Promise<Question[]>
+  addSource(resourceType: ResourceType, sourceId?: EntityId, count?: number, selectedQuestions?: Question[]): Promise<Question[]>
   recognizeUpload(): Promise<Question[]>
   personalizeFromUpload(): Promise<Question[]>
   composeFromBank(prompt: string): Promise<Question[]>

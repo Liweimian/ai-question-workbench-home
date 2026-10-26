@@ -4,6 +4,7 @@ import { FileText, FolderHeart, Plus, Sparkles } from 'lucide-react'
 import type {
   AsyncStatus,
   HistoryDocumentSummary,
+  Question,
   ResourceType,
   SourceRecord,
   WorkbenchDocument,
@@ -24,7 +25,7 @@ interface WorkbenchLandingPageProps {
   onOpenDocument: (documentId: string) => void
   onReloadHistory: () => void
   onResourceTypeChange: (type: ResourceType) => void
-  onAddSource: (type: ResourceType, sourceId: string, count: number) => Promise<boolean>
+  onAddSource: (type: ResourceType, sourceId: string, count: number, selectedQuestions?: Question[]) => Promise<boolean>
 }
 
 const toCurrentSummary = (document: WorkbenchDocument): HistoryDocumentSummary => ({
