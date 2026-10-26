@@ -12,8 +12,8 @@
       "name": "Demo 创作",
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
-      "completedAt": "2026-10-22T23:59:00+08:00",
-      "iterationCount": 75,
+      "completedAt": "2026-10-26T23:00:00+08:00",
+      "iterationCount": 78,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -21,6 +21,7 @@
         "src/components/SourceDrawer.tsx",
         "src/components/LibraryPicker.tsx",
         "src/components/BlockAddMenu.tsx",
+        "src/components/CompositionHub.tsx",
         "src/components/WorkbenchLandingPage.tsx",
         "src/components/MyResourcesPanel.tsx",
         "src/hooks/useWorkbench.ts",
@@ -101,7 +102,18 @@
         "compact insert menu without descriptions or dividers",
         "embedded detail breadcrumb merged into picker header",
         "workbook detail breadcrumb portal timing regression",
-        "unified library breadcrumb and lightweight dialog tabs"
+        "unified library breadcrumb and lightweight dialog tabs",
+        "browser direct-editor default entry flow",
+        "browser persistent composition hub and source-panel return flow",
+        "browser one-line AI compose writes six questions into the visible draft",
+        "browser composition hub collapse and reopen flow",
+        "browser 1280px split-workspace visual inspection without horizontal overflow",
+        "browser 1280px docked-library filter reflow without horizontal overflow",
+        "browser custom question rewrite opens the AI inspector",
+        "browser stale rewrite invalidation and target-question identity safety",
+        "browser create-blank-document from the header overflow menu",
+        "browser console error and warning inspection",
+        "production preview serves dist/client with HTTP 200"
       ]
     },
     "2": {
@@ -415,5 +427,5 @@
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
-  "updatedAt": "2026-10-22T23:59:00+08:00"
+  "updatedAt": "2026-10-26T23:00:00+08:00"
 }

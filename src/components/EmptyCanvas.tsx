@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, ChevronRight, FileScan, Globe2, GraduationCap, Heading2, Italic, Layers3, School, Send, Sparkles, Strikethrough, Underline } from 'lucide-react'
+import { Bold, BookOpenCheck, BrainCircuit, ChevronDown, ChevronRight, FileScan, FileText, Globe2, GraduationCap, Heading2, Italic, Layers3, School, Send, Sparkles, Strikethrough, Underline } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, LibraryInitialView, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
 
 interface EmptyCanvasProps {
   document: WorkbenchDocument
+  sidePanelOpen?: boolean
   aiOpen: boolean
   aiStatus: AsyncStatus
   aiError: string
@@ -191,6 +192,13 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       </header>
 
       <div className="editor-empty-content">
+        {props.sidePanelOpen && !hasBlockContent ? (
+          <div className="empty-result-guide" aria-hidden="true">
+            <span><FileText size={24} /></span>
+            <strong>从右侧添加题目</strong>
+            <small>题库、上传和 AI 生成的内容会直接进入这份题稿</small>
+          </div>
+        ) : null}
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
             <div className="empty-first-block" role="group" aria-label="题单内容块" key={blockId}>

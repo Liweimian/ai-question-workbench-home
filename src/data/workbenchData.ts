@@ -116,6 +116,14 @@ export const recentDocument: WorkbenchDocument = {
   updatedAt: '今天 09:26',
 }
 
+export const blankDocument: WorkbenchDocument = {
+  id: 'draft-initial',
+  title: '未命名组题',
+  gradeSubject: '初中数学 · 八年级上册 · 人教版',
+  questions: [],
+  updatedAt: '刚刚',
+}
+
 export const historyDocuments: WorkbenchDocument[] = [
   recentDocument,
   {

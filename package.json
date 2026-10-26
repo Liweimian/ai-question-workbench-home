@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build --outDir dist/client --emptyOutDir && mkdir -p dist/server && cp server/index.js dist/server/index.js",
-    "preview": "vite preview",
+    "build": "node scripts/clean-dist.mjs && tsc -b && vite build --outDir dist/client --emptyOutDir && mkdir -p dist/server && cp server/index.js dist/server/index.js",
+    "preview": "vite preview --outDir dist/client",
     "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {

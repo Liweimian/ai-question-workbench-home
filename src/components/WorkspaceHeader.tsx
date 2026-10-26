@@ -1,25 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
-import { FileDown, MoreHorizontal, Save, Send, Undo2 } from 'lucide-react'
+import { FileDown, FilePlus2, MoreHorizontal, PanelRightOpen, Save, Send, Sparkles, Undo2 } from 'lucide-react'
 
 interface WorkspaceHeaderProps {
-  sectionLabel?: string
-  onHome?: () => void
   documentTitle: string
   questionCount: number
   canUndo: boolean
   onUndo: () => void
-  showActions?: boolean
+  onCreateNew: () => void
+  sidePanelOpen: boolean
+  onSidePanelOpen: () => void
 }
 
 export function WorkspaceHeader({
-  sectionLabel = '组题',
-  onHome,
   documentTitle,
   questionCount,
   canUndo,
   onUndo,
-  showActions = true,
+  onCreateNew,
+  sidePanelOpen,
+  onSidePanelOpen,
 }: WorkspaceHeaderProps) {
   const hasQuestions = questionCount > 0
   const [moreOpen, setMoreOpen] = useState(false)
@@ -51,12 +51,22 @@ export function WorkspaceHeader({
 
   return (
     <header className="fx-page-header workspace-header" data-sec="1">
-      <div className="header-document-path" aria-label="当前题单路径">
-        {onHome ? <button type="button" onClick={onHome}>{sectionLabel}</button> : <span>{sectionLabel}</span>}
-        <span className="header-document-divider">/</span>
-        <strong>{documentTitle?.trim() || '未命名组题'}</strong>
+      <div className="header-workbench-brand" aria-label="飞象组题工作台">
+        <span className="header-workbench-mark"><Sparkles size={17} /></span>
+        <div><strong>飞象组题</strong><small>本地草稿</small></div>
+        <span className="header-current-document">{documentTitle?.trim() || '未命名组题'}</span>
       </div>
-      {showActions ? <div className="header-actions">
+      <div className="header-actions">
+        {!sidePanelOpen ? (
+          <MetisButton
+            type="bordered"
+            icon={<PanelRightOpen size={17} />}
+            onClick={onSidePanelOpen}
+            data-track="/click/aiQuestionHome/openCompositionHub | 打开添加题目工作区 | 无"
+          >
+            添加题目
+          </MetisButton>
+        ) : null}
         <MetisButton
           type="borderless"
           icon={<Save size={17} />}
@@ -85,6 +95,9 @@ export function WorkspaceHeader({
           />
           {moreOpen ? (
             <div className="header-more-menu" role="menu" aria-label="更多题单操作">
+              <button type="button" role="menuitem" onClick={() => { onCreateNew(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/createBlank | 新建空白题单 | 无">
+                <FilePlus2 size={16} /><span>新建空白组题</span>
+              </button>
               <button type="button" role="menuitem" disabled={!canUndo} onClick={() => { onUndo(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/undo | 撤销上一步 | 无">
                 <Undo2 size={16} /><span>撤销</span>
               </button>
@@ -94,7 +107,7 @@ export function WorkspaceHeader({
             </div>
           ) : null}
         </div>
-      </div> : null}
+      </div>
     </header>
   )
 }

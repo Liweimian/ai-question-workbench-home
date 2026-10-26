@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
-import { recentDocument } from '../data/workbenchData'
+import { blankDocument } from '../data/workbenchData'
 import type {
   AddQuestionMode,
   AsyncStatus,
@@ -89,7 +89,12 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     const index = state.document.questions.findIndex((question) => question.id === action.selectedQuestionId)
     if (index < 0) return state
     const nextQuestions = [...state.document.questions]
-    if (action.mode === 'replace') nextQuestions[index] = cloneQuestion(action.preview)
+    if (action.mode === 'replace') {
+      nextQuestions[index] = {
+        ...cloneQuestion(action.preview),
+        id: action.selectedQuestionId,
+      }
+    }
     if (action.mode === 'append') {
       nextQuestions.splice(index + 1, 0, {
         ...cloneQuestion(action.preview),
@@ -147,10 +152,10 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
 
 export function useWorkbench() {
   const [editor, dispatch] = useReducer(editorReducer, {
-    document: cloneDocument(recentDocument),
+    document: cloneDocument(blankDocument),
     undoDocument: null,
   })
-  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(recentDocument.questions[0]?.id ?? null)
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null)
   const [inspectorView, setInspectorView] = useState<InspectorView>('info')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [addMode, setAddModeState] = useState<AddQuestionMode>('menu')
@@ -170,6 +175,7 @@ export function useWorkbench() {
   const [createPreview, setCreatePreview] = useState<Question[]>([])
   const [rewriteStatus, setRewriteStatus] = useState<AsyncStatus>('idle')
   const [rewritePreview, setRewritePreview] = useState<Question | null>(null)
+  const [rewriteTargetQuestionId, setRewriteTargetQuestionId] = useState<string | null>(null)
   const [contentOperation, setContentOperation] = useState<ContentOperation | null>(null)
   const contentOperationRef = useRef<ContentOperation | null>(null)
   const sourceRequestIdRef = useRef(0)
@@ -182,6 +188,13 @@ export function useWorkbench() {
     () => document.questions.find((question) => question.id === selectedQuestionId) ?? null,
     [document.questions, selectedQuestionId],
   )
+
+  const invalidateRewrite = useCallback(() => {
+    rewriteRequestIdRef.current += 1
+    setRewriteStatus('idle')
+    setRewritePreview(null)
+    setRewriteTargetQuestionId(null)
+  }, [])
 
   const beginContentOperation = useCallback((operation: ContentOperation) => {
     if (contentOperationRef.current) {
@@ -277,12 +290,13 @@ export function useWorkbench() {
   const appendQuestions = useCallback((questions: Question[], message: string, closeWhenEmpty = true) => {
     if (questions.length === 0) return
     const wasEmpty = document.questions.length === 0
+    invalidateRewrite()
     dispatch({ type: 'append', questions })
     setSelectedQuestionId(questions[0].id)
     setInspectorView('info')
     if (wasEmpty && closeWhenEmpty) closeAdd()
     MetisMessage.success(message)
-  }, [closeAdd, document.questions.length])
+  }, [closeAdd, document.questions.length, invalidateRewrite])
 
   const addSource = useCallback(async (type: ResourceType, sourceId?: string, count?: number) => {
     if (!beginContentOperation('source-add')) return false
@@ -416,7 +430,7 @@ export function useWorkbench() {
       questions: [],
       updatedAt: '刚刚',
     }
-    rewriteRequestIdRef.current += 1
+    invalidateRewrite()
     dispatch({ type: 'load-document', document: nextDocument })
     setSelectedQuestionId(null)
     setInspectorView('info')
@@ -424,10 +438,8 @@ export function useWorkbench() {
     setAddModeState('menu')
     setLibraryInitialView(undefined)
     setCreatePreview([])
-    setRewriteStatus('idle')
-    setRewritePreview(null)
-    MetisMessage.success('已新建空白题单，上一份已自动保存，可撤销')
-  }, [document, rememberDocument])
+    MetisMessage.success('已新建空白题单，上一份已保留在最近记录，可撤销')
+  }, [document, invalidateRewrite, rememberDocument])
 
   const openHistoryDocument = useCallback(async (documentId: string) => {
     if (document.id === documentId) {
@@ -435,12 +447,14 @@ export function useWorkbench() {
       return
     }
     if (!beginContentOperation('history-load')) return
+    invalidateRewrite()
     try {
       rememberDocument(document)
       const sessionDocument = sessionDocumentsRef.current.get(documentId)
       const nextDocument = sessionDocument
         ? cloneDocument(sessionDocument)
         : await workbenchRepository.loadDocument(documentId)
+      invalidateRewrite()
       dispatch({ type: 'load-document', document: nextDocument })
       setSelectedQuestionId(nextDocument.questions[0]?.id ?? null)
       setInspectorView('info')
@@ -450,14 +464,12 @@ export function useWorkbench() {
     } finally {
       finishContentOperation('history-load')
     }
-  }, [beginContentOperation, document, finishContentOperation, rememberDocument])
+  }, [beginContentOperation, document, finishContentOperation, invalidateRewrite, rememberDocument])
 
   const selectQuestion = useCallback((questionId: string) => {
-    rewriteRequestIdRef.current += 1
+    invalidateRewrite()
     setSelectedQuestionId(questionId)
-    setRewriteStatus('idle')
-    setRewritePreview(null)
-  }, [])
+  }, [invalidateRewrite])
 
   const rewrite = useCallback(async (instruction: RewriteRequest['instruction'], prompt?: string) => {
     if (!selectedQuestion) return
@@ -466,6 +478,7 @@ export function useWorkbench() {
     rewriteRequestIdRef.current = requestId
     setRewriteStatus('loading')
     setRewritePreview(null)
+    setRewriteTargetQuestionId(lockedQuestion.id)
     try {
       const preview = await workbenchRepository.rewrite(lockedQuestion, {
         questionId: lockedQuestion.id,
@@ -478,17 +491,24 @@ export function useWorkbench() {
     } catch {
       if (rewriteRequestIdRef.current !== requestId) return
       setRewriteStatus('error')
+      setRewriteTargetQuestionId(null)
       MetisMessage.error('AI 改编失败，请重试')
     }
   }, [selectedQuestion])
 
   const applyRewrite = useCallback((mode: 'replace' | 'append') => {
-    if (!rewritePreview || !selectedQuestionId) return
-    dispatch({ type: 'apply-rewrite', selectedQuestionId, preview: rewritePreview, mode })
-    setRewritePreview(null)
+    if (!rewritePreview || !rewriteTargetQuestionId) return
+    if (!document.questions.some((question) => question.id === rewriteTargetQuestionId)) {
+      invalidateRewrite()
+      MetisMessage.info('原题已变化，请重新生成改编预览')
+      return
+    }
+    dispatch({ type: 'apply-rewrite', selectedQuestionId: rewriteTargetQuestionId, preview: rewritePreview, mode })
+    setSelectedQuestionId(rewriteTargetQuestionId)
+    invalidateRewrite()
     setInspectorView('info')
     MetisMessage.success(mode === 'replace' ? '已替换原题，可撤销' : '已新增到原题下方')
-  }, [rewritePreview, selectedQuestionId])
+  }, [document.questions, invalidateRewrite, rewritePreview, rewriteTargetQuestionId])
 
   const moveQuestion = useCallback((direction: -1 | 1) => {
     if (!selectedQuestionId) return
@@ -504,26 +524,22 @@ export function useWorkbench() {
     if (!selectedQuestionId) return
     const index = document.questions.findIndex((question) => question.id === selectedQuestionId)
     const nextSelection = document.questions[index + 1]?.id ?? document.questions[index - 1]?.id ?? null
-    rewriteRequestIdRef.current += 1
+    invalidateRewrite()
     dispatch({ type: 'delete', selectedQuestionId })
     setSelectedQuestionId(nextSelection)
     setInspectorView('info')
-    setRewriteStatus('idle')
-    setRewritePreview(null)
     MetisMessage.success('已删除题目，可撤销')
-  }, [document.questions, selectedQuestionId])
+  }, [document.questions, invalidateRewrite, selectedQuestionId])
 
   const undo = useCallback(() => {
     if (!editor.undoDocument) return
-    rewriteRequestIdRef.current += 1
+    invalidateRewrite()
     const restored = editor.undoDocument
     dispatch({ type: 'undo' })
     setSelectedQuestionId(restored.questions[0]?.id ?? null)
     setInspectorView('info')
-    setRewriteStatus('idle')
-    setRewritePreview(null)
     MetisMessage.success('已撤销上一步操作')
-  }, [editor.undoDocument])
+  }, [editor.undoDocument, invalidateRewrite])
 
   const editQuestion = useCallback(() => {
     MetisMessage.info('已进入题目编辑演示，正文修改暂不写入服务端')
