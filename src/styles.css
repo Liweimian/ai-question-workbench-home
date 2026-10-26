@@ -6620,8 +6620,9 @@
 }
 
 .composition-library-grid button.is-primary-source {
+  border-width: 2px;
   border-color: var(--theme_primary1_selected2_color);
-  background: var(--fx-primary-selected);
+  background: var(--common_bg2_color);
 }
 
 .composition-library-grid button > span,
@@ -6803,13 +6804,33 @@
 
 .composition-recent-section {
   width: min(100%, 620px);
+  min-height: 206px;
   margin: 0 auto 6px;
 }
 
 .composition-recent-list {
   display: flex;
+  min-height: 152px;
   flex-direction: column;
   gap: 4px;
+}
+
+.composition-recent-skeleton {
+  display: grid;
+  min-height: 152px;
+  gap: 4px;
+}
+
+.composition-recent-skeleton span {
+  height: 48px;
+  border-radius: var(--fx-radius-control);
+  background: var(--fx-surface-muted);
+  animation: recent-skeleton-pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes recent-skeleton-pulse {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
 }
 
 .composition-recent-list > button {
@@ -6873,7 +6894,7 @@
 
 .composition-recent-state {
   display: flex;
-  min-height: 48px;
+  min-height: 152px;
   padding: 0 10px;
   align-items: center;
   justify-content: center;
@@ -6949,7 +6970,7 @@
 
 .composition-chat-shortcuts button {
   display: inline-flex;
-  min-height: 28px;
+  min-height: 30px;
   padding: 4px 10px;
   align-items: center;
   justify-content: center;
@@ -6958,7 +6979,7 @@
   color: var(--fx-text-secondary);
   background: var(--common_bg2_color);
   cursor: pointer;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 18px;
   transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
 }

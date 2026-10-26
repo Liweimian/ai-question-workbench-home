@@ -67,16 +67,20 @@ export function CompositionHub(props: CompositionHubProps) {
 
         <section className="composition-action-section composition-recent-section" aria-labelledby="recent-heading">
           <h3 id="recent-heading">最近编辑</h3>
-          {props.historyStatus === 'loading' && recentDocuments.length === 0 ? <div className="composition-recent-state">正在加载题单…</div> : null}
+          {props.historyStatus === 'loading' && recentDocuments.length === 0 ? (
+            <div className="composition-recent-skeleton" aria-label="正在加载最近题单">
+              <span /><span /><span />
+            </div>
+          ) : null}
           {props.historyStatus !== 'loading' && recentDocuments.length === 0 ? <div className="composition-recent-state">暂无最近编辑的题单</div> : null}
-          <div className="composition-recent-list">
+          {recentDocuments.length > 0 ? <div className="composition-recent-list">
             {recentDocuments.map((item) => (
               <button type="button" key={item.id} disabled={props.historyDisabled} onClick={() => props.onOpenDocument(item.id)}>
                 <span><strong>{item.title}</strong><small>{item.questionCount} 道题 · {item.status}</small></span>
                 <small><Clock3 size={12} /> {item.updatedAt}</small>
               </button>
             ))}
-          </div>
+          </div> : null}
         </section>
         </div>
       </div>
