@@ -1957,7 +1957,19 @@
   border-radius: 10px;
   background: var(--common_bg2_color);
   box-shadow: var(--fx-shadow-card);
-  transition: border-color 120ms ease, box-shadow 120ms ease;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  visibility: hidden;
+  transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.editor-question:hover .editor-question-tools,
+.editor-question:focus-within .editor-question-tools {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  visibility: visible;
 }
 
 .editor-question-toolbar {
@@ -5771,11 +5783,18 @@
   background: var(--fx-primary);
 }
 
-.chapter-question-list footer button.is-add:disabled,
-.legacy-question-card footer button.is-add:disabled {
+.chapter-question-list footer button.is-add.is-added:disabled,
+.legacy-question-card footer button.is-add.is-added:disabled {
   color: var(--fx-primary);
   background: var(--fx-primary-selected);
   cursor: default;
+}
+
+.chapter-question-list footer button.is-add:disabled:not(.is-added),
+.legacy-question-card footer button.is-add:disabled:not(.is-added) {
+  color: var(--fx-text-tertiary);
+  background: var(--common_fg2_color);
+  cursor: wait;
 }
 
 @media (min-width: 1600px) {

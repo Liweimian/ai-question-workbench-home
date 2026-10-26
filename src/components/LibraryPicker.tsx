@@ -209,7 +209,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                         <span>知识点：{question.knowledgePoint}</span>
                         <div>
                           <button type="button">纠错</button><button type="button"><Star size={14} />收藏</button><button type="button">解析</button><button type="button">相似题</button>
-                          {props.embedded ? <button type="button" className="is-add" disabled={props.contentBusy || selected} onClick={() => props.onToggleQuestion(question.id)}>{selected || pending ? '已添加' : '＋ 添加'}</button> : null}
+                          {props.embedded ? <button type="button" className={`is-add${selected || pending ? ' is-added' : ''}`} disabled={props.contentBusy || selected} onClick={() => props.onToggleQuestion(question.id)}>{selected || pending ? '已添加' : '＋ 添加'}</button> : null}
                         </div>
                       </footer>
                     </article>
@@ -476,7 +476,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
                     <div className="chapter-question-meta"><span>{question.type} / {question.difficulty} / {question.estimatedMinutes}分钟</span></div>
                     <div className="chapter-question-stem"><b>{index + 1}.</b><p>{question.stem}</p></div>
                     {question.options ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
-                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className="is-add" disabled={props.contentBusy || added} onClick={() => addQuestionImmediately(question.id)}>{added ? '已添加' : '＋ 添加'}</button></div></footer>
+                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className={`is-add${added ? ' is-added' : ''}`} disabled={props.contentBusy || added} onClick={() => addQuestionImmediately(question.id)}>{added ? '已添加' : '＋ 添加'}</button></div></footer>
                   </article>
                 )
               })}
