@@ -29,7 +29,7 @@ export function AiComposer({ value, error, status, compact, disabled, kind = 'co
         <MetisInput
           value={value}
           disabled={blocked}
-          placeholder={isCreate ? '描述想原创的题目，例如：出 2 道校园情境应用题' : '描述需求，例如：从题库找 6 道一次函数基础题'}
+          placeholder={isCreate ? '例如：出 2 道校园情境应用题' : '例如：从题库找 6 道八年级一次函数基础题'}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === 'Enter' && !event.nativeEvent.isComposing && !blocked) onSubmit()

@@ -35,28 +35,28 @@ const sourceEntries = [
     mode: 'resource' as const,
     title: '飞象题库',
     description: '从平台题库按教材、知识点或题型选题',
-    action: '打开',
+    action: '去选题',
     icon: Library,
   },
   {
     mode: 'school' as const,
     title: '校本题库',
-    description: '从学校及个人沉淀的资源中选题',
-    action: '打开',
+    description: '从学校和个人沉淀的资源中选题',
+    action: '去选题',
     icon: School,
   },
   {
     mode: 'upload' as const,
     title: '上传文件或图片',
-    description: '上传 Word、PDF 或图片，AI 识别并拆分题目',
-    action: '导入',
+    description: '上传 Word、PDF 或图片，自动识别并拆分题目',
+    action: '去上传',
     icon: FileScan,
   },
   {
     mode: 'create' as const,
     title: 'AI 出题工具',
-    description: '按教材、知识点、难度与题量生成原创题',
-    action: '设置',
+    description: '设置知识点、难度和题量，生成原创题',
+    action: '去设置',
     icon: Sparkles,
   },
 ]
@@ -95,7 +95,7 @@ export function CompositionHub(props: CompositionHubProps) {
       <div className="composition-hub-scroll">
         <section className="composition-source-section" aria-labelledby="source-heading">
           <div className="composition-section-heading">
-            <div><BookOpenCheck size={17} /><strong id="source-heading">选择添加方式</strong></div>
+            <div><BookOpenCheck size={17} /><strong id="source-heading">先添加题目</strong></div>
           </div>
           <div className="composition-source-list">
             {sourceEntries.map(({ mode, title, description, action, icon: Icon }) => (
@@ -117,8 +117,8 @@ export function CompositionHub(props: CompositionHubProps) {
 
         <section className="composition-hub-composer" aria-labelledby="assistant-heading">
           <div className="composition-chat-heading">
-            <div><BrainCircuit size={16} /><strong id="assistant-heading">也可以让 AI 帮你</strong></div>
-            <span>发送后可查看处理过程</span>
+            <div><BrainCircuit size={16} /><strong id="assistant-heading">或者，直接告诉 AI 你想要什么</strong></div>
+            <span>AI 可以帮你找题、组题或组卷</span>
           </div>
           <div className="composition-chat-shortcuts" role="group" aria-label="AI 助手快捷方式">
             {aiShortcuts.map(({ id, label, prompt }) => {

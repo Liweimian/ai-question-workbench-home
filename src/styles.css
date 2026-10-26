@@ -92,7 +92,7 @@
   right: 0;
   left: auto;
   z-index: 21;
-  width: 620px;
+  width: 50%;
   padding-right: 10px;
   padding-left: 14px;
   box-sizing: border-box;
@@ -5986,7 +5986,7 @@
 }
 
 .workspace-shell.is-split-source {
-  grid-template-columns: minmax(560px, 1fr) 620px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .add-workspace {

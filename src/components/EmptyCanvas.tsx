@@ -157,9 +157,9 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           aria-label="题单标题"
         />
         <ol className="empty-workflow-guide" aria-label="组题操作步骤">
-          <li className="is-current"><b>1</b><span>添加题目</span></li>
-          <li><b>2</b><span>修改名称</span></li>
-          <li><b>3</b><span>保存并布置</span></li>
+          <li className="is-current"><b>1</b><span>{props.sidePanelOpen ? '从左侧添加题目' : '点击「添加题目」'}</span></li>
+          <li><b>2</b><span>修改题稿名称</span></li>
+          <li><b>3</b><span>保存或布置</span></li>
         </ol>
       </header>
 
@@ -179,7 +179,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                 role="textbox"
                 aria-multiline="true"
                 aria-label="题稿说明，可输入考试说明或作答要求"
-                data-placeholder="可输入考试说明、作答要求等（选填）"
+                data-placeholder="补充考试说明或作答要求（选填）"
                 onMouseUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
                 onKeyUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
                 onInput={syncBlockContent}
