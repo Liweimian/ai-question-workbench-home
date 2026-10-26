@@ -1130,9 +1130,9 @@
 +
 /* 我的资源：复用旧飞象题库的资源工作台结构 */
 .my-resources-page { display: grid; grid-template-columns: 248px minmax(0, 1fr); }
-.resource-workbench { min-width: 0; padding: 16px 12px; border-right: 1px solid var(--fx-line-subtle); background: var(--fx-surface-muted); }
+.resource-workbench { min-width: 0; padding: 0 12px 16px; border-right: 1px solid var(--fx-line-subtle); background: var(--fx-surface-muted); }
 .resource-type-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--fx-radius-control); color: var(--fx-primary); background: var(--fx-primary-selected); }
-.resource-space-tabs { display: grid; margin: 16px 0 14px; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--fx-line-subtle); }
+.resource-space-tabs { display: grid; margin: 0 0 14px; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--fx-line-subtle); }
 .resource-space-tabs button { position: relative; height: 38px; border: 0; color: var(--fx-text-secondary); background: transparent; cursor: pointer; font-size: 13px; }
 .resource-space-tabs button span { margin-left: 4px; color: var(--fx-text-tertiary); font-size: 11px; }
 .resource-space-tabs button[aria-selected="true"] { color: var(--fx-primary); font-weight: 600; }
@@ -1148,7 +1148,7 @@
 .resource-folder-tree button small { color: var(--fx-text-tertiary); font-size: 10px; }
 .resource-folder-indent { width: 14px; }
 .resource-workbench-main { display: flex; min-width: 0; min-height: 0; flex-direction: column; background: var(--common_fg_color); }
-.resource-workbench-header { display: flex; height: 62px; padding: 0 22px; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--fx-line-subtle); }
+.resource-workbench-header { display: flex; height: 52px; padding: 0 22px; align-items: center; justify-content: flex-end; gap: 20px; border-bottom: 1px solid var(--fx-line-subtle); }
 .resource-breadcrumb { display: flex; min-width: 0; align-items: center; gap: 5px; color: var(--fx-text-tertiary); font-size: 12px; }
 .resource-breadcrumb strong { overflow: hidden; color: var(--fx-text-primary); text-overflow: ellipsis; white-space: nowrap; }
 .resource-header-actions { display: flex; align-items: center; gap: 10px; }

@@ -10,7 +10,7 @@ import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
 import type { AddQuestionMode, SourceRecord } from '../prototype/types'
-import { BrainCircuit, FileText, FolderHeart, House, PanelLeftClose, Sparkles, X } from 'lucide-react'
+import { BrainCircuit, FileText, House, PanelLeftClose, Sparkles, X } from 'lucide-react'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
@@ -378,7 +378,7 @@ export function WorkbenchHomePage() {
                         aria-selected={myResourcesActive}
                         onClick={openMyResources}
                         data-track="/click/aiQuestionHome/switchMyResourcesTab | 切换我的资源任务 | 无"
-                      ><FolderHeart size={14} /><span>我的资源</span></button>
+                      ><span>我的资源</span></button>
                       <button type="button" className="add-workspace-tab-close" aria-label="关闭我的资源" onClick={closeMyResourcesTab}>
                         <X size={13} />
                       </button>

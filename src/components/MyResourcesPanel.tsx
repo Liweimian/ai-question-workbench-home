@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { BookOpenCheck, ChevronDown, ChevronRight, Download, FileQuestion, FileText, Folder, FolderPlus, ListChecks, MoreHorizontal, Search, Star, Upload } from 'lucide-react'
+import { BookOpenCheck, ChevronDown, Download, FileQuestion, FileText, Folder, FolderPlus, ListChecks, MoreHorizontal, Search, Star, Upload } from 'lucide-react'
 
 type SpaceTab = 'created' | 'favorites'
 type ResourceKind = '全部' | '试卷' | '题单' | '题目' | '文件' | '练习册'
@@ -56,7 +56,6 @@ export function MyResourcesPanel() {
     </aside>
     <main className="resource-workbench-main">
       <header className="resource-workbench-header">
-        <div className="resource-breadcrumb"><span>{space === 'created' ? '我的创建' : '我的收藏'}</span><ChevronRight size={14} /><strong>{folder}</strong></div>
         <div className="resource-header-actions">
           {space === 'created' ? <MetisButton type="bordered" icon={<Upload size={16} />} onClick={() => MetisMessage.info('已打开上传文件演示')}>上传文件</MetisButton> : null}
           <label className="resource-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索资源" /></label>
