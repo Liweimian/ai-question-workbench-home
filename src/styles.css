@@ -6591,7 +6591,7 @@
 .composition-ai-hero .ai-composer-input { min-height: 68px; padding-top: 10px; padding-bottom: 10px; border-radius: var(--fx-radius-card); }
 .composition-ai-hero .composition-chat-shortcuts { margin-top: 10px; }
 
-.composition-action-section { padding: 16px 0; border-top: 1px solid var(--fx-line-strong); }
+.composition-action-section { padding: 16px 0; }
 .composition-action-section h3 { margin: 0 0 10px; color: var(--fx-text-primary); font-size: 13px; font-weight: 600; }
 .composition-library-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 
