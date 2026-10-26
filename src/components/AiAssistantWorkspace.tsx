@@ -8,15 +8,17 @@ interface AiAssistantWorkspaceProps {
   error: string
   status: AsyncStatus
   contentBusy: boolean
+  previewText: string
   onPromptChange: (value: string) => void
   onSubmit: () => void
+  onConfirm: () => boolean
 }
 
 function getThinkingSteps(prompt: string) {
   const isPaperTask = prompt.includes('组卷') || prompt.includes('试卷') || prompt.includes('找卷')
   return isPaperTask
-    ? ['理解试卷范围与题量要求', '检索题库并筛选匹配题目', '编排题型与难度并加入题稿']
-    : ['理解知识点、题型与难度要求', '检索题库并匹配候选题目', '校验题量与重复项并加入题稿']
+    ? ['理解试卷范围与题量要求', '检索题库并筛选匹配题目', '编排题型与难度并生成预览']
+    : ['理解知识点、题型与难度要求', '检索题库并匹配候选题目', '校验题量与重复项并生成预览']
 }
 
 export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
@@ -38,7 +40,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
               <div className="ai-assistant-response-body">
                 <div className="ai-assistant-response-heading">
                   <strong>{run.status === 'loading' ? '正在处理' : run.status === 'success' ? '处理完成' : '处理遇到问题'}</strong>
-                  <span>{run.status === 'loading' ? '结果会直接加入右侧题稿' : run.status === 'success' ? '当前题稿已更新' : '可修改要求后重试'}</span>
+                  <span>{run.status === 'loading' ? '生成后需要确认才会加入题稿' : run.status === 'success' ? run.confirmed ? '已加入当前题稿' : '请确认预览结果' : '可修改要求后重试'}</span>
                 </div>
 
                 <ol className="ai-assistant-steps">
@@ -61,8 +63,9 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
                   <div className="ai-assistant-result" role="status">
                     <span><Check size={16} /></span>
                     <div>
-                      <strong>已加入右侧题稿</strong>
-                      <p>共加入 {run.resultCount} 道题，可继续在右侧调整顺序、编辑或删除。</p>
+                      <strong>{run.confirmed ? '已加入右侧题稿' : `已生成 ${run.resultCount} 道题`}</strong>
+                      <p>{run.confirmed ? '可继续在右侧调整顺序、编辑或删除。' : props.previewText}</p>
+                      {!run.confirmed ? <button type="button" className="ai-assistant-confirm" onClick={props.onConfirm}>确认加入题稿</button> : null}
                     </div>
                   </div>
                 ) : null}
@@ -77,7 +80,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
           <div className="ai-assistant-empty">
             <span><BrainCircuit size={22} /></span>
             <strong>描述你的组题需求</strong>
-            <p>AI 会展示处理过程，并把完成的题目直接加入右侧题稿。</p>
+            <p>AI 会展示处理过程，老师确认结果后再加入右侧题稿。</p>
           </div>
         )}
       </div>

@@ -312,20 +312,22 @@ export function WorkbenchHomePage() {
                   selectedQuestionId={workbench.selectedQuestionId}
                   onTitleChange={workbench.setTitle}
                   onSelectQuestion={workbench.selectQuestion}
-                  onRewriteRequirement={(requirement) => {
-                    setActiveLibraryDetailKey(null)
-                    workbench.closeAdd()
-                    setSidePanelOpen(false)
-                    workbench.setInspectorView('ai')
-                    void workbench.rewrite('自定义要求', requirement)
-                  }}
+                  onRewriteRequirement={(requirement) => { void workbench.rewrite('自定义要求', requirement) }}
+                  rewriteStatus={workbench.rewriteStatus}
+                  rewritePreview={workbench.rewritePreview}
+                  onApplyRewrite={workbench.applyRewrite}
                   onMoveQuestion={workbench.moveQuestion}
                   onDeleteQuestion={workbench.deleteQuestion}
                   onQuestionChange={workbench.updateQuestion}
                   onDocumentFormatChange={workbench.setDocumentFormat}
                   onSectionTitleChange={workbench.setSectionTitle}
                   onAdd={openAdd}
-                  onOpenAssistant={() => openAssistant()}
+                  assistantStatus={workbench.composeStatus}
+                  assistantRun={workbench.assistantRun}
+                  assistantPreviewText={workbench.composePreview.slice(0, 3).map((question, index) => `${index + 1}. ${question.stem}`).join('\n')}
+                  assistantError={workbench.composeError}
+                  onOpenAssistant={(prompt) => { void workbench.composeFromBank(prompt) }}
+                  onConfirmAssistant={workbench.confirmComposePreview}
                 />
               )}
             </div> : (
@@ -450,8 +452,10 @@ export function WorkbenchHomePage() {
                     error={workbench.composeError}
                     status={workbench.composeStatus}
                     contentBusy={workbench.isContentBusy}
+                    previewText={workbench.composePreview.slice(0, 3).map((question, index) => `${index + 1}. ${question.stem}`).join('\n')}
                     onPromptChange={workbench.setComposePrompt}
                     onSubmit={submitAssistant}
+                    onConfirm={workbench.confirmComposePreview}
                   />
                 ) : workbench.isAddOpen ? (
                   <SourceDrawer

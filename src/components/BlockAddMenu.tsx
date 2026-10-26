@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
 import { BookOpen, BookOpenCheck, FileImage, FileSearch, FileText, GripVertical, Heading2, Heading3, Heading4, Image, ListChecks, Minus, Plus, ScanSearch, School, Sparkles, Table2, WandSparkles } from 'lucide-react'
-import type { AddQuestionMode, OpenAddOptions } from '../prototype/types'
+import type { AddQuestionMode, AiAssistantRun, AsyncStatus, OpenAddOptions } from '../prototype/types'
+import { ContextualAiPopover } from './ContextualAiPopover'
 
 export type UtilityAction = 'image-search' | 'heading-2' | 'heading-3' | 'heading-4' | 'table' | 'image' | 'note' | 'divider' | 'page-break'
 
@@ -10,7 +11,12 @@ interface BlockAddMenuProps {
   openRequest?: number
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onInsertUtility?: (action: UtilityAction) => void
-  onOpenAssistant: () => void
+  assistantStatus?: AsyncStatus
+  assistantRun?: AiAssistantRun | null
+  assistantPreviewText?: string
+  assistantError?: string
+  onOpenAssistant: (prompt: string) => void
+  onConfirmAssistant?: () => boolean
 }
 
 const optionGroups = [
@@ -51,8 +57,11 @@ const aiItems = [
   { id: 'create', title: 'AI 原创出题', description: '按条件生成原创题目', icon: WandSparkles },
 ] as const
 
-export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInsertUtility, onOpenAssistant }: BlockAddMenuProps) {
+export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInsertUtility, assistantStatus = 'idle', assistantRun, assistantPreviewText, assistantError, onOpenAssistant, onConfirmAssistant }: BlockAddMenuProps) {
   const [open, setOpen] = useState(false)
+  const [assistantOpen, setAssistantOpen] = useState(false)
+  const [assistantPrompt, setAssistantPrompt] = useState('')
+  const [assistantSubmitted, setAssistantSubmitted] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { if (openRequest > 0) setOpen(true) }, [openRequest])
@@ -63,7 +72,7 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
       const isInteractive = Boolean(target?.closest('input, textarea, button, a, select, [contenteditable="true"]'))
       const hasBlockingLayer = Boolean(document.querySelector('[role="dialog"][aria-modal="true"]'))
       const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key === 'Escape') { setOpen(false); setAssistantOpen(false); setAssistantSubmitted(false) }
       if (event.key === '/' && !event.isComposing && !hasModifier && !event.repeat && !isInteractive && !hasBlockingLayer) {
         event.preventDefault(); setOpen(true)
       }
@@ -120,13 +129,28 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
               {aiItems.map(({ id, title, icon: Icon }) => <button type="button" role="menuitem" className="is-ai" key={id} onClick={() => {
                 setOpen(false)
                 if (id === 'create') onOpenAdd('create')
-                else onOpenAssistant()
+                else { setAssistantSubmitted(false); setAssistantOpen(true) }
               }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong></span></button>)}
             </section>
             {renderFlatGroup(optionGroups[0])}
           </div>
           <div className="block-command-tip">输入 / 快速唤起 · Esc 关闭</div>
         </div>
+      ) : null}
+      {assistantOpen ? (
+        <ContextualAiPopover
+          title="AI 助手"
+          prompt={assistantPrompt}
+          placeholder="描述想补充、组题或调整的内容"
+          status={assistantSubmitted ? assistantStatus : 'idle'}
+          error={assistantError}
+          resultText={assistantSubmitted && assistantStatus === 'success' && assistantRun ? assistantPreviewText ?? `已生成 ${assistantRun.resultCount} 道题，请确认后加入当前题稿。` : undefined}
+          resultMeta="生成结果预览"
+          onPromptChange={setAssistantPrompt}
+          onSubmit={() => { setAssistantSubmitted(true); onOpenAssistant(assistantPrompt) }}
+          onClose={() => { setAssistantOpen(false); setAssistantSubmitted(false) }}
+          onAppend={assistantRun?.confirmed ? undefined : () => { if (onConfirmAssistant?.()) { setAssistantOpen(false); setAssistantSubmitted(false); setAssistantPrompt('') } }}
+        />
       ) : null}
     </div>
   )

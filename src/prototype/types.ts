@@ -36,6 +36,7 @@ export interface AiAssistantRun {
   status: Extract<AsyncStatus, 'loading' | 'success' | 'error'>
   activeStep: number
   resultCount: number
+  confirmed?: boolean
   errorMessage?: string
 }
 

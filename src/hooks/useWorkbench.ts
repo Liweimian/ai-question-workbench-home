@@ -270,6 +270,8 @@ export function useWorkbench() {
   const [composeError, setComposeError] = useState('')
   const [composeStatus, setComposeStatus] = useState<AsyncStatus>('idle')
   const [assistantRun, setAssistantRun] = useState<AiAssistantRun | null>(null)
+  const [composePreview, setComposePreview] = useState<Question[]>([])
+  const [composeTargetDocumentId, setComposeTargetDocumentId] = useState<string | null>(null)
   const [createConfig, setCreateConfig] = useState<CreateQuestionRequest>(defaultCreateConfig)
   const [createError, setCreateError] = useState('')
   const [createStatus, setCreateStatus] = useState<AsyncStatus>('idle')
@@ -321,6 +323,8 @@ export function useWorkbench() {
     assistantRequestIdRef.current += 1
     clearAssistantStepTimers()
     setAssistantRun(null)
+    setComposePreview([])
+    setComposeTargetDocumentId(null)
     setComposePrompt('')
     setComposeStatus('idle')
     setComposeError('')
@@ -643,7 +647,10 @@ export function useWorkbench() {
       status: 'loading',
       activeStep: 0,
       resultCount: 0,
+      confirmed: false,
     })
+    setComposePreview([])
+    setComposeTargetDocumentId(targetDocumentId)
     assistantStepTimersRef.current = [240, 540].map((delay, index) => window.setTimeout(() => {
       if (assistantRequestIdRef.current !== requestId) return
       setAssistantRun((current) => current?.status === 'loading'
@@ -653,14 +660,14 @@ export function useWorkbench() {
     try {
       const questions = await workbenchRepository.composeFromBank(value)
       if (assistantRequestIdRef.current !== requestId || documentIdRef.current !== targetDocumentId) return
-      appendQuestions(questions, `AI 已匹配并添加 ${questions.length} 道题`, false)
-      setComposePrompt('')
+      setComposePreview(questions)
       setComposeStatus('success')
       setAssistantRun((current) => current ? {
         ...current,
         status: 'success',
         activeStep: 3,
         resultCount: questions.length,
+        confirmed: false,
         errorMessage: undefined,
       } : current)
     } catch (error) {
@@ -677,7 +684,19 @@ export function useWorkbench() {
       clearAssistantStepTimers()
       finishContentOperation('compose')
     }
-  }, [appendQuestions, beginContentOperation, clearAssistantStepTimers, composePrompt, document.id, finishContentOperation])
+  }, [beginContentOperation, clearAssistantStepTimers, composePrompt, document.id, finishContentOperation])
+
+  const confirmComposePreview = useCallback(() => {
+    if (composePreview.length === 0 || composeTargetDocumentId !== documentIdRef.current) {
+      MetisMessage.error('预览已失效，请重新生成')
+      return false
+    }
+    appendQuestions(composePreview, `已确认并加入 ${composePreview.length} 道题`, false)
+    setComposePreview([])
+    setComposePrompt('')
+    setAssistantRun((current) => current ? { ...current, confirmed: true } : current)
+    return true
+  }, [appendQuestions, composePreview, composeTargetDocumentId])
 
   const createQuestions = useCallback(async (requestOverride?: CreateQuestionRequest) => {
     const request = requestOverride ?? createConfig
@@ -943,6 +962,7 @@ export function useWorkbench() {
     composeError,
     composeStatus,
     assistantRun,
+    composePreview,
     clearAssistantRun,
     createConfig,
     setCreateConfig: changeCreateConfig,
@@ -962,6 +982,7 @@ export function useWorkbench() {
     recognizeUpload,
     personalizeFromUpload,
     composeFromBank,
+    confirmComposePreview,
     createQuestions,
     addCreatedQuestions,
     addManualQuestion,

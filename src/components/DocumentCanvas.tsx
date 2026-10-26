@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { ArrowDown, ArrowUp, Bold, GripVertical, Italic, Omega, Radical, Send, Sparkles, Trash2, Underline } from 'lucide-react'
+import { ArrowDown, ArrowUp, Bold, GripVertical, Italic, Omega, Radical, Sparkles, Trash2, Underline } from 'lucide-react'
 import { defaultDocumentFormat } from '../prototype/types'
-import type { AddQuestionMode, DocumentFormat, QuestionPatch, QuestionType, WorkbenchDocument } from '../prototype/types'
+import type { AddQuestionMode, AiAssistantRun, AsyncStatus, DocumentFormat, Question, QuestionPatch, QuestionType, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
+import { ContextualAiPopover } from './ContextualAiPopover'
 import { DocumentFormatToolbar } from './DocumentFormatToolbar'
 
 interface DocumentCanvasProps {
@@ -12,13 +13,21 @@ interface DocumentCanvasProps {
   onTitleChange: (title: string) => void
   onSelectQuestion: (questionId: string) => void
   onRewriteRequirement: (requirement: string) => void
+  rewriteStatus: AsyncStatus
+  rewritePreview: Question | null
+  onApplyRewrite: (mode: 'replace' | 'append') => void
   onMoveQuestion: (direction: -1 | 1) => void
   onDeleteQuestion: () => void
   onQuestionChange: (questionId: string, patch: QuestionPatch) => void
   onDocumentFormatChange: (patch: Partial<DocumentFormat>) => void
   onSectionTitleChange: (questionType: QuestionType, title: string) => void
   onAdd: (mode?: AddQuestionMode) => void
-  onOpenAssistant: () => void
+  assistantStatus: AsyncStatus
+  assistantRun: AiAssistantRun | null
+  assistantPreviewText: string
+  assistantError: string
+  onOpenAssistant: (prompt: string) => void
+  onConfirmAssistant: () => boolean
 }
 
 type QuestionStyle = DocumentFormat & {
@@ -126,6 +135,8 @@ function EditableSectionTitle({ number, questionType, value, onCommit }: Editabl
 export function DocumentCanvas(props: DocumentCanvasProps) {
   const [questionStyles, setQuestionStyles] = useState<Record<string, QuestionStyle>>({})
   const [editRequirement, setEditRequirement] = useState('')
+  const [questionAiOpen, setQuestionAiOpen] = useState(false)
+  const [questionAiSubmitted, setQuestionAiSubmitted] = useState(false)
   const documentFormat = { ...defaultDocumentFormat, ...props.document.format }
   const questionRows = useMemo(() => {
     let sectionNumber = 0
@@ -139,6 +150,11 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
   useEffect(() => {
     setQuestionStyles({})
   }, [props.document.format, props.document.id])
+  useEffect(() => {
+    setQuestionAiOpen(false)
+    setQuestionAiSubmitted(false)
+    setEditRequirement('')
+  }, [props.selectedQuestionId])
 
   return (
     <article
@@ -204,6 +220,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
               {selected ? (
                 <div className="editor-question-tools" onClick={(event) => event.stopPropagation()}>
                   <div className="editor-question-toolbar">
+                    <button type="button" className="editor-question-ai-trigger" onClick={() => { setQuestionAiSubmitted(false); setQuestionAiOpen((open) => !open) }} aria-expanded={questionAiOpen}><Sparkles size={14} />飞象 AI</button>
                     <label className="question-format-control" title="字体"><select aria-label="题目字体" value={questionStyle.fontFamily} onChange={(event) => updateQuestionStyle('fontFamily', event.target.value as DocumentFormat['fontFamily'])}><option value="serif">宋体</option><option value="sans">黑体</option><option value="kaiti">楷体</option></select></label>
                     <label className="question-format-control" title="字号"><select aria-label="题目字号" value={questionStyle.fontSize} onChange={(event) => updateQuestionStyle('fontSize', event.target.value as DocumentFormat['fontSize'])}><option value="14">小</option><option value="16">标准</option><option value="18">大</option></select></label>
                     <label className="question-format-control" title="行距"><select aria-label="题目行距" value={questionStyle.lineHeight} onChange={(event) => updateQuestionStyle('lineHeight', event.target.value as DocumentFormat['lineHeight'])}><option value="1.5">1.5</option><option value="1.7">1.7</option><option value="2">2.0</option></select></label>
@@ -219,12 +236,22 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
                     <span className="toolbar-divider" />
                     <MetisButton type="borderless" icon={<Trash2 size={15} />} onClick={props.onDeleteQuestion} aria-label="删除题目" />
                   </div>
-                  <form className="editor-question-requirement" onSubmit={(event) => { event.preventDefault(); const requirement = editRequirement.trim(); if (!requirement) return; props.onRewriteRequirement(requirement) }}>
-                    <span className="editor-question-ai-label"><Sparkles size={14} />飞象 AI</span>
-                    <input value={editRequirement} onChange={(event) => setEditRequirement(event.target.value)} placeholder="输入你的编辑要求" aria-label="输入你的编辑要求" />
-                    <button type="submit" disabled={!editRequirement.trim()} aria-label="提交编辑要求"><Send size={14} /></button>
-                  </form>
                 </div>
+              ) : null}
+              {selected && questionAiOpen ? (
+                <ContextualAiPopover
+                  title={`修改第 ${index + 1} 题`}
+                  prompt={editRequirement}
+                  placeholder="例如：降低难度，换成生活化情境"
+                  status={questionAiSubmitted ? props.rewriteStatus : 'idle'}
+                  resultText={questionAiSubmitted ? props.rewritePreview?.stem : undefined}
+                  resultMeta="已生成改写结果"
+                  onPromptChange={setEditRequirement}
+                  onSubmit={() => { setQuestionAiSubmitted(true); props.onRewriteRequirement(editRequirement.trim()) }}
+                  onClose={() => { setQuestionAiOpen(false); setQuestionAiSubmitted(false) }}
+                  onReplace={() => { props.onApplyRewrite('replace'); setQuestionAiOpen(false); setEditRequirement('') }}
+                  onAppend={() => { props.onApplyRewrite('append'); setQuestionAiOpen(false); setEditRequirement('') }}
+                />
               ) : null}
               <div className="editor-question-mainline">
                 <span className="editor-question-number">{index + 1}.</span>
@@ -260,7 +287,15 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
       </div>
 
       <div className="editor-add-row">
-        <BlockAddMenu onOpenAdd={props.onAdd} onOpenAssistant={props.onOpenAssistant} />
+        <BlockAddMenu
+          onOpenAdd={props.onAdd}
+          assistantStatus={props.assistantStatus}
+          assistantRun={props.assistantRun}
+          assistantPreviewText={props.assistantPreviewText}
+          assistantError={props.assistantError}
+          onOpenAssistant={props.onOpenAssistant}
+          onConfirmAssistant={props.onConfirmAssistant}
+        />
       </div>
     </article>
   )
