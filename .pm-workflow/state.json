@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-26T23:59:00+08:00",
-      "iterationCount": 93,
+      "iterationCount": 95,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -130,7 +130,8 @@
         "library list state remains mounted while detail tabs are active",
         "static singleton AI assistant task-tab lifecycle review",
         "static empty-canvas intro persistence and layout review",
-        "static removal of web-search entry and centered title review"
+        "static removal of web-search entry and centered title review",
+        "browser fixed right canvas and focus-editor continuity review"
       ]
     },
     "2": {
@@ -481,6 +482,16 @@
       "stage": 1,
       "hash": "93b3543",
       "message": "Stage 1: simplify insert menu and center draft title - iteration 93"
+    },
+    {
+      "stage": 1,
+      "hash": "c62d24d",
+      "message": "Stage 1: move canvas right and clarify workflow - iteration 94"
+    },
+    {
+      "stage": 1,
+      "hash": "f1720dc",
+      "message": "Stage 1: refine focus editor and product identity - iteration 95"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
