@@ -1,5 +1,5 @@
 import { FileScan, FolderHeart, Library, School, Sparkles } from 'lucide-react'
-import type { AddQuestionMode, AsyncStatus, OpenAddOptions, QuestionType } from '../prototype/types'
+import type { AddQuestionMode, AsyncStatus, OpenAddOptions } from '../prototype/types'
 import { AiComposer } from './AiComposer'
 
 interface CompositionHubProps {
@@ -7,7 +7,6 @@ interface CompositionHubProps {
   composePrompt: string
   composeError: string
   composeStatus: AsyncStatus
-  questionCounts: Record<QuestionType, number>
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onOpenMyResources: () => void
   onComposePromptChange: (value: string) => void
@@ -27,9 +26,6 @@ const libraryEntries = [
 ]
 
 export function CompositionHub(props: CompositionHubProps) {
-  const missingAnswerCount = Math.max(0, 2 - props.questionCounts.解答题)
-  const draftSummary = `选择 ${props.questionCounts.选择题} · 填空 ${props.questionCounts.填空题}${props.questionCounts.解答题 ? ` · 解答 ${props.questionCounts.解答题}` : '，还没有解答题'}`
-
   return (
     <aside className="composition-hub is-ai-first" data-sec="2" aria-label="添加题目工作区">
       <div className="composition-hub-scroll">
@@ -40,10 +36,6 @@ export function CompositionHub(props: CompositionHubProps) {
             {aiShortcuts.map(({ id, label, prompt }) => (
               <button type="button" key={id} className={props.composePrompt === prompt ? 'is-selected' : undefined} aria-pressed={props.composePrompt === prompt} disabled={props.contentBusy || props.composeStatus === 'loading'} onClick={() => props.onComposePromptChange(prompt)}>{label}</button>
             ))}
-          </div>
-          <div className="composition-draft-advice">
-            <span>💡 当前题稿：{draftSummary}</span>
-            {missingAnswerCount ? <button type="button" disabled={props.contentBusy || props.composeStatus === 'loading'} onClick={() => props.onComposePromptChange(`补充 ${missingAnswerCount} 道一次函数解答题，加入当前题稿`)}>补 {missingAnswerCount} 道解答题</button> : null}
           </div>
         </section>
 

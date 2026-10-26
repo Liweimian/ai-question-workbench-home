@@ -484,11 +484,6 @@ export function WorkbenchHomePage() {
                     composePrompt={workbench.composePrompt}
                     composeError={workbench.composeError}
                     composeStatus={workbench.composeStatus}
-                    questionCounts={{
-                      选择题: workbench.document.questions.filter((question) => question.type === '选择题').length,
-                      填空题: workbench.document.questions.filter((question) => question.type === '填空题').length,
-                      解答题: workbench.document.questions.filter((question) => question.type === '解答题').length,
-                    }}
                     onOpenAdd={openAdd}
                     onOpenMyResources={() => openMyResources('全部')}
                     onComposePromptChange={workbench.setComposePrompt}

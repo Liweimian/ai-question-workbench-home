@@ -6591,31 +6591,6 @@
 .composition-ai-hero .ai-composer-input { min-height: 68px; padding-top: 10px; padding-bottom: 10px; border-radius: var(--fx-radius-card); }
 .composition-ai-hero .composition-chat-shortcuts { margin-top: 10px; }
 
-.composition-draft-advice {
-  display: flex;
-  min-height: 42px;
-  margin-top: 12px;
-  padding: 8px 10px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  border-radius: var(--fx-radius-control);
-  color: var(--fx-text-secondary);
-  background: var(--fx-primary-selected);
-  font-size: 11px;
-}
-
-.composition-draft-advice button {
-  min-height: 28px;
-  padding: 3px 9px;
-  border: 1px solid var(--theme_primary1_selected2_color);
-  border-radius: var(--aiq_radius_pill);
-  color: var(--fx-primary);
-  background: var(--common_bg2_color);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
 .composition-action-section { padding: 16px 0; border-top: 1px solid var(--fx-line-strong); }
 .composition-action-section h3 { margin: 0 0 10px; color: var(--fx-text-primary); font-size: 13px; font-weight: 600; }
 .composition-library-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
@@ -6669,8 +6644,7 @@
 .composition-library-grid button:hover:not(:disabled),
 .composition-generate-grid button:hover:not(:disabled) { border-color: var(--theme_primary1_selected2_color); background: var(--fx-primary-selected); }
 .composition-library-grid button:disabled,
-.composition-generate-grid button:disabled,
-.composition-draft-advice button:disabled { cursor: not-allowed; opacity: 0.55; }
+.composition-generate-grid button:disabled { cursor: not-allowed; opacity: 0.55; }
 
 .composition-source-section {
   width: min(100%, 620px);
