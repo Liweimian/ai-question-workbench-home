@@ -1,4 +1,4 @@
-import { BookOpen, ChevronDown, FileScan, FolderHeart, Library, School, Sparkles } from 'lucide-react'
+import { FileScan, FolderHeart, Library, School, Sparkles } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, OpenAddOptions, QuestionType } from '../prototype/types'
 import { AiComposer } from './AiComposer'
 
@@ -33,14 +33,9 @@ export function CompositionHub(props: CompositionHubProps) {
   return (
     <aside className="composition-hub is-ai-first" data-sec="2" aria-label="添加题目工作区">
       <div className="composition-hub-scroll">
-        <button type="button" className="composition-context" aria-label="切换当前教材范围">
-          <BookOpen size={16} /><strong>八上 · 数学 · 人教版</strong><ChevronDown size={15} />
-        </button>
-
         <section className="composition-ai-hero" aria-labelledby="assistant-heading">
           <div className="composition-ai-title"><Sparkles size={18} /><strong id="assistant-heading">想组一份什么样的练习？</strong></div>
           <AiComposer compact kind="compose" value={props.composePrompt} error={props.composeError} status={props.composeStatus} disabled={props.contentBusy} onChange={props.onComposePromptChange} onSubmit={props.onCompose} />
-          <div className="composition-ai-scope">基于：<strong>第四章 一次函数</strong></div>
           <div className="composition-chat-shortcuts" role="group" aria-label="AI 助手快捷方式">
             {aiShortcuts.map(({ id, label, prompt }) => (
               <button type="button" key={id} className={props.composePrompt === prompt ? 'is-selected' : undefined} aria-pressed={props.composePrompt === prompt} disabled={props.contentBusy || props.composeStatus === 'loading'} onClick={() => props.onComposePromptChange(prompt)}>{label}</button>
@@ -65,8 +60,8 @@ export function CompositionHub(props: CompositionHubProps) {
         <section className="composition-action-section" aria-labelledby="generate-heading">
           <h3 id="generate-heading">按条件生成</h3>
           <div className="composition-generate-grid">
-            <button type="button" disabled={props.contentBusy} onClick={() => props.onOpenAdd('upload')}><span className="composition-generate-icon"><FileScan size={20} /></span><strong>AI 智能录题</strong><small>上传 → 识别拆题</small></button>
-            <button type="button" disabled={props.contentBusy} onClick={() => props.onOpenAdd('create')}><span className="composition-generate-icon"><Sparkles size={20} /></span><strong>AI 原创出题</strong><small>选章节 → 设题量 → 生成预览</small></button>
+            <button type="button" disabled={props.contentBusy} onClick={() => props.onOpenAdd('upload')}><span className="composition-generate-icon"><FileScan size={20} /></span><strong>AI 智能录题</strong></button>
+            <button type="button" disabled={props.contentBusy} onClick={() => props.onOpenAdd('create')}><span className="composition-generate-icon"><Sparkles size={20} /></span><strong>AI 原创出题</strong></button>
           </div>
         </section>
       </div>
