@@ -379,7 +379,7 @@ export function WorkbenchHomePage() {
                     libraryDetail={activeLibraryDetail?.libraryMode === workbench.addMode ? activeLibraryDetail.record : null}
                     onModeChange={workbench.setAddMode}
                     onResourceTypeChange={(type) => void workbench.loadSources(type)}
-                    onAddSource={(type, sourceId, count) => void workbench.addSource(type, sourceId, count)}
+                    onAddSource={(type, sourceId, count) => workbench.addSource(type, sourceId, count)}
                     onOpenLibraryDetail={(record) => {
                       if (workbench.addMode === 'resource' || workbench.addMode === 'school') {
                         openLibraryDetail(workbench.addMode, record)

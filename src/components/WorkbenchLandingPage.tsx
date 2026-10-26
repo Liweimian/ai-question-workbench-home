@@ -24,7 +24,7 @@ interface WorkbenchLandingPageProps {
   onOpenDocument: (documentId: string) => void
   onReloadHistory: () => void
   onResourceTypeChange: (type: ResourceType) => void
-  onAddSource: (type: ResourceType, sourceId: string, count: number) => void
+  onAddSource: (type: ResourceType, sourceId: string, count: number) => Promise<boolean>
 }
 
 const toCurrentSummary = (document: WorkbenchDocument): HistoryDocumentSummary => ({

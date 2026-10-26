@@ -34,7 +34,7 @@ interface LibraryPickerProps {
   onDetailChange?: (open: boolean) => void
   onOpenDetail?: (record: SourceRecord) => void
   onResourceTypeChange: (type: ResourceType) => void
-  onAddSource: (type: ResourceType, sourceId: string, count: number) => void
+  onAddSource: (type: ResourceType, sourceId: string, count: number) => Promise<boolean>
 }
 
 const resourceIcons: Record<ResourceType, typeof BookOpenCheck> = {
@@ -122,8 +122,8 @@ interface LegacyResourceDetailProps {
   showReturnNavigation: boolean
   onReturnHome: () => void
   onToggleAnswers: () => void
-  onToggleQuestion: (questionId: string) => void
-  onUseAll: () => void
+  onToggleQuestion: (questionId: string) => Promise<void>
+  onUseAll: () => Promise<void>
 }
 
 function LegacyResourceDetail(props: LegacyResourceDetailProps) {
@@ -189,7 +189,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                   <h3>{section.title}</h3>
                   {sectionIndex === 0 ? <div className="legacy-question-section-actions">
                     <button type="button" onClick={props.onToggleAnswers}><Eye size={15} />{props.showAnswers ? '隐藏答案' : '显示答案'}</button>
-                    <button type="button" className="is-primary" disabled={props.contentBusy} onClick={props.onUseAll}><FileText size={15} />{props.embedded ? '添加整卷' : '使用整卷'}<ChevronDown size={13} /></button>
+                    <button type="button" className="is-primary" disabled={props.contentBusy} onClick={() => void props.onUseAll()}><FileText size={15} />{props.embedded ? '添加整卷' : '使用整卷'}<ChevronDown size={13} /></button>
                   </div> : null}
                 </div>
                 {section.questions.map((question) => {
@@ -209,7 +209,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                         <span>知识点：{question.knowledgePoint}</span>
                         <div>
                           <button type="button">纠错</button><button type="button"><Star size={14} />收藏</button><button type="button">解析</button><button type="button">相似题</button>
-                          {props.embedded ? <button type="button" className={`is-add${selected || pending ? ' is-added' : ''}`} disabled={props.contentBusy || selected} onClick={() => props.onToggleQuestion(question.id)}>{selected || pending ? '已添加' : '＋ 添加'}</button> : null}
+                          {props.embedded ? <button type="button" className={`is-add${selected ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={props.contentBusy || selected || pending} onClick={() => void props.onToggleQuestion(question.id)}>{selected ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button> : null}
                         </div>
                       </footer>
                     </article>
@@ -239,6 +239,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
   ))
   const [showAnswers, setShowAnswers] = useState(false)
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set())
+  const [pendingQuestionIds, setPendingQuestionIds] = useState<Set<string>>(new Set())
   const [pickerDetailNavHost, setPickerDetailNavHost] = useState<HTMLElement | null>(null)
   const [favorites, setFavorites] = useState<Set<string>>(new Set(['paper-2']))
   const [pinned, setPinned] = useState<Set<string>>(new Set())
@@ -258,6 +259,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
     if (variant === 'dialog') {
       setDialogChapter(props.initialView === 'chapter')
       setSelectedQuestionIds(new Set())
+      setPendingQuestionIds(new Set())
       if (
         props.initialView !== 'chapter'
         && props.libraryKind === 'school'
@@ -345,10 +347,12 @@ export function LibraryPicker(props: LibraryPickerProps) {
     })
   }
 
-  const addQuestionImmediately = (questionId: string) => {
-    if (selectedQuestionIds.has(questionId) || props.contentBusy) return
-    setSelectedQuestionIds((current) => new Set([...current, questionId]))
-    props.onAddSource(detailRecord?.sourceType ?? props.resourceType, 'picker-selection', 1)
+  const addQuestionImmediately = async (questionId: string) => {
+    if (selectedQuestionIds.has(questionId) || pendingQuestionIds.size > 0 || props.contentBusy) return
+    setPendingQuestionIds(new Set([questionId]))
+    const added = await props.onAddSource(detailRecord?.sourceType ?? props.resourceType, `picker-selection:${questionId}`, 1)
+    if (added) setSelectedQuestionIds((current) => new Set([...current, questionId]))
+    setPendingQuestionIds(new Set())
   }
 
   const pickerDetailNav = variant === 'dialog' && detailRecord && pickerDetailNavHost ? createPortal(
@@ -378,7 +382,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
         embedded={variant === 'dialog'}
         questions={previewQuestions}
         selectedQuestionIds={selectedQuestionIds}
-        pendingQuestionIds={new Set()}
+        pendingQuestionIds={pendingQuestionIds}
         showAnswers={showAnswers}
         contentBusy={props.contentBusy}
         addStatus={props.addStatus}
@@ -395,18 +399,20 @@ export function LibraryPicker(props: LibraryPickerProps) {
         }}
         onToggleAnswers={() => setShowAnswers((current) => !current)}
         onToggleQuestion={addQuestionImmediately}
-        onUseAll={() => {
+        onUseAll={async () => {
           if (variant === 'dialog') {
             const unaddedQuestions = previewQuestions.filter((question) => !selectedQuestionIds.has(question.id))
             if (unaddedQuestions.length === 0 || props.contentBusy) return
-            setSelectedQuestionIds((current) => new Set([
-              ...current,
-              ...unaddedQuestions.map((question) => question.id),
-            ]))
-            props.onAddSource(detailRecord.sourceType, detailRecord.id, unaddedQuestions.length)
+            const pendingIds = unaddedQuestions.map((question) => question.id)
+            setPendingQuestionIds(new Set(pendingIds))
+            const added = await props.onAddSource(detailRecord.sourceType, detailRecord.id, unaddedQuestions.length)
+            if (added) {
+              setSelectedQuestionIds((current) => new Set([...current, ...pendingIds]))
+            }
+            setPendingQuestionIds(new Set())
             return
           }
-          props.onAddSource(detailRecord.sourceType, detailRecord.id, previewQuestions.length)
+          await props.onAddSource(detailRecord.sourceType, detailRecord.id, previewQuestions.length)
         }}
       />
     </>
@@ -471,12 +477,13 @@ export function LibraryPicker(props: LibraryPickerProps) {
             <div className="chapter-question-list">
               {chapterQuestions.filter((question) => !keyword.trim() || question.stem.includes(keyword.trim())).map((question, index) => {
                 const added = selectedQuestionIds.has(question.id)
+                const pending = pendingQuestionIds.has(question.id)
                 return (
                   <article key={question.id} className={added ? 'is-added' : ''}>
                     <div className="chapter-question-meta"><span>{question.type} / {question.difficulty} / {question.estimatedMinutes}分钟</span></div>
                     <div className="chapter-question-stem"><b>{index + 1}.</b><p>{question.stem}</p></div>
                     {question.options ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
-                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className={`is-add${added ? ' is-added' : ''}`} disabled={props.contentBusy || added} onClick={() => addQuestionImmediately(question.id)}>{added ? '已添加' : '＋ 添加'}</button></div></footer>
+                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className={`is-add${added ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={props.contentBusy || added || pending} onClick={() => void addQuestionImmediately(question.id)}>{added ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button></div></footer>
                   </article>
                 )
               })}

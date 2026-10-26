@@ -5790,6 +5790,13 @@
   cursor: default;
 }
 
+.chapter-question-list footer button.is-add.is-pending:disabled,
+.legacy-question-card footer button.is-add.is-pending:disabled {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  cursor: wait;
+}
+
 .chapter-question-list footer button.is-add:disabled:not(.is-added),
 .legacy-question-card footer button.is-add:disabled:not(.is-added) {
   color: var(--fx-text-tertiary);

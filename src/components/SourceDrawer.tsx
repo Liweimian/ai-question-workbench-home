@@ -38,7 +38,7 @@ interface SourceDrawerProps {
   libraryDetail?: SourceRecord | null
   onModeChange: (mode: AddQuestionMode) => void
   onResourceTypeChange: (type: ResourceType) => void
-  onAddSource: (type: ResourceType, sourceId?: string, count?: number) => void
+  onAddSource: (type: ResourceType, sourceId?: string, count?: number) => Promise<boolean>
   onOpenLibraryDetail?: (record: SourceRecord) => void
   onCreateConfigChange: (value: CreateQuestionRequest) => void
   onCreate: (requestOverride?: CreateQuestionRequest) => void
