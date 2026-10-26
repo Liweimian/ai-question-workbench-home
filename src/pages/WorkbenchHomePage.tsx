@@ -484,15 +484,13 @@ export function WorkbenchHomePage() {
                     composePrompt={workbench.composePrompt}
                     composeError={workbench.composeError}
                     composeStatus={workbench.composeStatus}
-                    currentDocumentId={workbench.document.id}
-                    histories={workbench.historyDocuments}
-                    historyStatus={workbench.historyStatus}
-                    recentDisabled={workbench.isContentBusy || workbench.documentSyncState === 'dirty' || workbench.documentSyncState === 'saving'}
+                    questionCounts={{
+                      选择题: workbench.document.questions.filter((question) => question.type === '选择题').length,
+                      填空题: workbench.document.questions.filter((question) => question.type === '填空题').length,
+                      解答题: workbench.document.questions.filter((question) => question.type === '解答题').length,
+                    }}
                     onOpenAdd={openAdd}
                     onOpenMyResources={() => openMyResources('全部')}
-                    onOpenRecentDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
-                    onReloadHistory={() => { void workbench.reloadHistory() }}
-                    onOpenAllDocuments={() => openMyResources('题单')}
                     onComposePromptChange={workbench.setComposePrompt}
                     onCompose={submitAssistant}
                   />

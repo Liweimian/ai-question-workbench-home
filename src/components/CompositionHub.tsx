@@ -1,21 +1,5 @@
-import {
-  BookOpenCheck,
-  BrainCircuit,
-  ChevronRight,
-  Clock3,
-  FileScan,
-  FolderHeart,
-  Library,
-  LoaderCircle,
-  School,
-  Sparkles,
-} from 'lucide-react'
-import type {
-  AddQuestionMode,
-  AsyncStatus,
-  HistoryDocumentSummary,
-  OpenAddOptions,
-} from '../prototype/types'
+import { BookOpen, ChevronDown, FileScan, FolderHeart, Library, School, Sparkles } from 'lucide-react'
+import type { AddQuestionMode, AsyncStatus, OpenAddOptions, QuestionType } from '../prototype/types'
 import { AiComposer } from './AiComposer'
 
 interface CompositionHubProps {
@@ -23,192 +7,69 @@ interface CompositionHubProps {
   composePrompt: string
   composeError: string
   composeStatus: AsyncStatus
-  currentDocumentId: string
-  histories: HistoryDocumentSummary[]
-  historyStatus: AsyncStatus
-  recentDisabled: boolean
+  questionCounts: Record<QuestionType, number>
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onOpenMyResources: () => void
-  onOpenRecentDocument: (documentId: string) => void
-  onReloadHistory: () => void
-  onOpenAllDocuments: () => void
   onComposePromptChange: (value: string) => void
   onCompose: () => void
 }
 
-const sourceEntries = [
-  {
-    mode: 'resource' as const,
-    title: '飞象题库',
-    description: '从平台题库按教材、知识点或题型选题',
-    icon: Library,
-  },
-  {
-    mode: 'school' as const,
-    title: '校本题库',
-    description: '从学校和个人沉淀的资源中选题',
-    icon: School,
-  },
-  {
-    mode: 'upload' as const,
-    title: 'AI 智能录题',
-    description: '上传 Word、PDF 或图片，自动识别并拆分题目',
-    icon: FileScan,
-  },
-  {
-    mode: 'create' as const,
-    title: 'AI 出题工具',
-    description: '设置知识点、难度和题量，生成原创题',
-    icon: Sparkles,
-  },
+const aiShortcuts = [
+  { id: 'find', label: '找几道题', prompt: '从题库找 6 道八年级一次函数基础题' },
+  { id: 'exercise', label: '组一份练习', prompt: '围绕第四章一次函数，组成一份 8 道题的课堂练习' },
+  { id: 'paper', label: '组一份试卷', prompt: '围绕第四章一次函数，组成一份 10 道题的单元测试卷' },
+  { id: 'layered', label: '分层练习', prompt: '围绕第四章一次函数，按基础、巩固、提升组成一份分层练习' },
 ]
 
-const aiShortcuts = [
-  {
-    id: 'personalized',
-    label: '个性化练习',
-    prompt: '根据本班一次函数常见错因，从题库挑选 6 道针对性练习',
-  },
-  {
-    id: 'compose',
-    label: 'AI 组题',
-    prompt: '从题库挑选 6 道一次函数基础题',
-  },
-  {
-    id: 'paper',
-    label: 'AI 组卷',
-    prompt: '从题库组成一份 10 道题的一次函数单元练习卷，兼顾基础与提升',
-  },
-  {
-    id: 'find-question',
-    label: 'AI 找题',
-    prompt: '从题库找 3 道一次函数图象与性质选择题，并加入当前题稿',
-  },
-  {
-    id: 'find-paper',
-    label: 'AI 找卷',
-    prompt: '从题库找一份八年级上册一次函数单元测试卷，并将其中 10 道题加入当前题稿',
-  },
+const libraryEntries = [
+  { mode: 'resource' as const, title: '飞象题库', icon: Library },
+  { mode: 'school' as const, title: '校本题库', icon: School },
 ]
 
 export function CompositionHub(props: CompositionHubProps) {
-  const recentDocuments = props.histories
-    .filter((item) => item.id !== props.currentDocumentId)
-    .slice(0, 3)
+  const missingAnswerCount = Math.max(0, 2 - props.questionCounts.解答题)
+  const draftSummary = `选择 ${props.questionCounts.选择题} · 填空 ${props.questionCounts.填空题}${props.questionCounts.解答题 ? ` · 解答 ${props.questionCounts.解答题}` : '，还没有解答题'}`
 
   return (
-    <aside className="composition-hub" data-sec="2" aria-label="添加题目工作区">
+    <aside className="composition-hub is-ai-first" data-sec="2" aria-label="添加题目工作区">
       <div className="composition-hub-scroll">
-        <section className="composition-source-section" aria-labelledby="source-heading">
-          <div className="composition-section-heading">
-            <div><BookOpenCheck size={17} /><strong id="source-heading">先添加题目</strong></div>
-          </div>
-          <div className="composition-source-list">
-            {sourceEntries.map(({ mode, title, description, icon: Icon }) => (
-              <button
-                type="button"
-                className="composition-source-card"
-                key={mode}
-                disabled={props.contentBusy}
-                onClick={() => props.onOpenAdd(mode)}
-                data-track={`/click/aiQuestionHome/hub${mode} | 从添加区打开${title} | 无`}
-              >
-                <span className={`composition-source-icon is-${mode}`}><Icon size={19} /></span>
-                <div><strong>{title}</strong><span>{description}</span></div>
-                <ChevronRight className="composition-source-action" size={15} aria-hidden="true" />
-              </button>
+        <button type="button" className="composition-context" aria-label="切换当前教材范围">
+          <BookOpen size={16} /><strong>八上 · 数学 · 人教版</strong><ChevronDown size={15} />
+        </button>
+
+        <section className="composition-ai-hero" aria-labelledby="assistant-heading">
+          <div className="composition-ai-title"><Sparkles size={18} /><strong id="assistant-heading">想组一份什么样的练习？</strong></div>
+          <AiComposer compact kind="compose" value={props.composePrompt} error={props.composeError} status={props.composeStatus} disabled={props.contentBusy} onChange={props.onComposePromptChange} onSubmit={props.onCompose} />
+          <div className="composition-ai-scope">基于：<strong>第四章 一次函数</strong></div>
+          <div className="composition-chat-shortcuts" role="group" aria-label="AI 助手快捷方式">
+            {aiShortcuts.map(({ id, label, prompt }) => (
+              <button type="button" key={id} className={props.composePrompt === prompt ? 'is-selected' : undefined} aria-pressed={props.composePrompt === prompt} disabled={props.contentBusy || props.composeStatus === 'loading'} onClick={() => props.onComposePromptChange(prompt)}>{label}</button>
             ))}
-            <button
-              type="button"
-              className="composition-source-card"
-              disabled={props.contentBusy}
-              onClick={props.onOpenMyResources}
-              data-track="/click/aiQuestionHome/openMyResources | 从添加区打开我的资源 | 无"
-            >
-              <span className="composition-source-icon is-my-resources"><FolderHeart size={19} /></span>
-              <div><strong>我的资源</strong><span>查看自己创建、上传和收藏的资源</span></div>
-              <ChevronRight className="composition-source-action" size={15} aria-hidden="true" />
-            </button>
+          </div>
+          <div className="composition-draft-advice">
+            <span>💡 当前题稿：{draftSummary}</span>
+            {missingAnswerCount ? <button type="button" disabled={props.contentBusy || props.composeStatus === 'loading'} onClick={() => props.onComposePromptChange(`补充 ${missingAnswerCount} 道一次函数解答题，加入当前题稿`)}>补 {missingAnswerCount} 道解答题</button> : null}
           </div>
         </section>
 
-        <section className="composition-recent-section" aria-labelledby="recent-heading">
-          <div className="composition-section-heading">
-            <div><Clock3 size={17} /><strong id="recent-heading">最近编辑</strong></div>
-            <button
-              type="button"
-              disabled={props.recentDisabled}
-              onClick={props.onOpenAllDocuments}
-              data-track="/click/aiQuestionHome/openAllDocuments | 查看全部最近编辑题单 | 无"
-            >查看全部<ChevronRight size={13} /></button>
+        <section className="composition-action-section" aria-labelledby="library-heading">
+          <h3 id="library-heading">从题库选题</h3>
+          <div className="composition-library-grid">
+            {libraryEntries.map(({ mode, title, icon: Icon }) => (
+              <button type="button" key={mode} disabled={props.contentBusy} onClick={() => props.onOpenAdd(mode)}><span><Icon size={18} /></span><strong>{title}</strong></button>
+            ))}
+            <button type="button" disabled={props.contentBusy} onClick={props.onOpenMyResources}><span><FolderHeart size={18} /></span><strong>我的资源</strong></button>
           </div>
-          <div className="composition-recent-list">
-            {props.historyStatus === 'loading' ? (
-              <div className="composition-recent-state"><LoaderCircle size={15} />正在加载最近题单…</div>
-            ) : props.historyStatus === 'error' ? (
-              <div className="composition-recent-state is-error">
-                <span>最近题单加载失败</span>
-                <button
-                  type="button"
-                  onClick={props.onReloadHistory}
-                >重新加载</button>
-              </div>
-            ) : recentDocuments.length ? recentDocuments.map((item) => (
-              <button
-                type="button"
-                key={item.id}
-                disabled={props.recentDisabled}
-                onClick={() => props.onOpenRecentDocument(item.id)}
-                data-track="/click/aiQuestionHome/openRecentDocument | 从添加首页打开最近题单 | documentId#STRING"
-              >
-                <span>
-                  <strong>{item.title}</strong>
-                  <small>{item.questionCount} 道题 · {item.status} · {item.updatedAt}</small>
-                </span>
-                <ChevronRight size={15} aria-hidden="true" />
-              </button>
-            )) : <div className="composition-recent-state">暂无最近编辑的题单</div>}
+        </section>
+
+        <section className="composition-action-section" aria-labelledby="generate-heading">
+          <h3 id="generate-heading">按条件生成</h3>
+          <div className="composition-generate-grid">
+            <button type="button" disabled={props.contentBusy} onClick={() => props.onOpenAdd('upload')}><span className="composition-generate-icon"><FileScan size={20} /></span><strong>AI 智能录题</strong><small>上传 → 识别拆题</small></button>
+            <button type="button" disabled={props.contentBusy} onClick={() => props.onOpenAdd('create')}><span className="composition-generate-icon"><Sparkles size={20} /></span><strong>AI 原创出题</strong><small>选章节 → 设题量 → 生成预览</small></button>
           </div>
         </section>
       </div>
-
-      <section className="composition-hub-composer" aria-labelledby="assistant-heading">
-        <div className="composition-hub-composer-inner">
-          <div className="composition-chat-heading">
-            <div><BrainCircuit size={16} /><strong id="assistant-heading">或者，直接告诉 AI 你想要什么</strong></div>
-            <span>AI 可以帮你找题、组题或组卷</span>
-          </div>
-          <div className="composition-chat-shortcuts" role="group" aria-label="AI 助手快捷方式">
-            {aiShortcuts.map(({ id, label, prompt }) => {
-              const selected = props.composePrompt === prompt
-              return (
-                <button
-                  type="button"
-                  key={id}
-                  className={selected ? 'is-selected' : undefined}
-                  aria-pressed={selected}
-                  aria-label={`${label}，填入示例要求`}
-                  disabled={props.contentBusy || props.composeStatus === 'loading'}
-                  onClick={() => props.onComposePromptChange(prompt)}
-                  data-track={`/click/aiQuestionHome/assistantShortcut${id} | 选择${label}快捷方式 | 无`}
-                >
-                  {label}
-                </button>
-              )
-            })}
-          </div>
-          <AiComposer
-            compact
-            kind="compose"
-            value={props.composePrompt}
-            error={props.composeError}
-            status={props.composeStatus}
-            disabled={props.contentBusy}
-            onChange={props.onComposePromptChange}
-            onSubmit={props.onCompose}
-          />
-        </div>
-      </section>
     </aside>
   )
 }
