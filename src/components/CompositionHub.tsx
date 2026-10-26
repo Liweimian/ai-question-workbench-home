@@ -58,7 +58,7 @@ const sourceEntries = [
     mode: 'create' as const,
     title: 'AI 出题工具',
     description: '设置知识点、难度和题量，生成原创题',
-    action: '去设置',
+    action: '去出题',
     icon: Sparkles,
   },
 ]
