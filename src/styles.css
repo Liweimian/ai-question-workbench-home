@@ -6399,6 +6399,7 @@
 }
 
 .composition-source-card {
+  width: 100%;
   display: grid;
   min-height: 72px;
   padding: 12px 12px 12px 14px;
@@ -6407,14 +6408,33 @@
   gap: 11px;
   border: 1px solid var(--fx-line-strong);
   border-radius: var(--fx-radius-control);
+  color: inherit;
   background: var(--common_bg2_color);
+  text-align: left;
+  cursor: pointer;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
-.composition-source-card:hover {
+.composition-source-card:hover:not(:disabled) {
   border-color: var(--theme_primary1_selected2_color);
   box-shadow: var(--fx-shadow-card);
   transform: translateY(-1px);
+}
+
+.composition-source-card:focus-visible {
+  outline: 2px solid var(--fx-primary);
+  outline-offset: 2px;
+}
+
+.composition-source-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.composition-source-action {
+  padding: 0 10px;
+  color: var(--fx-text-primary);
+  font-size: 13px;
 }
 
 .composition-source-icon {

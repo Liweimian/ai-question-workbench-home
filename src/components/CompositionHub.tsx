@@ -1,4 +1,3 @@
-import { MetisButton } from '@yuanfudao/metis-web-component'
 import {
   BookOpenCheck,
   BrainCircuit,
@@ -74,18 +73,18 @@ export function CompositionHub(props: CompositionHubProps) {
           </div>
           <div className="composition-source-list">
             {sourceEntries.map(({ mode, title, description, action, icon: Icon }) => (
-              <article className="composition-source-card" key={mode}>
+              <button
+                type="button"
+                className="composition-source-card"
+                key={mode}
+                disabled={props.contentBusy}
+                onClick={() => props.onOpenAdd(mode)}
+                data-track={`/click/aiQuestionHome/hub${mode} | 从添加区打开${title} | 无`}
+              >
                 <span className={`composition-source-icon is-${mode}`}><Icon size={19} /></span>
                 <div><strong>{title}</strong><span>{description}</span></div>
-                <MetisButton
-                  type="borderless"
-                  disabled={props.contentBusy}
-                  onClick={() => props.onOpenAdd(mode)}
-                  data-track={`/click/aiQuestionHome/hub${mode} | 从添加区打开${title} | 无`}
-                >
-                  {action}
-                </MetisButton>
-              </article>
+                <span className="composition-source-action">{action}</span>
+              </button>
             ))}
           </div>
         </section>
