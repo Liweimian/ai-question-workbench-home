@@ -6579,21 +6579,6 @@
 .composition-action-section { width: min(100%, 620px); margin: 0 auto; }
 .composition-ai-hero { padding: 18px 0 16px; }
 
-.composition-context-select {
-  display: flex;
-  min-height: 36px;
-  margin-bottom: 14px;
-  padding: 0 10px;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid var(--fx-line-strong);
-  border-radius: var(--fx-radius-control);
-  background: var(--common_bg2_color);
-}
-
-.composition-context-select span { flex: 0 0 auto; color: var(--fx-text-tertiary); font-size: 12px; }
-.composition-context-select select { min-width: 0; flex: 1; border: 0; outline: 0; color: var(--fx-text-primary); background: transparent; font-size: 13px; font-weight: 500; }
-
 .composition-ai-title {
   display: flex;
   margin-bottom: 10px;
@@ -6622,6 +6607,7 @@
   color: var(--fx-text-primary);
   background: var(--common_bg2_color);
   cursor: pointer;
+  text-align: left;
 }
 
 .composition-library-grid button.is-primary-source {

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Clock3, FileScan, FolderHeart, Library, School, Sparkles } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, HistoryDocumentSummary, OpenAddOptions } from '../prototype/types'
 import { AiComposer } from './AiComposer'
@@ -20,16 +19,10 @@ interface CompositionHubProps {
 }
 
 const aiShortcuts = [
-  { id: 'find', label: '找几道题', prompt: (scope: string) => `从题库找 6 道${scope}基础题` },
-  { id: 'exercise', label: '组一份练习', prompt: (scope: string) => `围绕${scope}，组成一份 8 道题的课堂练习` },
-  { id: 'paper', label: '组一份试卷', prompt: (scope: string) => `围绕${scope}，组成一份 10 道题的单元测试卷` },
-  { id: 'layered', label: '分层练习', prompt: (scope: string) => `围绕${scope}，按基础、巩固、提升组成一份分层练习` },
-]
-
-const contextOptions = [
-  { value: 'chapter-4', label: '八上 · 数学 · 人教版 · 第四章 一次函数', promptScope: '八年级第四章一次函数' },
-  { value: 'chapter-5', label: '八上 · 数学 · 人教版 · 第五章 二元一次方程组', promptScope: '八年级第五章二元一次方程组' },
-  { value: 'all', label: '八上 · 数学 · 人教版 · 全册', promptScope: '八年级上册数学' },
+  { id: 'find', label: '找几道题', prompt: '从题库找 6 道适合当前教学进度的基础题' },
+  { id: 'exercise', label: '组一份练习', prompt: '组成一份适合当前教学进度的 8 道题课堂练习' },
+  { id: 'paper', label: '组一份试卷', prompt: '组成一份适合当前教学进度的 10 道题测试卷' },
+  { id: 'layered', label: '分层练习', prompt: '按基础、巩固、提升组成一份分层练习' },
 ]
 
 const libraryEntries = [
@@ -38,27 +31,18 @@ const libraryEntries = [
 ]
 
 export function CompositionHub(props: CompositionHubProps) {
-  const [contextValue, setContextValue] = useState('chapter-4')
-  const context = contextOptions.find((item) => item.value === contextValue) ?? contextOptions[0]
   const recentDocuments = props.histories.filter((item) => item.id !== props.currentDocumentId).slice(0, 3)
 
   return (
     <aside className="composition-hub is-ai-first" data-sec="2" aria-label="添加题目工作区">
       <div className="composition-hub-scroll">
         <section className="composition-ai-hero" aria-labelledby="assistant-heading">
-          <label className="composition-context-select">
-            <span>当前范围</span>
-            <select aria-label="切换 AI 使用的教材章节" value={contextValue} onChange={(event) => setContextValue(event.target.value)}>
-              {contextOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-            </select>
-          </label>
           <div className="composition-ai-title"><Sparkles size={18} /><strong id="assistant-heading">想组一份什么样的练习？</strong></div>
           <AiComposer compact kind="compose" value={props.composePrompt} error={props.composeError} status={props.composeStatus} disabled={props.contentBusy} onChange={props.onComposePromptChange} onSubmit={props.onCompose} />
           <div className="composition-chat-shortcuts" role="group" aria-label="AI 助手快捷方式">
-            {aiShortcuts.map(({ id, label, prompt }) => {
-              const promptValue = prompt(context.promptScope)
-              return <button type="button" key={id} className={props.composePrompt === promptValue ? 'is-selected' : undefined} aria-pressed={props.composePrompt === promptValue} disabled={props.contentBusy || props.composeStatus === 'loading'} onClick={() => props.onComposePromptChange(promptValue)}>{label}</button>
-            })}
+            {aiShortcuts.map(({ id, label, prompt }) => (
+              <button type="button" key={id} className={props.composePrompt === prompt ? 'is-selected' : undefined} aria-pressed={props.composePrompt === prompt} disabled={props.contentBusy || props.composeStatus === 'loading'} onClick={() => props.onComposePromptChange(prompt)}>{label}</button>
+            ))}
           </div>
         </section>
 
@@ -66,7 +50,7 @@ export function CompositionHub(props: CompositionHubProps) {
           <h3 id="library-heading">从题库选题</h3>
           <div className="composition-library-grid">
             {libraryEntries.map(({ mode, title, icon: Icon }) => (
-              <button type="button" key={mode} className="is-primary-source" disabled={props.contentBusy} onClick={() => props.onOpenAdd(mode)}><span><Icon size={20} /></span><div><strong>{title}</strong><small>{mode === 'resource' ? '平台教材、试卷与同步练习' : '学校与个人沉淀的题目资源'}</small></div></button>
+              <button type="button" key={mode} className="is-primary-source" disabled={props.contentBusy} onClick={() => props.onOpenAdd(mode)}><span><Icon size={20} /></span><div><strong>{title}</strong><small>{mode === 'resource' ? '练习册、试卷、同步练习等' : '学校与个人沉淀的题目资源'}</small></div></button>
             ))}
             <button type="button" disabled={props.contentBusy} onClick={props.onOpenMyResources}><span><FolderHeart size={18} /></span><div><strong>我的资源</strong><small>查看已创建、上传和收藏</small></div></button>
           </div>
