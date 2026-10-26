@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-26T23:50:00+08:00",
-      "iterationCount": 88,
+      "iterationCount": 89,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -122,7 +122,8 @@
         "AI assistant five shortcut prompts prefill without auto-submit",
         "composition hub keeps four non-conversational source tools",
         "Space quick start and insert menu route to the single AI assistant",
-        "undo is blocked while AI content operations are pending"
+        "undo is blocked while AI content operations are pending",
+        "chapter picker heading keeps horizontal layout beside flexible search"
       ]
     },
     "2": {
@@ -448,6 +449,11 @@
       "stage": 1,
       "hash": "3850843",
       "message": "Stage 1: unify AI assistant shortcuts - iteration 88"
+    },
+    {
+      "stage": 1,
+      "hash": "aa2ee68",
+      "message": "Stage 1: fix chapter picker heading layout - iteration 89"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
