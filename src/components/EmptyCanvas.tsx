@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Bold, BookOpenCheck, ChevronDown, FileScan, FileText, Heading2, Italic, School, Send, Sparkles, Strikethrough, Underline, WandSparkles } from 'lucide-react'
+import { Bold, BookOpenCheck, ChevronDown, FileScan, Heading2, Italic, School, Send, Sparkles, Strikethrough, Underline, WandSparkles } from 'lucide-react'
 import type { AddQuestionMode, LibraryInitialView, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
@@ -203,14 +203,6 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             </div>
           ))}
         </div>
-
-        {props.sidePanelOpen && !hasBlockContent ? (
-          <div className="empty-result-guide" role="note" aria-label="空题稿操作提示">
-            <span><FileText size={24} /></span>
-            <strong>这里是当前题稿</strong>
-            <small>从左侧选题、上传或让 AI 帮你组题；添加后可在这里调整并保存布置</small>
-          </div>
-        ) : null}
 
         {selectionToolbar ? (
           <div
