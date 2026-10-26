@@ -70,8 +70,8 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
     ? ['期中复习', '周测', '教学资料', '未分类资源']
     : ['常用练习册', '期中复习', '未分类收藏']
   const folders = [
-    { name: rootFolder, count: resources.length, root: true },
-    ...folderNames.map((name) => ({ name, count: resources.filter((item) => item.folder === name).length, root: false })),
+    { name: rootFolder, root: true },
+    ...folderNames.map((name) => ({ name, root: false })),
   ]
   const kinds: ResourceKind[] = space === 'created' ? ['全部', '试卷', '题单', '题目', '文件'] : ['全部', '题目', '练习册', '试卷']
   const visible = useMemo(() => {
@@ -104,13 +104,13 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
   return <section className="my-resources-page" aria-label="我的资源">
     <aside className="resource-workbench" aria-label="资源工作台">
       <div className="resource-space-tabs" role="tablist" aria-label="资源空间">
-        <button type="button" role="tab" aria-selected={space === 'created'} onClick={() => switchSpace('created')}>我的创建 <span>{historyResources.length + createdResources.length}</span></button>
-        <button type="button" role="tab" aria-selected={space === 'favorites'} onClick={() => switchSpace('favorites')}>我的收藏 <span>{favoriteResources.length}</span></button>
+        <button type="button" role="tab" aria-selected={space === 'created'} onClick={() => switchSpace('created')}>我的创建</button>
+        <button type="button" role="tab" aria-selected={space === 'favorites'} onClick={() => switchSpace('favorites')}>我的收藏</button>
       </div>
       <div className="resource-directory-head"><strong>{space === 'created' ? '资源目录' : '收藏目录'}</strong><button type="button" aria-label="新建文件夹" title="新建文件夹" onClick={addFolder}><FolderPlus size={16} /></button></div>
       <nav className="resource-folder-tree" aria-label="文件夹目录">
-        {[...folders, ...customFolders.map((name) => ({ name, count: 0, root: false }))].map((item) => <button key={item.name} type="button" className={folder === item.name ? 'is-active' : ''} onClick={() => setFolder(item.name)}>
-          {item.root ? <ChevronDown size={14} /> : <span className="resource-folder-indent" />}<Folder size={16} /><span>{item.name}</span><small>{item.count}</small>
+        {[...folders, ...customFolders.map((name) => ({ name, root: false }))].map((item) => <button key={item.name} type="button" className={folder === item.name ? 'is-active' : ''} onClick={() => setFolder(item.name)}>
+          {item.root ? <ChevronDown size={14} /> : <span className="resource-folder-indent" />}<Folder size={16} /><span>{item.name}</span>
         </button>)}
       </nav>
     </aside>
