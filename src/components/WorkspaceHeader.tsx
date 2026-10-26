@@ -117,9 +117,9 @@ export function WorkspaceHeader({
         />
       ) : (
       <>
-      <div className="header-workbench-brand" aria-label="飞象AI题库">
+      <div className="header-workbench-brand" aria-label="组题画布">
         <span className="header-workbench-mark"><Sparkles size={17} /></span>
-        <div><strong>飞象AI题库</strong></div>
+        <div><strong>组题画布</strong></div>
         <span className="header-document-state" title={`${documentTitle || '未命名组题'} · ${syncLabel}`}>
           <span className="header-current-document">{documentTitle?.trim() || '未命名组题'}</span>
           <small className={`header-sync-state is-${syncState}`}>{syncLabel}</small>
