@@ -58,7 +58,7 @@ const commandOptions: Array<{
   { mode: 'resource', title: '飞象题库选题', description: '浏览练习册、试卷、同步题单和专题', tag: '平台资源', icon: Search },
   { mode: 'school', title: '校本题库选题', description: '浏览本校沉淀的试卷、练习册和章节题目', tag: '本校资源', icon: School },
   { mode: 'upload', title: 'AI 智能录题', description: '识别 PDF、Word 或图片中的原题', tag: '材料转题目', icon: FileUp },
-  { mode: 'create', title: 'AI 出题工具', description: '按教材、知识点和题量生成原创题', tag: '原创 · 待校验', icon: Sparkles },
+  { mode: 'create', title: 'AI 原创出题', description: '按教材、知识点和题量生成原创题', tag: '原创 · 待校验', icon: Sparkles },
   { mode: 'manual', title: '手工录入', description: '添加一道空白题并继续编辑', tag: '空白题', icon: FilePenLine },
 ]
 
@@ -67,7 +67,7 @@ const modeTitles: Record<AddQuestionMode, string> = {
   resource: '从飞象题库选题',
   school: '从校本题库选题',
   compose: 'AI 组题',
-  create: 'AI 出题工具',
+  create: 'AI 原创出题',
   upload: 'AI 智能录题',
   personalized: '上传材料生成个性化练习',
   manual: '手工录入',
@@ -180,24 +180,25 @@ export function SourceDrawer(props: SourceDrawerProps) {
 
           {props.mode === 'create' ? (
             <div className="structured-create-tool">
-              <aside className="structured-create-settings" aria-label="AI 出题设置">
-                <div className="structured-create-heading"><Sparkles size={19} /><div><h3>AI 生成题目</h3><p>按教材、知识点与题量生成原创题</p></div></div>
+              <aside className="structured-create-settings" aria-label="AI 原创出题设置">
+                <div className="structured-create-heading"><Sparkles size={19} /><div><h3>AI 原创出题</h3><p>按教材、知识点与题量生成原创题</p></div></div>
                 <section>
-                  <h4>设置出题条件</h4>
-                  <label>出题方式<select value={props.createConfig.method} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, method: event.target.value as CreateQuestionRequest['method'] })}><option>知识点组合出题</option><option>逐知识点出题</option><option>综合情境出题</option></select></label>
-                  <label>整体难度<select value={props.createConfig.difficulty} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, difficulty: event.target.value as CreateQuestionRequest['difficulty'] })}><option>基础</option><option>中等</option><option>提升</option></select></label>
-                </section>
-                <section>
-                  <h4>选择教材及章节</h4>
-                  <div className="structured-textbook">{props.createConfig.textbook}</div>
+                  <h4>1. 选择教材及章节</h4>
+                  <label>教材<select value={props.createConfig.textbook} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, textbook: event.target.value })}><option>人教版 · 八年级上册</option><option>北师大版 · 八年级上册</option></select></label>
+                  <label>章节<select value={props.createConfig.chapter} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, chapter: event.target.value })}><option>第四章 一次函数</option><option>第五章 二元一次方程组</option></select></label>
                   <div className="structured-chapter-tree">
                     <strong>{props.createConfig.chapter}</strong>
                     {props.createConfig.allocations.map((item) => <span key={item.id}>✓ {item.knowledgePoint}</span>)}
                   </div>
                 </section>
+                <section>
+                  <h4>3. 设置出题方式</h4>
+                  <label>出题方式<select value={props.createConfig.method} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, method: event.target.value as CreateQuestionRequest['method'] })}><option>知识点组合出题</option><option>逐知识点出题</option><option>综合情境出题</option></select></label>
+                  <label>整体难度<select value={props.createConfig.difficulty} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, difficulty: event.target.value as CreateQuestionRequest['difficulty'] })}><option>基础</option><option>中等</option><option>提升</option></select></label>
+                </section>
               </aside>
               <section className="structured-create-main" aria-label="AI 出题题量与预览">
-                <header><div><h3>设置知识点题量</h3><p>每个知识点可单独调整，当前共 {createTotal} 道</p></div><span>AI 原创 · 待校验</span></header>
+                <header><div><h3>2. 设置知识点题量</h3><p>每个知识点可单独调整，当前共 {createTotal} 道</p></div><span>AI 原创 · 待校验</span></header>
                 <div className="structured-count-grid">
                   {props.createConfig.allocations.map((item) => (
                     <article key={item.id}>

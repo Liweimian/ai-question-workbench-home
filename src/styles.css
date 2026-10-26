@@ -6579,6 +6579,21 @@
 .composition-action-section { width: min(100%, 620px); margin: 0 auto; }
 .composition-ai-hero { padding: 18px 0 16px; }
 
+.composition-context-select {
+  display: flex;
+  min-height: 36px;
+  margin-bottom: 14px;
+  padding: 0 10px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-control);
+  background: var(--common_bg2_color);
+}
+
+.composition-context-select span { flex: 0 0 auto; color: var(--fx-text-tertiary); font-size: 12px; }
+.composition-context-select select { min-width: 0; flex: 1; border: 0; outline: 0; color: var(--fx-text-primary); background: transparent; font-size: 13px; font-weight: 500; }
+
 .composition-ai-title {
   display: flex;
   margin-bottom: 10px;
@@ -6609,6 +6624,11 @@
   cursor: pointer;
 }
 
+.composition-library-grid button.is-primary-source {
+  border-color: var(--theme_primary1_selected2_color);
+  background: var(--fx-primary-selected);
+}
+
 .composition-library-grid button > span,
 .composition-generate-icon {
   display: grid;
@@ -6621,7 +6641,11 @@
   background: var(--fx-primary-selected);
 }
 
-.composition-library-grid strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.composition-library-grid button > div,
+.composition-generate-grid button > div { min-width: 0; }
+.composition-library-grid strong { display: block; overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.composition-library-grid small,
+.composition-generate-grid small { display: block; margin-top: 3px; overflow: hidden; color: var(--fx-text-tertiary); font-size: 11px; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
 .composition-generate-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 
 .composition-generate-grid button {
@@ -6640,7 +6664,7 @@
 }
 
 .composition-generate-icon { grid-row: 1; }
-.composition-generate-grid strong { font-size: 12px; }
+.composition-generate-grid strong { font-size: 14px; }
 .composition-library-grid button:hover:not(:disabled),
 .composition-generate-grid button:hover:not(:disabled) { border-color: var(--theme_primary1_selected2_color); background: var(--fx-primary-selected); }
 .composition-library-grid button:disabled,
@@ -6832,6 +6856,8 @@
   gap: 3px;
 }
 
+.composition-recent-list > button > small { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+
 .composition-recent-list strong,
 .composition-recent-list small {
   overflow: hidden;
@@ -6841,7 +6867,7 @@
 
 .composition-recent-list strong {
   color: currentColor;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -7227,7 +7253,7 @@
 
 .structured-create-heading h3,
 .structured-create-main h3 {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .structured-create-heading p,
@@ -7243,7 +7269,7 @@
 
 .structured-create-settings h4 {
   margin-bottom: 10px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .structured-create-settings label {
@@ -7251,7 +7277,7 @@
   gap: 5px;
   margin-bottom: 10px;
   color: var(--fx-text-secondary);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .structured-create-settings select,
@@ -7263,7 +7289,7 @@
   border-radius: var(--fx-radius-control);
   color: var(--fx-text-secondary);
   background: var(--fx-surface-muted);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .structured-textbook {
@@ -7282,13 +7308,13 @@
 
 .structured-chapter-tree strong {
   color: var(--fx-text-primary);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .structured-chapter-tree span {
   padding-left: 8px;
   color: var(--fx-primary);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .structured-create-main {
@@ -7317,17 +7343,17 @@
 
 .structured-count-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 
 .structured-count-grid article {
   display: flex;
-  min-height: 104px;
+  min-height: 72px;
   padding: 13px;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  flex-direction: column;
+  flex-direction: row;
   gap: 12px;
   border: 1px solid var(--fx-line-strong);
   border-radius: var(--fx-radius-card);
@@ -7341,19 +7367,19 @@
 
 .structured-count-grid article strong {
   color: var(--fx-text-primary);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .structured-count-grid article small {
   color: var(--fx-text-tertiary);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .structured-stepper {
   display: grid;
   width: 104px;
   height: 30px;
-  align-self: flex-end;
+  align-self: center;
   grid-template-columns: 30px 1fr 30px;
   border: 1px solid var(--fx-line-strong);
   border-radius: 8px;

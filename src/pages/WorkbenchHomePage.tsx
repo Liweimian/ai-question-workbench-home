@@ -26,7 +26,7 @@ const addTabLabels: Record<AddTabMode, string> = {
   resource: '飞象题库',
   school: '校本题库',
   upload: 'AI 智能录题',
-  create: 'AI 出题',
+  create: 'AI 原创出题',
   manual: '手工录入',
 }
 
@@ -484,10 +484,15 @@ export function WorkbenchHomePage() {
                     composePrompt={workbench.composePrompt}
                     composeError={workbench.composeError}
                     composeStatus={workbench.composeStatus}
+                    currentDocumentId={workbench.document.id}
+                    histories={workbench.historyDocuments}
+                    historyStatus={workbench.historyStatus}
+                    historyDisabled={workbench.isContentBusy || workbench.documentSyncState === 'dirty' || workbench.documentSyncState === 'saving'}
                     onOpenAdd={openAdd}
                     onOpenMyResources={() => openMyResources('全部')}
                     onComposePromptChange={workbench.setComposePrompt}
                     onCompose={submitAssistant}
+                    onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
                   />
                 )}
               </div>
