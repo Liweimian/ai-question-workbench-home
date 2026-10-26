@@ -12,8 +12,8 @@
       "name": "Demo 创作",
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
-      "completedAt": "2026-10-26T23:00:00+08:00",
-      "iterationCount": 78,
+      "completedAt": "2026-10-26T23:30:00+08:00",
+      "iterationCount": 79,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -113,6 +113,11 @@
         "browser stale rewrite invalidation and target-question identity safety",
         "browser create-blank-document from the header overflow menu",
         "browser console error and warning inspection",
+        "browser explicit return-to-composition-hub flow",
+        "browser expanded 35/65 library workspace flow",
+        "browser compact single-row library filters and responsive resource grid",
+        "browser workbook detail return control regression",
+        "browser 1280/1440/1600/1920 library layout inspection",
         "production preview serves dist/client with HTTP 200"
       ]
     },
@@ -429,8 +434,13 @@
       "stage": 1,
       "hash": "7a6d4c0",
       "message": "Stage 1: Demo 创作完成 - 迭代 78"
+    },
+    {
+      "stage": 1,
+      "hash": "7f7a009",
+      "message": "Stage 1: Demo 创作完成 - 迭代 79"
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
-  "updatedAt": "2026-10-26T23:00:00+08:00"
+  "updatedAt": "2026-10-26T23:30:00+08:00"
 }
