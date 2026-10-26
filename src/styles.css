@@ -6388,7 +6388,6 @@
 }
 
 .composition-source-section,
-.composition-ai-section,
 .composition-recent-section {
   width: min(100%, 620px);
   margin: 0 auto 26px;
@@ -6499,62 +6498,6 @@
   white-space: nowrap;
 }
 
-.composition-ai-actions {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.composition-ai-actions button {
-  display: grid;
-  min-width: 0;
-  min-height: 76px;
-  padding: 10px;
-  grid-template-columns: 24px minmax(0, 1fr) 15px;
-  align-items: center;
-  gap: 7px;
-  border: 1px solid var(--fx-line-subtle);
-  border-radius: var(--fx-radius-control);
-  color: var(--fx-text-secondary);
-  background: var(--common_bg_z1_color);
-  cursor: pointer;
-  text-align: left;
-}
-
-.composition-ai-actions button:hover:not(:disabled) {
-  color: var(--fx-primary);
-  border-color: var(--theme_primary1_selected2_color);
-  background: var(--fx-primary-selected);
-}
-
-.composition-ai-actions button:disabled {
-  opacity: 0.55;
-  cursor: wait;
-}
-
-.composition-ai-actions button > svg:first-child {
-  color: var(--fx-primary);
-}
-
-.composition-ai-actions button > span {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.composition-ai-actions button strong {
-  font-size: 12px;
-}
-
-.composition-ai-actions button small {
-  overflow: hidden;
-  color: var(--fx-text-tertiary);
-  font-size: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .composition-recent-list {
   display: grid;
   gap: 2px;
@@ -6643,7 +6586,7 @@
   background: var(--common_bg2_color);
 }
 
-.composition-hub-composer > div:first-child {
+.composition-ai-mode-bar {
   display: flex;
   max-width: 620px;
   margin: 0 auto 7px;
@@ -6652,14 +6595,26 @@
   color: var(--fx-primary);
 }
 
-.composition-hub-composer > div:first-child strong {
-  color: var(--fx-text-secondary);
-  font-size: 11px;
-}
-
-.composition-hub-composer > div:first-child span {
+.composition-ai-mode-bar span {
   color: var(--fx-text-tertiary);
   font-size: 9px;
+}
+
+.composition-ai-mode-bar select {
+  height: 26px;
+  padding: 0 22px 0 7px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: 7px;
+  color: var(--fx-text-secondary);
+  background: var(--common_bg2_color);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.composition-ai-mode-bar select:focus-visible {
+  outline: 2px solid var(--fx-primary);
+  outline-offset: 1px;
 }
 
 .composition-hub-composer .ai-composer {
@@ -6672,4 +6627,43 @@
   align-items: center;
   padding-top: 4px;
   padding-bottom: 4px;
+}
+
+.composition-create-mode,
+.composition-personalized-mode {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.composition-create-preview {
+  display: flex;
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px 11px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--theme_primary1_selected2_color);
+  border-radius: var(--fx-radius-control);
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.composition-create-preview > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.composition-create-preview small {
+  color: var(--fx-text-tertiary);
+  font-size: 9px;
+}
+
+.composition-personalized-mode button {
+  min-height: 48px !important;
 }

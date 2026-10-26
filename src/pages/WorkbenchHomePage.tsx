@@ -221,11 +221,18 @@ export function WorkbenchHomePage() {
                   composePrompt={workbench.composePrompt}
                   composeError={workbench.composeError}
                   composeStatus={workbench.composeStatus}
+                  createPrompt={workbench.createPrompt}
+                  createError={workbench.createError}
+                  createStatus={workbench.createStatus}
+                  createPreview={workbench.createPreview}
                   onOpenAdd={openAdd}
                   onOpenDocument={(documentId) => void workbench.openHistoryDocument(documentId)}
                   onReloadHistory={() => void workbench.reloadHistory()}
                   onComposePromptChange={workbench.setComposePrompt}
                   onCompose={() => void workbench.composeFromBank()}
+                  onCreatePromptChange={workbench.setCreatePrompt}
+                  onCreate={() => void workbench.createQuestions()}
+                  onPersonalize={() => void workbench.personalizeFromUpload()}
                   onCollapse={collapseSidePanel}
                 />
               )}

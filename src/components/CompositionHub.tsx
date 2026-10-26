@@ -1,7 +1,7 @@
+import { useState } from 'react'
+import { MetisButton } from '@yuanfudao/metis-web-component'
 import {
   BookOpenCheck,
-  BrainCircuit,
-  ChevronRight,
   FileScan,
   GraduationCap,
   Library,
@@ -13,6 +13,7 @@ import type {
   AsyncStatus,
   HistoryDocumentSummary,
   OpenAddOptions,
+  Question,
 } from '../prototype/types'
 import { AiComposer } from './AiComposer'
 
@@ -24,11 +25,18 @@ interface CompositionHubProps {
   composePrompt: string
   composeError: string
   composeStatus: AsyncStatus
+  createPrompt: string
+  createError: string
+  createStatus: AsyncStatus
+  createPreview: Question[]
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onOpenDocument: (documentId: string) => void
   onReloadHistory: () => void
   onComposePromptChange: (value: string) => void
   onCompose: () => void
+  onCreatePromptChange: (value: string) => void
+  onCreate: () => void
+  onPersonalize: () => void
   onCollapse: () => void
 }
 
@@ -56,13 +64,17 @@ const sourceEntries = [
   },
 ]
 
-const aiEntries = [
-  { mode: 'compose' as const, title: 'AI 组题', description: '从题库智能挑题', icon: BrainCircuit },
-  { mode: 'create' as const, title: 'AI 出题', description: '生成原创题并预览', icon: Sparkles },
-  { mode: 'personalized' as const, title: '个性化练习', description: '结合材料与学情生成', icon: GraduationCap },
-]
+type AiAddMode = 'compose' | 'create' | 'personalized'
+
+const aiModeDescriptions: Record<AiAddMode, string> = {
+  compose: '从题库挑选并直接加入左侧',
+  create: '生成原创题，预览确认后加入',
+  personalized: '导入材料与学情，生成针对性练习',
+}
 
 export function CompositionHub(props: CompositionHubProps) {
+  const [aiMode, setAiMode] = useState<AiAddMode>('compose')
+
   return (
     <aside className="composition-hub" data-sec="2" aria-label="添加题目工作区">
       <div className="composition-hub-scroll">
@@ -89,36 +101,65 @@ export function CompositionHub(props: CompositionHubProps) {
           </div>
         </section>
 
-        <section className="composition-ai-section" aria-labelledby="ai-heading">
-          <div className="composition-section-heading">
-            <div><Sparkles size={17} /><strong id="ai-heading">飞象 AI</strong></div>
-            <span>与题库选题并列的添加方式</span>
-          </div>
-          <div className="composition-ai-actions">
-            {aiEntries.map(({ mode, title, description, icon: Icon }) => (
-              <button type="button" key={mode} disabled={props.contentBusy} onClick={() => props.onOpenAdd(mode)}>
-                <Icon size={17} />
-                <span><strong>{title}</strong><small>{description}</small></span>
-                <ChevronRight size={15} />
-              </button>
-            ))}
-          </div>
-        </section>
-
       </div>
 
       <footer className="composition-hub-composer">
-        <div><Sparkles size={15} /><strong>一句话组题</strong><span>从题库中挑选并直接加入左侧</span></div>
-        <AiComposer
-          compact
-          kind="compose"
-          value={props.composePrompt}
-          error={props.composeError}
-          status={props.composeStatus}
-          disabled={props.contentBusy}
-          onChange={props.onComposePromptChange}
-          onSubmit={props.onCompose}
-        />
+        <div className="composition-ai-mode-bar">
+          <Sparkles size={15} />
+          <select aria-label="AI 添加方式" value={aiMode} disabled={props.contentBusy} onChange={(event) => setAiMode(event.target.value as AiAddMode)}>
+            <option value="compose">题库组题</option>
+            <option value="create">AI 出题</option>
+            <option value="personalized">个性化练习</option>
+          </select>
+          <span>{aiModeDescriptions[aiMode]}</span>
+        </div>
+        {aiMode === 'compose' ? (
+          <AiComposer
+            compact
+            kind="compose"
+            value={props.composePrompt}
+            error={props.composeError}
+            status={props.composeStatus}
+            disabled={props.contentBusy}
+            onChange={props.onComposePromptChange}
+            onSubmit={props.onCompose}
+          />
+        ) : null}
+        {aiMode === 'create' ? (
+          <div className="composition-create-mode">
+            <AiComposer
+              compact
+              kind="create"
+              value={props.createPrompt}
+              error={props.createError}
+              status={props.createStatus}
+              disabled={props.contentBusy}
+              onChange={props.onCreatePromptChange}
+              onSubmit={props.onCreate}
+            />
+            {props.createPreview.length > 0 ? (
+              <button type="button" className="composition-create-preview" onClick={() => props.onOpenAdd('create')}>
+                <span><strong>已生成 {props.createPreview.length} 道原创题</strong><small>待校验，查看预览后加入题稿</small></span>
+                查看并确认
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+        {aiMode === 'personalized' ? (
+          <div className="composition-personalized-mode">
+            <MetisButton
+              type="primary"
+              block
+              icon={<GraduationCap size={17} />}
+              loading={props.contentBusy}
+              disabled={props.contentBusy}
+              onClick={props.onPersonalize}
+              data-track="/click/aiQuestionHome/personalizeFromFile | 从统一AI入口生成个性化练习 | 无"
+            >
+              选择材料并生成练习
+            </MetisButton>
+          </div>
+        ) : null}
       </footer>
     </aside>
   )
