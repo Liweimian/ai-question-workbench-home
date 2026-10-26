@@ -8,7 +8,7 @@ import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { useWorkbench } from '../hooks/useWorkbench'
 import type { AddQuestionMode } from '../prototype/types'
-import { X } from 'lucide-react'
+import { PanelRightClose, X } from 'lucide-react'
 
 const addTabLabels: Record<Exclude<AddQuestionMode, 'menu'>, string> = {
   resource: '飞象题库',
@@ -172,6 +172,13 @@ export function WorkbenchHomePage() {
                       </button>
                     </span>
                   ))}
+                  <button
+                    type="button"
+                    className="add-workspace-collapse"
+                    aria-label="收起添加题目工作区"
+                    title="专注编辑"
+                    onClick={collapseSidePanel}
+                  ><PanelRightClose size={17} /></button>
                 </nav>
                 {workbench.isAddOpen ? (
                 <SourceDrawer

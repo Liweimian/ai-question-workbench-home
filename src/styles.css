@@ -5953,6 +5953,20 @@
   padding: 0 14px;
 }
 
+.add-workspace-tabs > .add-workspace-collapse {
+  position: sticky;
+  right: 0;
+  width: 34px;
+  margin-left: auto;
+  padding: 0;
+  color: var(--fx-text-secondary);
+  background: var(--common_bg1_color);
+}
+
+.add-workspace-tabs > .add-workspace-collapse:hover {
+  color: var(--fx-primary);
+}
+
 .add-workspace-tab {
   display: flex;
   align-items: center;

@@ -3,14 +3,9 @@ import {
   BookOpenCheck,
   BrainCircuit,
   ChevronRight,
-  FileClock,
   FileScan,
-  FileText,
   GraduationCap,
   Library,
-  LoaderCircle,
-  PanelRightClose,
-  RefreshCw,
   School,
   Sparkles,
 } from 'lucide-react'
@@ -69,24 +64,8 @@ const aiEntries = [
 ]
 
 export function CompositionHub(props: CompositionHubProps) {
-  const recentDocuments = props.histories.filter((item) => item.id !== props.currentDocumentId).slice(0, 3)
-
   return (
     <aside className="composition-hub" data-sec="2" aria-label="添加题目工作区">
-      <header className="composition-hub-header">
-        <div>
-          <strong>添加题目</strong>
-          <span>结果会直接进入左侧题稿</span>
-        </div>
-        <MetisButton
-          type="borderless"
-          icon={<PanelRightClose size={18} />}
-          aria-label="收起添加题目工作区"
-          title="专注编辑"
-          onClick={props.onCollapse}
-        />
-      </header>
-
       <div className="composition-hub-scroll">
         <section className="composition-source-section" aria-labelledby="source-heading">
           <div className="composition-section-heading">
@@ -127,29 +106,6 @@ export function CompositionHub(props: CompositionHubProps) {
           </div>
         </section>
 
-        <section className="composition-recent-section" aria-labelledby="recent-heading">
-          <div className="composition-section-heading">
-            <div><FileClock size={17} /><strong id="recent-heading">最近组题</strong></div>
-            {props.historyStatus === 'error' ? (
-              <button type="button" className="composition-retry" onClick={props.onReloadHistory}><RefreshCw size={14} />重试</button>
-            ) : null}
-          </div>
-          {props.historyStatus === 'loading' ? (
-            <div className="composition-recent-loading"><LoaderCircle size={16} />正在加载最近题稿</div>
-          ) : recentDocuments.length > 0 ? (
-            <div className="composition-recent-list">
-              {recentDocuments.map((item) => (
-                <button type="button" key={item.id} disabled={props.contentBusy} onClick={() => props.onOpenDocument(item.id)}>
-                  <FileText size={16} />
-                  <span><strong>{item.title}</strong><small>{item.questionCount} 题 · {item.status} · {item.updatedAt}</small></span>
-                  <ChevronRight size={15} />
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="composition-recent-empty">还没有最近题稿，先从上方添加题目</div>
-          )}
-        </section>
       </div>
 
       <footer className="composition-hub-composer">

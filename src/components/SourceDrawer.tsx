@@ -112,19 +112,21 @@ export function SourceDrawer(props: SourceDrawerProps) {
         aria-label="添加题目"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <header className="add-question-header">
-          <div className="add-question-title">
-            <div className="add-question-heading-copy">
-              <div data-picker-detail-nav className={libraryDetailOpen ? '' : 'is-hidden'} />
-              {!libraryDetailOpen ? <h2>{modeTitles[props.mode]}</h2> : null}
-              {props.mode === 'menu' ? <p>一个入口，选择这次要怎样添加题目</p> : null}
+        {!docked || libraryDetailOpen || props.mode === 'resource' || props.mode === 'school' ? (
+          <header className="add-question-header">
+            <div className="add-question-title">
+              <div className="add-question-heading-copy">
+                <div data-picker-detail-nav className={libraryDetailOpen ? '' : 'is-hidden'} />
+                {!docked && !libraryDetailOpen ? <h2>{modeTitles[props.mode]}</h2> : null}
+                {!docked && props.mode === 'menu' ? <p>一个入口，选择这次要怎样添加题目</p> : null}
+              </div>
             </div>
-          </div>
-          <div className="add-question-header-actions">
-            <div data-picker-selection-actions />
-            {!docked ? <MetisButton type="borderless" icon={<X size={18} />} aria-label="关闭添加题目" onClick={props.onClose} /> : null}
-          </div>
-        </header>
+            <div className="add-question-header-actions">
+              <div data-picker-selection-actions />
+              {!docked ? <MetisButton type="borderless" icon={<X size={18} />} aria-label="关闭添加题目" onClick={props.onClose} /> : null}
+            </div>
+          </header>
+        ) : null}
 
         <div className="add-question-body">
           {props.mode === 'menu' ? (
