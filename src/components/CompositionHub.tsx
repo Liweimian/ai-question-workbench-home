@@ -1,125 +1,201 @@
+import { BookOpen, BrainCircuit, ChevronDown, ChevronRight, Clock3, FileScan, FileText, FolderHeart, Layers3, Library, ListTree, School, Sparkles, Target } from 'lucide-react'
 import { useState } from 'react'
-import { BrainCircuit, ChevronRight, Clock3, FileScan, FolderHeart, Library, School, Sparkles } from 'lucide-react'
-import type { AddQuestionMode, AsyncStatus, HistoryDocumentSummary, OpenAddOptions } from '../prototype/types'
-import { AiComposer } from './AiComposer'
+import type { AddQuestionMode, LibraryInitialView, OpenAddOptions, SourceRecord } from '../prototype/types'
+
+export interface RecentOpenedResource {
+  id: string
+  type: '试卷' | '练习册' | '章节'
+  title: string
+  progress: string
+  updatedAt: string
+  libraryMode: 'resource' | 'school'
+  record: SourceRecord
+  scrollTop: number
+}
 
 interface CompositionHubProps {
   contentBusy: boolean
-  composePrompt: string
-  composeError: string
-  composeStatus: AsyncStatus
-  currentDocumentId: string
-  histories: HistoryDocumentSummary[]
-  historyStatus: AsyncStatus
-  historyDisabled: boolean
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onOpenMyResources: () => void
   onOpenAssistant: () => void
-  onComposePromptChange: (value: string) => void
-  onCompose: () => void
-  onOpenDocument: (documentId: string) => void
+  recentResources?: RecentOpenedResource[]
+  onOpenRecentResource: (resource: RecentOpenedResource) => void
 }
 
-const aiShortcuts = [
-  { id: 'find', label: '找几道题', prompt: '从题库找 6 道适合当前教学进度的基础题' },
-  { id: 'exercise', label: '组一份练习', prompt: '组成一份适合当前教学进度的 8 道题课堂练习' },
-  { id: 'paper', label: '组一份试卷', prompt: '组成一份适合当前教学进度的 10 道题测试卷' },
-  { id: 'layered', label: '分层练习', prompt: '按基础、巩固、提升组成一份分层练习' },
-]
+interface ResourceMetric {
+  id: string
+  label: string
+  value: string
+  view: LibraryInitialView
+  wide?: boolean
+}
 
-const libraryEntries = [
-  { mode: 'resource' as const, title: '飞象题库', icon: Library },
-  { mode: 'school' as const, title: '校本题库', icon: School },
+interface ResourceOverview {
+  id: 'resource' | 'school'
+  title: string
+  scope?: string
+  total: string
+  totalUnit: string
+  metrics: ResourceMetric[]
+}
+
+function ResourceTypeGlyph({ view, size = 17 }: { view: LibraryInitialView; size?: number }) {
+  if (view === 'paper') return <FileText size={size} />
+  if (view === 'workbook') return <BookOpen size={size} />
+  if (view === 'sync') return <Layers3 size={size} />
+  if (view === 'special') return <Target size={size} />
+  return <ListTree size={size} />
+}
+
+const resourceOverviews: ResourceOverview[] = [
+  {
+    id: 'resource',
+    title: '飞象题库',
+    total: '1000万+',
+    totalUnit: '道题',
+    metrics: [
+      { id: 'fly-paper', label: '试卷', value: '12万份', view: 'paper' },
+      { id: 'fly-workbook', label: '练习册', value: '3,200本', view: 'workbook' },
+      { id: 'fly-sync', label: '同步练习', value: '8,600份', view: 'sync' },
+      { id: 'fly-special', label: '专题', value: '2.4万份', view: 'special' },
+    ],
+  },
+  {
+    id: 'school',
+    title: '校本题库',
+    scope: '北京市第八十中学',
+    total: '8.6万',
+    totalUnit: '道题',
+    metrics: [
+      { id: 'school-paper', label: '试卷', value: '3,300份', view: 'paper' },
+      { id: 'school-workbook', label: '练习册', value: '1,500本', view: 'workbook' },
+    ],
+  },
 ]
 
 export function CompositionHub(props: CompositionHubProps) {
-  const [layout, setLayout] = useState<'compact' | 'flat'>('compact')
-  const recentDocuments = props.histories.filter((item) => item.id !== props.currentDocumentId).slice(0, 3)
-
-  const recentSection = (
-    <section className="composition-action-section composition-recent-section" aria-labelledby={`recent-heading-${layout}`}>
-      <h3 id={`recent-heading-${layout}`}>最近编辑</h3>
-      {props.historyStatus === 'loading' && recentDocuments.length === 0 ? (
-        <div className="composition-recent-skeleton" aria-label="正在加载最近题单"><span /><span /><span /></div>
-      ) : null}
-      {props.historyStatus !== 'loading' && recentDocuments.length === 0 ? <div className="composition-recent-state">暂无最近编辑的题单</div> : null}
-      {recentDocuments.length > 0 ? <div className="composition-recent-list">
-        {recentDocuments.map((item) => (
-          <button type="button" key={item.id} disabled={props.historyDisabled} onClick={() => props.onOpenDocument(item.id)}>
-            <span><strong>{item.title}</strong><small>{item.questionCount} 道题 · {item.status}</small></span>
-            <small><Clock3 size={12} /> {item.updatedAt}</small>
-          </button>
-        ))}
-      </div> : null}
-    </section>
-  )
-
-  const flatEntries = [
-    { id: 'resource', title: '飞象题库', description: '从平台题库按教材、知识点或题型选题', action: '去选题', icon: Library, onClick: () => props.onOpenAdd('resource') },
-    { id: 'school', title: '校本题库', description: '从学校和个人沉淀的资源中选题', action: '去选题', icon: School, onClick: () => props.onOpenAdd('school') },
-    { id: 'upload', title: 'AI 智能录题', description: '上传 Word、PDF 或图片，自动识别并拆分题目', action: '去上传', icon: FileScan, onClick: () => props.onOpenAdd('upload') },
-    { id: 'create', title: 'AI 原创出题', description: '选择章节、设置题量和难度，生成原创题', action: '去出题', icon: Sparkles, onClick: () => props.onOpenAdd('create') },
-    { id: 'resources', title: '我的资源', description: '查看自己创建、上传和收藏的资源', action: '去查看', icon: FolderHeart, onClick: props.onOpenMyResources },
-    { id: 'assistant', title: 'AI 助手', description: '用一句话描述找题、组题或组卷需求', action: '去对话', icon: BrainCircuit, onClick: props.onOpenAssistant },
+  const [currentTerm, setCurrentTerm] = useState('八年级上')
+  const [resourceCardScheme, setResourceCardScheme] = useState<'two' | 'three' | 'four' | 'five' | 'six'>('two')
+  const taskEntries = [
+    { id: 'upload', title: 'AI 智能录题', description: '上传文件智能录题', action: '去上传', icon: FileScan, onClick: () => props.onOpenAdd('upload') },
+    { id: 'create', title: 'AI 原创出题', description: '按章节智能出题', action: '去出题', icon: Sparkles, onClick: () => props.onOpenAdd('create') },
+    { id: 'resources', title: '我的资源', description: '管理个人资源', action: '去查看', icon: FolderHeart, onClick: props.onOpenMyResources },
+    { id: 'assistant', title: 'AI 助手', description: '描述需求智能组题', action: '去对话', icon: BrainCircuit, onClick: props.onOpenAssistant },
   ]
 
   return (
-    <aside className="composition-hub is-ai-first" data-sec="2" aria-label="添加题目工作区">
+    <aside className={`composition-hub composition-hub--resource-first is-scheme-${resourceCardScheme}`} data-sec="2" aria-label="添加题目工作区">
       <div className="composition-hub-scroll">
-        <div className={`composition-hub-content is-${layout}`}>
-        <div className="composition-layout-switch" role="group" aria-label="首页布局方案">
-          <button type="button" className={layout === 'compact' ? 'is-active' : undefined} aria-pressed={layout === 'compact'} onClick={() => setLayout('compact')}>方案一</button>
-          <button type="button" className={layout === 'flat' ? 'is-active' : undefined} aria-pressed={layout === 'flat'} onClick={() => setLayout('flat')}>方案二</button>
-        </div>
-        {layout === 'flat' ? (
-          <>
-            <section className="composition-flat-section" aria-labelledby="flat-source-heading">
-              <h3 id="flat-source-heading">添加题目</h3>
-              <div className="composition-flat-list">
-                {flatEntries.map(({ id, title, description, action, icon: Icon, onClick }) => (
-                  <button type="button" key={id} disabled={props.contentBusy} onClick={onClick}>
-                    <span><Icon size={20} /></span>
-                    <div><strong>{title}</strong><small>{description}</small></div>
-                    <em>{action}<ChevronRight size={15} /></em>
+        <div className="composition-overview">
+          <header className="composition-overview-heading">
+            <div><strong>添加题目<label className="composition-current-term"><select aria-label="切换当前学期" value={currentTerm} onChange={(event) => setCurrentTerm(event.target.value)}><option>七年级上</option><option>七年级下</option><option>八年级上</option><option>八年级下</option><option>九年级上</option><option>九年级下</option></select><ChevronDown size={12} /></label></strong><span>从题库查找、上传或生成题目，加入右侧题单</span></div>
+            <nav className="composition-scheme-switch" aria-label="题库卡片方案" role="tablist">
+              <button type="button" role="tab" aria-selected={resourceCardScheme === 'two'} className={resourceCardScheme === 'two' ? 'is-active' : ''} onClick={() => setResourceCardScheme('two')}>方案一</button>
+              <button type="button" role="tab" aria-selected={resourceCardScheme === 'three'} className={resourceCardScheme === 'three' ? 'is-active' : ''} onClick={() => setResourceCardScheme('three')}>方案二</button>
+              <button type="button" role="tab" aria-selected={resourceCardScheme === 'four'} className={resourceCardScheme === 'four' ? 'is-active' : ''} onClick={() => setResourceCardScheme('four')}>方案三</button>
+              <button type="button" role="tab" aria-selected={resourceCardScheme === 'five'} className={resourceCardScheme === 'five' ? 'is-active' : ''} onClick={() => setResourceCardScheme('five')}>方案四</button>
+              <button type="button" role="tab" aria-selected={resourceCardScheme === 'six'} className={resourceCardScheme === 'six' ? 'is-active' : ''} onClick={() => setResourceCardScheme('six')}>方案五</button>
+            </nav>
+          </header>
+
+          <section className="composition-resource-grid" aria-label="题库资源入口">
+            {resourceOverviews.map(({ id, title, total, totalUnit, metrics }) => (
+              <article className={`composition-resource-card is-${id} is-scheme-${resourceCardScheme}`} key={id}>
+                {resourceCardScheme === 'two' ? <div className="composition-resource-main composition-resource-main--scheme-two">
+                  <button type="button" className="composition-resource-identity composition-resource-identity--with-total" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id)}>
+                    <span className="composition-resource-identity-icon">{id === 'resource' ? <Library size={18} /> : <School size={18} />}</span>
+                    <span><strong>{title}</strong><em>共 {total} {totalUnit}</em></span>
+                  </button>
+                  <div className="composition-resource-type-grid">
+                    <button type="button" className="composition-resource-type is-chapter" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: 'chapter' })}>
+                      <strong>章节知识点选题</strong><small>单题</small>
+                    </button>
+                    {metrics.map((metric) => (
+                      <button type="button" className="composition-resource-type" key={metric.id} disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: metric.view })} data-track="/click/aiQuestionHome/openResourceCategory | 打开题库资源分类 | resourceType#STRING">
+                        <strong>{metric.label}</strong><small>{metric.value}</small>
+                      </button>
+                    ))}
+                  </div>
+                </div> : resourceCardScheme === 'three' ? <div className="composition-resource-main composition-resource-main--scheme-three">
+                  <button type="button" className="composition-resource-identity composition-resource-identity--illustrated" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id)}>
+                    <span className="composition-resource-identity-icon">{id === 'resource' ? <Library size={20} /> : <School size={20} />}</span>
+                    <span><strong>{title}</strong><em>共 {total} {totalUnit}</em></span>
+                  </button>
+                  <div className="composition-resource-illustration" aria-hidden="true">
+                    <i className="is-back" />
+                    <i className="is-middle" />
+                    <i className="is-front">{id === 'resource' ? <Library size={22} /> : <School size={22} />}</i>
+                  </div>
+                  <div className="composition-resource-type-grid composition-resource-type-grid--illustrated">
+                    <button type="button" className="composition-resource-type is-chapter" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: 'chapter' })}>
+                      <strong>章节知识点选题</strong><small>单题</small>
+                    </button>
+                    {metrics.map((metric) => (
+                      <button type="button" className="composition-resource-type" key={metric.id} disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: metric.view })} data-track="/click/aiQuestionHome/openResourceCategory | 打开题库资源分类 | resourceType#STRING">
+                        <strong>{metric.label}</strong><small>{metric.value}</small>
+                      </button>
+                    ))}
+                  </div>
+                </div> : resourceCardScheme === 'four' ? <div className="composition-resource-main composition-resource-main--scheme-four">
+                  <button type="button" className="composition-resource-identity composition-resource-identity--minimal" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id)}>
+                    <span className="composition-resource-identity-icon">{id === 'resource' ? <Library size={19} /> : <School size={19} />}</span>
+                    <span><strong>{title}</strong><em>共 {total} {totalUnit}</em></span>
+                  </button>
+                  <div className="composition-resource-standard-grid">
+                    <button type="button" className="is-chapter" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: 'chapter' })}>
+                      <ResourceTypeGlyph view="chapter" /><strong>章节知识点选题</strong><i aria-hidden="true" />
+                    </button>
+                    {metrics.map((metric) => (
+                      <button type="button" className={`is-${metric.view}`} key={metric.id} disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: metric.view })} data-track="/click/aiQuestionHome/openResourceCategory | 打开题库资源分类 | resourceType#STRING">
+                        <ResourceTypeGlyph view={metric.view} /><strong>{metric.label}</strong><i aria-hidden="true" />
+                      </button>
+                    ))}
+                  </div>
+                </div> : resourceCardScheme === 'five' ? <div className="composition-resource-main composition-resource-main--scheme-five">
+                  <button type="button" className="composition-resource-identity composition-resource-identity--minimal" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id)}>
+                    <span className="composition-resource-identity-icon">{id === 'resource' ? <Library size={19} /> : <School size={19} />}</span>
+                    <span><strong>{title}</strong><em>共 {total} {totalUnit}</em></span>
+                  </button>
+                  <div className="composition-resource-chip-list">
+                    <button type="button" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: 'chapter' })}><ResourceTypeGlyph view="chapter" /><strong>章节知识点选题</strong></button>
+                    {metrics.map((metric) => (
+                      <button type="button" key={metric.id} disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: metric.view })} data-track="/click/aiQuestionHome/openResourceCategory | 打开题库资源分类 | resourceType#STRING"><ResourceTypeGlyph view={metric.view} /><strong>{metric.label}</strong></button>
+                    ))}
+                  </div>
+                </div> : <div className="composition-resource-main composition-resource-main--scheme-six">
+                  <button type="button" className="composition-resource-equal-heading" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id)}>
+                    <span>{id === 'resource' ? <Library size={21} /> : <School size={21} />}</span>
+                    <span><strong>{title}</strong><small>共 {total} {totalUnit}</small></span>
+                  </button>
+                </div>}
+              </article>
+            ))}
+          </section>
+
+          <section className="composition-task-grid" aria-label="其他添加方式">
+            {taskEntries.map(({ id, title, description, action, icon: Icon, onClick }) => (
+              <button type="button" className={`is-${id}`} key={id} disabled={props.contentBusy} onClick={onClick}>
+                <span className="composition-task-icon"><Icon size={19} /></span>
+                <span><strong>{title}</strong><small>{description}</small></span>
+                <em>{action}<ChevronRight size={14} /></em>
+              </button>
+            ))}
+          </section>
+          {props.recentResources?.length ? (
+            <section className="composition-recent-resources" aria-label="最近浏览的资源">
+              <header><strong>最近浏览</strong><span>继续上次浏览</span></header>
+              <div>
+                {props.recentResources.slice(0, 5).map((resource) => (
+                  <button type="button" key={resource.id} disabled={props.contentBusy} onClick={() => props.onOpenRecentResource(resource)}>
+                    <em>{resource.type}</em>
+                    <span><strong>{resource.title}</strong></span>
+                    <time><Clock3 size={12} />{resource.updatedAt}</time>
+                    <ChevronRight size={15} />
                   </button>
                 ))}
               </div>
             </section>
-            {recentSection}
-          </>
-        ) : (
-          <>
-        <section className="composition-ai-hero" aria-labelledby="assistant-heading">
-          <div className="composition-ai-title"><Sparkles size={18} /><strong id="assistant-heading">想组一份什么样的练习？</strong></div>
-          <AiComposer compact kind="compose" value={props.composePrompt} error={props.composeError} status={props.composeStatus} disabled={props.contentBusy} onChange={props.onComposePromptChange} onSubmit={props.onCompose} />
-          <div className="composition-chat-shortcuts" role="group" aria-label="AI 助手快捷方式">
-            {aiShortcuts.map(({ id, label, prompt }) => (
-              <button type="button" key={id} className={props.composePrompt === prompt ? 'is-selected' : undefined} aria-pressed={props.composePrompt === prompt} disabled={props.contentBusy || props.composeStatus === 'loading'} onClick={() => props.onComposePromptChange(prompt)}>{label}</button>
-            ))}
-          </div>
-        </section>
-
-        <section className="composition-action-section" aria-labelledby="library-heading">
-          <h3 id="library-heading">从题库选题</h3>
-          <div className="composition-library-grid">
-            {libraryEntries.map(({ mode, title, icon: Icon }) => (
-              <button type="button" key={mode} className="is-primary-source" disabled={props.contentBusy} onClick={() => props.onOpenAdd(mode)}><span><Icon size={20} /></span><div><strong>{title}</strong><small>{mode === 'resource' ? '练习册、试卷、同步练习等' : '学校与个人沉淀的题目资源'}</small></div></button>
-            ))}
-            <button type="button" disabled={props.contentBusy} onClick={props.onOpenMyResources}><span><FolderHeart size={18} /></span><div><strong>我的资源</strong><small>查看已创建、上传和收藏</small></div></button>
-          </div>
-        </section>
-
-        <section className="composition-action-section" aria-labelledby="generate-heading">
-          <h3 id="generate-heading">按条件生成</h3>
-          <div className="composition-generate-grid">
-            <button type="button" disabled={props.contentBusy} onClick={() => props.onOpenAdd('upload')}><span className="composition-generate-icon"><FileScan size={20} /></span><div><strong>AI 智能录题</strong><small>上传 Word / PDF / 图片，自动拆题</small></div></button>
-            <button type="button" disabled={props.contentBusy} onClick={() => props.onOpenAdd('create')}><span className="composition-generate-icon"><Sparkles size={20} /></span><div><strong>AI 原创出题</strong><small>选章节、设题量和难度，生成预览</small></div></button>
-          </div>
-        </section>
-
-        {recentSection}
-          </>
-        )}
+          ) : null}
         </div>
       </div>
     </aside>

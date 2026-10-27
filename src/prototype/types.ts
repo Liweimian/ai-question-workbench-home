@@ -20,6 +20,13 @@ export interface DocumentFormat {
   lineHeight: '1.5' | '1.7' | '2'
   paragraphSpacing: '1' | '1.5' | '2'
   letterSpacing: '0' | '0.5' | '1'
+  bold: boolean
+  italic: boolean
+  underline: boolean
+  textAlign: 'left' | 'center' | 'right'
+  textColor: string
+  listStyle: 'none' | 'bullet' | 'numbered'
+  indentLevel: 0 | 1 | 2
 }
 
 export const defaultDocumentFormat: DocumentFormat = {
@@ -28,6 +35,13 @@ export const defaultDocumentFormat: DocumentFormat = {
   lineHeight: '1.7',
   paragraphSpacing: '1.5',
   letterSpacing: '0',
+  bold: false,
+  italic: false,
+  underline: false,
+  textAlign: 'left',
+  textColor: '#1f2329',
+  listStyle: 'none',
+  indentLevel: 0,
 }
 
 export interface AiAssistantRun {

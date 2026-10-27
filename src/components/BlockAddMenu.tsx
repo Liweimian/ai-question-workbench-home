@@ -53,7 +53,6 @@ const searchItems = [
 ] as const
 
 const aiItems = [
-  { id: 'assistant', title: 'AI 助手', description: '组题、组卷、找题或找卷', icon: Sparkles },
   { id: 'create', title: 'AI 原创出题', description: '按条件生成原创题目', icon: WandSparkles },
 ] as const
 
@@ -111,6 +110,9 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
         <div className="block-command-menu" role="menu" aria-label="插入内容">
           <div className="block-command-heading"><strong>插入内容</strong><span>按任务分类</span></div>
           <div className="block-command-scroll">
+            <section className="block-command-group block-command-assistant-first">
+              <button type="button" role="menuitem" className="is-ai" onClick={() => { setOpen(false); setAssistantSubmitted(false); setAssistantOpen(true) }}><span className="block-command-icon"><Sparkles size={16} /></span><span><strong>AI 助手</strong></span></button>
+            </section>
             {libraryGroups.map(({ id, title, mode, items }) => <section className="block-command-group" key={id}>
               <h4>{title}</h4>
               {items.map(({ title: itemTitle, view, icon: Icon }) => <button type="button" role="menuitem" key={view} onClick={() => { setOpen(false); onOpenAdd(mode, { libraryView: view }) }}>
@@ -125,11 +127,10 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
               }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong></span></button>)}
             </section>
             <section className="block-command-group">
-              <h4>飞象 AI</h4>
+              <h4>AI 助手</h4>
               {aiItems.map(({ id, title, icon: Icon }) => <button type="button" role="menuitem" className="is-ai" key={id} onClick={() => {
                 setOpen(false)
                 if (id === 'create') onOpenAdd('create')
-                else { setAssistantSubmitted(false); setAssistantOpen(true) }
               }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong></span></button>)}
             </section>
             {renderFlatGroup(optionGroups[0])}

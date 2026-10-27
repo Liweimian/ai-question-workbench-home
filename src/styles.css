@@ -221,6 +221,20 @@
   gap: 7px;
 }
 
+.header-workbench-brand .header-title-summary {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.header-workbench-brand .header-title-summary strong {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .header-sync-state {
   flex: 0 0 auto;
   color: var(--fx-text-tertiary);
@@ -238,6 +252,49 @@
   align-items: center;
   gap: 8px;
   white-space: nowrap;
+}
+
+.header-save-summary {
+  color: var(--fx-text-tertiary);
+  font-size: 10px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.header-icon-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.header-icon-action::after {
+  position: absolute;
+  z-index: 120;
+  top: calc(100% + 7px);
+  left: 50%;
+  padding: 5px 8px;
+  transform: translate(-50%, -3px);
+  border-radius: var(--fx-radius-control);
+  color: var(--common_bg2_color);
+  background: var(--fx-text-primary);
+  box-shadow: var(--fx-shadow-card);
+  content: attr(data-tooltip);
+  font-size: 11px;
+  line-height: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease, transform 120ms ease;
+  white-space: nowrap;
+}
+
+.header-icon-action:hover::after,
+.header-icon-action:focus-within::after {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
+.header-icon-action:has([aria-expanded='true'])::after {
+  display: none;
 }
 
 .header-more,
@@ -803,6 +860,287 @@
   background: var(--fx-surface-muted);
   text-align: center;
   font-size: 11px;
+}
+
+.upload-workbench {
+  display: flex;
+  min-height: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 34px 28px 28px;
+  flex-direction: column;
+}
+
+.upload-workbench-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 22px;
+}
+
+.upload-workbench-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upload-workbench-title > span {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.upload-workbench-title h2,
+.upload-recognition-card h3 {
+  margin: 0;
+}
+
+.upload-workbench-title h2 { font-size: 20px; }
+
+.upload-workbench-title p {
+  margin: 5px 0 0;
+  color: var(--fx-text-tertiary);
+  font-size: 12px;
+}
+
+.upload-workbench-badge {
+  padding: 5px 9px;
+  border-radius: var(--aiq_radius_pill);
+  color: var(--fx-text-secondary);
+  background: var(--fx-surface-muted);
+  font-size: 11px;
+}
+
+.upload-method-tabs {
+  display: flex;
+  gap: 24px;
+  height: 42px;
+  border-bottom: 1px solid var(--fx-line-strong);
+}
+
+.upload-method-tabs button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px;
+  border: 0;
+  color: var(--fx-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+
+.upload-method-tabs button.is-active {
+  color: var(--fx-primary);
+  font-weight: 600;
+}
+
+.upload-method-tabs button.is-active::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--fx-primary);
+  content: '';
+}
+
+.upload-workbench-main {
+  display: grid;
+  min-height: 360px;
+  margin-top: 20px;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 16px;
+}
+
+.upload-input-card,
+.upload-recognition-card {
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-card);
+  background: var(--common_bg2_color);
+}
+
+.upload-input-card {
+  display: flex;
+  min-width: 0;
+  padding: 18px;
+  flex-direction: column;
+}
+
+.upload-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.upload-card-heading > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.upload-card-heading strong { font-size: 14px; }
+.upload-card-heading span { color: var(--fx-text-tertiary); font-size: 11px; }
+
+.upload-card-heading button {
+  border: 0;
+  color: var(--fx-primary);
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.upload-input-card textarea {
+  min-height: 270px;
+  padding: 14px;
+  resize: none;
+  border: 1px solid var(--fx-line-strong);
+  outline: none;
+  border-radius: var(--fx-radius-control);
+  color: var(--fx-text-primary);
+  background: var(--fx-surface-muted);
+  font: inherit;
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.upload-input-card textarea:focus {
+  border-color: var(--fx-primary);
+  background: var(--common_bg2_color);
+  box-shadow: 0 0 0 3px var(--fx-primary-selected);
+}
+
+.upload-input-card textarea::placeholder { color: var(--fx-text-tertiary); }
+
+.upload-input-hint {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--fx-text-tertiary);
+  font-size: 10px;
+}
+
+.upload-file-dropzone {
+  display: flex;
+  min-height: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-direction: column;
+  border: 1px dashed var(--theme_primary1_selected2_color);
+  border-radius: var(--fx-radius-control);
+  color: var(--fx-text-primary);
+  background: var(--fx-primary-selected);
+  cursor: pointer;
+}
+
+.upload-file-dropzone strong { margin-top: 4px; font-size: 14px; }
+.upload-file-dropzone small { color: var(--fx-text-tertiary); font-size: 11px; }
+.upload-file-dropzone em {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 7px 14px;
+  border-radius: var(--fx-radius-control);
+  color: var(--fx-primary);
+  background: var(--common_bg2_color);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.upload-recognition-card { padding: 18px; }
+.upload-recognition-card h3 { font-size: 14px; }
+
+.upload-recognition-card ul {
+  display: grid;
+  gap: 4px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.upload-recognition-card li {
+  display: grid;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 0;
+  grid-template-columns: 30px minmax(0, 1fr) 16px;
+  border-bottom: 1px solid var(--fx-line-subtle);
+}
+
+.upload-recognition-card li > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.upload-recognition-card li div { display: flex; gap: 3px; flex-direction: column; }
+.upload-recognition-card li strong { font-size: 12px; }
+.upload-recognition-card li small { color: var(--fx-text-tertiary); font-size: 10px; }
+.upload-recognition-card li > svg { color: var(--common_success1_color); }
+
+.upload-flow-note {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: var(--fx-radius-control);
+  background: var(--fx-surface-muted);
+}
+
+.upload-flow-note strong { font-size: 11px; }
+.upload-flow-note p { margin: 5px 0 0; color: var(--fx-text-tertiary); font-size: 10px; line-height: 17px; }
+
+.upload-workbench-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 18px;
+}
+
+.upload-workbench-actions > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--fx-text-tertiary);
+  font-size: 10px;
+}
+
+.upload-workbench-actions > div span {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  font-weight: 600;
+}
+
+.upload-workbench-actions > div i {
+  width: 24px;
+  height: 1px;
+  background: var(--fx-line-strong);
+}
+
+@media (max-width: 1380px) {
+  .upload-workbench { padding: 24px 20px; }
+  .upload-workbench-main { grid-template-columns: minmax(0, 1fr) 220px; }
 }
 
 .drawer-generate-heading span {
@@ -1930,16 +2268,19 @@
   width: 100%;
   min-height: 48px;
   margin: 0 0 10px;
-  padding: 0 16px;
+  padding: 0 12px;
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  flex-wrap: nowrap;
+  gap: 5px;
+  overflow: hidden;
   border: 0;
   border-radius: var(--fx-radius-card);
   background: var(--fx-surface-muted);
   box-shadow: none;
 }
+
 
 .document-format-toolbar label {
   display: inline-flex;
@@ -1972,6 +2313,31 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+.document-format-toolbar > button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  color: var(--fx-text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.document-format-toolbar > button:hover,
+.document-format-toolbar > button.is-active {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.document-format-divider { width: 1px; height: 18px; flex: 0 0 auto; background: var(--fx-line-subtle); }
+.document-color-control { position: relative; width: 28px; justify-content: center; font-weight: 650; }
+.document-color-control::after { position: absolute; right: 6px; bottom: 4px; left: 6px; height: 2px; border-radius: 1px; background: var(--document-color, #1f2329); content: ''; }
+.document-color-control input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
 .editor-title-input {
   width: 100%;
@@ -2418,12 +2784,13 @@
   display: flex;
   align-items: flex-start;
   gap: 7px;
+  margin-left: var(--question-indent, 0);
 }
 
 .editor-question-number {
   flex: 0 0 auto;
   padding-top: 1px;
-  color: var(--fx-text-primary);
+  color: var(--question-text-color, var(--fx-text-primary));
   font-family: var(--question-font-family, "Songti SC", "STSong", serif);
   font-size: var(--question-font-size, 16px);
   line-height: var(--question-line-height, 1.7);
@@ -2438,11 +2805,12 @@
   letter-spacing: var(--question-letter-spacing, 0);
   flex: 1;
   min-width: 0;
-  color: var(--fx-text-primary);
+  color: var(--question-text-color, var(--fx-text-primary));
   font-family: var(--question-font-family, "Songti SC", "STSong", serif);
   font-style: var(--question-font-style, normal);
   font-weight: var(--question-font-weight, 400);
   text-decoration: var(--question-text-decoration, none);
+  text-align: var(--question-text-align, left);
 }
 
 .editor-question-inline-input {
@@ -2828,6 +3196,10 @@
   border-radius: var(--fx-radius-control);
   outline: none;
 }
+
+.empty-first-block.is-add-only { min-height: 18px; padding: 0; }
+.empty-first-block.is-add-only .block-add { top: -6px; }
+.editor-empty.is-linked-workspace .empty-first-block.is-add-only .block-add-control-row { opacity: 1; pointer-events: auto; }
 
 .empty-block-list {
   display: flex;
@@ -7709,3 +8081,1651 @@
   gap: 8px;
   margin-top: 12px;
 }
+
+/* 阶段一 · 迭代 144：资源量首页 + 窄题稿 + 最近编辑 */
+.workbench-page { --draft-pane-width: clamp(520px, 40vw, 600px); }
+.workspace-shell.is-split-source { grid-template-columns: minmax(0, 1fr) var(--draft-pane-width); }
+.workspace-header.is-split { width: var(--draft-pane-width); }
+.workspace-header.is-split .header-document-state { display: none; }
+.workspace-header.is-split .header-actions .metis-button { padding-right: 6px !important; padding-left: 6px !important; }
+
+.header-recent,
+.header-more,
+.header-assign { position: relative; }
+
+.header-recent-menu,
+.header-assign-menu {
+  position: absolute;
+  z-index: 82;
+  top: calc(100% + 8px);
+  right: 0;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-card);
+  background: var(--common_bg2_color);
+  box-shadow: var(--fx-shadow-card);
+}
+
+.header-recent-menu { width: min(320px, calc(100vw - 24px)); padding: 10px; }
+.header-recent-title { display: flex; padding: 3px 4px 9px; align-items: baseline; justify-content: space-between; gap: 12px; }
+.header-recent-title strong { color: var(--fx-text-primary); font-size: 14px; }
+.header-recent-title span { color: var(--fx-text-tertiary); font-size: 10px; }
+.header-recent-list { display: flex; flex-direction: column; gap: 3px; }
+.header-recent-list > button { display: grid; width: 100%; min-height: 48px; padding: 7px 8px; align-items: center; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; border: 0; border-radius: var(--fx-radius-control); color: var(--fx-text-secondary); background: transparent; cursor: pointer; text-align: left; }
+.header-recent-list > button:hover:not(:disabled) { color: var(--fx-primary); background: var(--fx-primary-selected); }
+.header-recent-list > button:disabled:not(.is-current) { opacity: .5; cursor: wait; }
+.header-recent-list > button.is-current { color: var(--fx-primary); background: var(--fx-primary-selected); cursor: default; }
+.header-recent-list > button > span { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.header-recent-list strong { overflow: hidden; color: currentColor; font-size: 12px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.header-recent-list small { overflow: hidden; color: var(--fx-text-tertiary); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.header-recent-list em { color: var(--fx-primary); font-size: 10px; font-style: normal; }
+.header-recent-state { display: flex; min-height: 54px; align-items: center; justify-content: center; gap: 6px; color: var(--fx-text-tertiary); font-size: 11px; }
+.header-recent-state svg { animation: spin 900ms linear infinite; }
+.header-recent-state.is-error { justify-content: space-between; padding: 0 8px; color: var(--common_danger1_color); }
+.header-recent-state button,
+.header-recent-all { border: 0; color: var(--fx-primary); background: transparent; cursor: pointer; }
+.header-recent-all { display: flex; width: 100%; height: 34px; margin-top: 5px; padding: 0 8px; align-items: center; justify-content: space-between; border-top: 1px solid var(--fx-line-subtle); font-size: 11px; }
+.header-recent-all:disabled { color: var(--fx-text-tertiary); cursor: not-allowed; opacity: .6; }
+
+.composition-hub--resource-first .composition-hub-scroll { display: block; padding: 28px 32px 32px; }
+.composition-overview { width: min(100%, 760px); margin: 0 auto; }
+.composition-overview-heading { display: flex; margin-bottom: 18px; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.composition-overview-heading > div { display: flex; min-width: 0; flex-direction: column; gap: 6px; }
+.composition-overview-heading > div strong { color: var(--fx-text-primary); font-size: 18px; }
+.composition-overview-heading > div strong { display: flex; align-items: center; gap: 8px; }
+.composition-current-term { position: relative; display: inline-flex; align-items: center; border-radius: 5px; background: var(--fx-surface-muted); }
+.composition-current-term select { height: 24px; padding: 0 22px 0 7px; border: 0; color: var(--fx-text-secondary); background: transparent; cursor: pointer; font-size: 10px; font-weight: 500; appearance: none; -webkit-appearance: none; }
+.composition-current-term svg { position: absolute; right: 6px; color: var(--fx-text-tertiary); pointer-events: none; }
+.composition-overview-heading > div span { color: var(--fx-text-secondary); font-size: 12px; }
+.composition-overview-heading > p { display: flex; margin: 0; align-items: center; gap: 2px; color: var(--fx-text-tertiary); font-size: 10px; white-space: nowrap; }
+.composition-overview-heading > p span:nth-of-type(2) { color: var(--fx-primary); font-weight: 600; }
+.composition-resource-grid,
+.composition-task-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.composition-resource-grid { grid-template-columns: minmax(0, 1fr); }
+.composition-resource-card { position: relative; display: grid; min-width: 0; overflow: hidden; grid-template-columns: 188px minmax(0, 1fr); border: 1px solid var(--fx-line-subtle); border-radius: var(--fx-radius-card); background: var(--common_bg2_color); box-shadow: 0 3px 12px var(--common_shadow3_color); }
+.composition-resource-card::before { position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: var(--fx-primary); content: ''; }
+.composition-resource-card.is-school::before { background: var(--common_success1_color); }
+.composition-resource-card-heading { display: grid; width: 100%; min-height: 82px; padding: 14px 14px 14px 16px; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 10px; border: 0; color: var(--fx-text-primary); background: transparent; cursor: pointer; text-align: left; }
+.composition-resource-card-heading > svg { display: none; }
+.composition-resource-card-heading:hover:not(:disabled) { background: var(--fx-primary-selected); }
+.composition-resource-card-heading:disabled,
+.composition-resource-metrics button:disabled,
+.composition-task-grid > button:disabled { cursor: not-allowed; opacity: .55; }
+.composition-resource-card-icon,
+.composition-task-icon { display: grid; width: 34px; height: 34px; place-items: center; border-radius: var(--fx-radius-control); color: var(--fx-primary); background: var(--fx-primary-selected); }
+.composition-resource-card-heading > span:nth-child(2) { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.composition-resource-card-heading strong { font-size: 14px; }
+.composition-resource-card-heading small { overflow: hidden; color: var(--fx-text-tertiary); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.composition-resource-metrics { display: grid; padding: 11px 6px; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); border-left: 1px solid var(--fx-line-subtle); background: var(--fx-surface-muted); }
+.composition-resource-metrics button { position: relative; display: flex; min-width: 0; min-height: 60px; padding: 7px 10px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 7px; border: 0; border-radius: var(--fx-radius-control); color: var(--fx-text-secondary); background: transparent; cursor: pointer; text-align: left; }
+.composition-resource-metrics button + button::before { position: absolute; top: 10px; bottom: 10px; left: 0; width: 1px; background: var(--fx-line-subtle); content: ''; }
+.composition-resource-metrics button.is-wide { grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-rows: auto; }
+.composition-resource-grid .composition-resource-metrics button.is-wide { grid-column: auto; }
+.composition-resource-metrics button:hover:not(:disabled) { color: var(--fx-primary); background: var(--fx-primary-selected); }
+.composition-resource-metrics button > span { overflow: hidden; width: 100%; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.composition-resource-metrics button > strong { overflow: hidden; color: var(--fx-text-primary); font-family: var(--fx-font-accent); font-size: 17px; line-height: 1; text-overflow: ellipsis; white-space: nowrap; }
+.composition-resource-metrics button > svg { position: absolute; right: 7px; bottom: 8px; color: var(--fx-text-tertiary); opacity: 0; transition: opacity .16s ease; }
+.composition-resource-metrics button:hover:not(:disabled) > svg { opacity: 1; }
+.composition-resource-metrics button:not(.is-wide) > strong { grid-column: 1; grid-row: 2; }
+.composition-resource-metrics button:not(.is-wide) > svg { grid-column: 2; grid-row: 1 / span 2; }
+.composition-task-grid { margin-top: 12px; }
+.composition-task-grid > button { display: grid; min-width: 0; min-height: 76px; padding: 12px; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 10px; border: 1px solid var(--fx-line-strong); border-radius: var(--fx-radius-control); color: var(--fx-text-primary); background: var(--common_bg2_color); cursor: pointer; text-align: left; }
+.composition-task-grid > button:hover:not(:disabled) { border-color: var(--theme_primary1_selected2_color); background: var(--fx-primary-selected); }
+.composition-task-grid > button > span:nth-child(2) { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.composition-task-grid strong { font-size: 13px; }
+.composition-task-grid small { overflow: hidden; color: var(--fx-text-tertiary); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.composition-task-grid em { display: flex; align-items: center; gap: 1px; color: var(--fx-text-secondary); font-size: 11px; font-style: normal; white-space: nowrap; }
+
+.workspace-shell.is-split-source .editor-scroll.is-empty { padding: 18px; background-color: var(--fx-surface-muted); background-image: radial-gradient(var(--fx-line-subtle) 1px, transparent 1px); background-size: 28px 28px; }
+.workspace-shell.is-split-source .editor-empty { min-height: calc(100vh - 78px); border: 1px solid var(--fx-line-strong); border-radius: var(--fx-radius-card); box-shadow: 0 8px 28px var(--common_shadow3_color); }
+.workspace-shell.is-split-source .editor-empty-heading { padding: 0 0 12px; }
+.workspace-shell.is-split-source .empty-title-input { width: calc(100% - 60px); }
+.workspace-shell.is-split-source .editor-empty-content { padding: 0 34px 32px; }
+.empty-question-preview { display: flex; margin-top: 0; flex-direction: column; color: var(--common_level5_base_color); pointer-events: none; user-select: none; }
+.empty-preview-section-title { display: flex; margin-top: 20px; align-items: center; gap: 8px; color: var(--fx-text-tertiary); font-family: var(--fx-font-accent); font-size: 14px; }
+.empty-preview-section-title:first-child { margin-top: 0; }
+.empty-preview-section-title small { font-family: var(--fx-font-body); font-size: 9px; font-weight: 400; }
+.empty-preview-section-title span { width: 64px; height: 8px; border-radius: var(--aiq_radius_pill); background: var(--common_fg2_color); }
+.empty-preview-question { display: grid; margin-top: 16px; grid-template-columns: 20px minmax(0, 1fr); gap: 6px; }
+.empty-preview-question > b { color: var(--fx-text-tertiary); font-family: var(--fx-font-accent); font-size: 13px; font-weight: 500; }
+.empty-preview-question > div { display: flex; min-width: 0; flex-direction: column; gap: 7px; }
+.empty-preview-question .is-stem { width: 94%; height: 9px; border-radius: var(--aiq_radius_pill); background: var(--common_fg2_color); }
+.empty-preview-question .is-stem.is-short { width: 68%; }
+.empty-preview-question .is-stem.is-shorter { width: 48%; }
+.empty-preview-question.is-secondary { opacity: .72; }
+.empty-preview-question.is-compact { margin-top: 12px; }
+.empty-preview-question .is-answer-line { width: 32%; height: 14px; border-bottom: 1px solid var(--common_fg2_color); }
+.empty-preview-question .is-answer-line.is-long { width: 44%; }
+.empty-preview-question .is-solution-area { width: 100%; height: 22px; margin-top: 2px; border-bottom: 1px dashed var(--common_fg2_color); }
+.empty-preview-options { display: grid; margin-top: 2px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 16px; }
+.empty-preview-options i { width: 72%; height: 8px; border-radius: var(--aiq_radius_pill); background: var(--common_fg2_color); }
+.empty-question-preview > p { margin: 20px 0 0; color: var(--fx-text-tertiary); font-size: 11px; text-align: center; }
+.editor-question.is-newly-added { animation: newly-added-question 1.8s ease-out both; }
+
+@keyframes newly-added-question {
+  0%, 36% { border-color: var(--fx-primary); background: var(--fx-primary-selected); box-shadow: 0 0 0 3px var(--fx-primary-selected); }
+  100% { border-color: var(--aiq_card_border_selected); background: var(--common_bg2_color); box-shadow: none; }
+}
+
+.chapter-question-list footer button.is-add,
+.legacy-question-card footer button.is-add { min-width: 72px; padding-right: 12px; padding-left: 12px; }
+
+/* 阶段一 · 迭代 145：品牌、题单联动与单题 AI 演示增强 */
+.add-workspace-tabs { padding-left: 142px; }
+.add-workspace-brand { gap: 7px; }
+.feixiang-ai-library-logo { display: block; width: 30px; height: 30px; flex: 0 0 auto; }
+.add-workspace-subject { position: relative; display: inline-flex; }
+.add-workspace-brand select { width: 82px; height: 28px; padding: 0 18px 0 8px; border: 0; background: var(--fx-surface-muted); font-size: 12px; font-weight: 500; }
+.add-workspace-brand::after { right: 7px; }
+
+.workspace-header.is-split .header-workbench-brand > div > strong { color: var(--fx-text-tertiary); font-size: 12px; font-weight: 500; }
+.header-question-count { display: inline-flex; height: 24px; padding: 0 8px; align-items: center; border-radius: var(--aiq_radius_pill); color: var(--fx-primary); background: var(--fx-primary-selected); font-size: 10px; font-weight: 600; animation: question-count-pop .36s ease-out; white-space: nowrap; }
+@keyframes question-count-pop { 0% { transform: scale(.82); } 55% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+.composition-hub--resource-first .composition-hub-scroll { display: grid; align-content: start; padding-top: clamp(88px, 12vh, 132px); }
+.composition-overview-heading .composition-direction-guide { color: var(--fx-primary); font-size: 11px; font-weight: 600; }
+.composition-overview-heading .composition-direction-guide span:nth-of-type(1) { color: var(--fx-primary); }
+.composition-task-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.composition-task-grid > button { grid-template-columns: 34px minmax(0, 1fr); }
+.composition-task-grid > button > em { display: none; }
+
+/* 阶段一 · 迭代 152：题库总览卡与最近打开资源 */
+.composition-overview-heading { margin-bottom: 14px; }
+.composition-resource-grid { gap: 14px; }
+.composition-resource-card { display: block; padding: 14px 18px 13px; overflow: visible; border-color: var(--fx-line-strong); box-shadow: none; }
+.composition-resource-card::before { display: none; }
+.composition-resource-card-heading { display: flex; min-height: 24px; padding: 0; align-items: center; justify-content: space-between; }
+.composition-resource-card-heading strong { font-size: 14px; font-weight: 600; }
+.composition-resource-card-heading strong small { color: var(--fx-text-secondary); font-size: 13px; font-weight: 500; }
+.composition-resource-card-heading > span { display: inline-flex; align-items: center; gap: 7px; color: var(--fx-text-secondary); font-size: 12px; }
+.composition-resource-shortcuts { display: grid; margin-top: 15px; grid-template-columns: 1fr 1fr; gap: 20px; }
+.composition-resource-shortcuts button { display: inline-flex; min-height: 28px; padding: 0; align-items: center; gap: 6px; border: 0; color: var(--fx-text-primary); background: transparent; cursor: pointer; font-size: 13px; text-align: left; }
+.composition-resource-shortcuts button:last-child { justify-self: start; }
+.composition-resource-shortcuts button:hover:not(:disabled) { color: var(--fx-primary); }
+.composition-resource-shortcuts button:disabled { cursor: not-allowed; opacity: .55; }
+.composition-resource-filter { display: flex; margin-top: 14px; align-items: center; gap: 6px; color: var(--fx-text-secondary); font-size: 11px; }
+.composition-resource-metrics { display: flex; padding: 7px 0 0; align-items: center; flex-wrap: wrap; gap: 6px 26px; border: 0; background: transparent; }
+.composition-resource-metrics button { display: inline-flex; min-height: 24px; padding: 0; flex-direction: row; align-items: center; justify-content: flex-start; border: 0; color: var(--fx-text-secondary); background: transparent; }
+.composition-resource-metrics button + button::before { display: none; }
+.composition-resource-metrics button > span { display: inline-flex; width: auto; align-items: center; gap: 5px; font-size: 12px; }
+.composition-resource-metrics button > span svg { color: var(--fx-text-secondary); }
+.composition-resource-metrics button > strong,
+.composition-resource-metrics button > svg { display: none; }
+.composition-task-grid { margin-top: 14px; }
+.composition-recent-resources { margin-top: 22px; }
+.composition-recent-resources > header { display: flex; margin-bottom: 9px; align-items: baseline; gap: 8px; }
+.composition-recent-resources > header strong { color: var(--fx-text-primary); font-size: 18px; font-weight: 700; }
+.composition-recent-resources > header span { color: var(--fx-text-tertiary); font-size: 10px; }
+.composition-recent-resources > div { overflow: hidden; border: 1px solid var(--fx-line-subtle); border-radius: var(--fx-radius-card); background: var(--common_bg2_color); }
+.composition-recent-resources button { display: grid; width: 100%; min-height: 48px; padding: 8px 12px; grid-template-columns: 42px minmax(0, 1fr) auto 16px; align-items: center; gap: 10px; border: 0; color: var(--fx-text-primary); background: transparent; cursor: pointer; text-align: left; }
+.composition-recent-resources button + button { border-top: 1px solid var(--fx-line-subtle); }
+.composition-recent-resources button:hover:not(:disabled) { background: var(--fx-primary-selected); }
+.composition-recent-resources button:disabled { cursor: not-allowed; opacity: .55; }
+.composition-recent-resources button > em { padding: 3px 6px; border-radius: var(--fx-radius-control); color: var(--fx-primary); background: var(--fx-primary-selected); font-size: 10px; font-style: normal; text-align: center; }
+.composition-recent-resources button > span { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.composition-recent-resources button strong,
+.composition-recent-resources button small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.composition-recent-resources button strong { font-size: 11px; font-weight: 600; }
+.composition-recent-resources button small { color: var(--fx-text-tertiary); font-size: 10px; }
+.composition-recent-resources time { display: inline-flex; align-items: center; gap: 4px; color: var(--fx-text-tertiary); font-size: 10px; white-space: nowrap; }
+.composition-recent-resources button > svg { color: var(--fx-text-tertiary); }
+
+/* 阶段一 · 迭代 153：收敛首页题库卡片视觉层级 */
+.composition-resource-card { padding: 0; overflow: hidden; border-color: var(--fx-line-subtle); border-radius: 12px; background: var(--common_bg2_color); }
+.composition-resource-card-heading { min-height: 44px; padding: 0 16px; border-bottom: 1px solid var(--fx-line-subtle); background: var(--common_bg2_color); }
+.composition-resource-card-heading:hover:not(:disabled) { background: var(--fx-surface-muted); }
+.composition-resource-card-heading strong { display: flex; min-width: 0; align-items: center; color: var(--fx-text-primary); font-size: 14px; }
+.composition-resource-card-heading strong small { overflow: hidden; color: var(--fx-text-tertiary); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.composition-resource-card-heading > span { color: var(--fx-primary); font-size: 11px; font-weight: 500; }
+.composition-resource-card-heading > .composition-resource-enter:nth-child(2) { display: inline-flex; width: max-content; flex: 0 0 auto; flex-direction: row; align-items: center; gap: 4px; white-space: nowrap; }
+.composition-resource-card-heading > .composition-resource-enter:nth-child(2) > svg { display: block; width: 15px; height: 15px; flex: none; }
+.composition-resource-summary { display: grid; padding: 12px 16px; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; }
+.composition-resource-summary > button { min-width: 0; min-height: 52px; border: 0; border-radius: 8px; cursor: pointer; text-align: left; }
+.composition-resource-summary > button:disabled { cursor: not-allowed; opacity: .55; }
+.composition-resource-total { display: flex; padding: 8px 12px; flex-direction: column; justify-content: center; gap: 3px; color: var(--fx-text-primary); background: var(--fx-surface-muted); }
+.composition-resource-total > small { color: var(--fx-text-tertiary); font-size: 9px; }
+.composition-resource-total > span { display: flex; align-items: baseline; gap: 4px; color: var(--fx-text-secondary); font-size: 10px; }
+.composition-resource-total strong { color: var(--fx-primary); font-family: var(--fx-font-accent); font-size: 19px; line-height: 1; }
+.composition-resource-chapter { display: flex; padding: 8px 12px; align-items: center; justify-content: space-between; color: var(--fx-text-primary); background: var(--fx-primary-selected); }
+.composition-resource-chapter > span { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.composition-resource-chapter strong { font-size: 12px; font-weight: 600; }
+.composition-resource-chapter small { color: var(--fx-text-tertiary); font-size: 9px; }
+.composition-resource-chapter > svg { flex: 0 0 auto; color: var(--fx-primary); }
+.composition-resource-total:hover:not(:disabled),
+.composition-resource-chapter:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--theme_primary1_selected2_color); }
+.composition-resource-filter { margin: 0 16px; padding-top: 10px; border-top: 1px solid var(--fx-line-subtle); }
+.composition-resource-filter > span { color: var(--fx-text-tertiary); font-size: 10px; }
+.composition-grade-select { position: relative; display: inline-flex; align-items: center; }
+.composition-grade-select select { height: 22px; padding: 0 17px 0 5px; border: 0; border-radius: 5px; color: var(--fx-text-secondary); background: var(--fx-surface-muted); cursor: pointer; font-size: 10px; appearance: none; -webkit-appearance: none; }
+.composition-grade-select svg { position: absolute; right: 4px; color: var(--fx-text-tertiary); pointer-events: none; }
+.composition-resource-filter > small { color: var(--fx-text-tertiary); font-size: 10px; }
+.composition-resource-metrics { padding: 7px 12px 12px; gap: 6px; flex-wrap: nowrap; }
+.composition-resource-metrics button { min-height: 34px; padding: 0 10px; flex: 1 1 0; border-radius: 7px; background: var(--fx-surface-muted); }
+.composition-resource-metrics button:hover:not(:disabled) { background: var(--fx-primary-selected); }
+.composition-resource-metrics button > span { display: grid; width: 100%; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 5px; }
+.composition-resource-metrics button > span small { color: var(--fx-text-tertiary); font-size: 9px; }
+.composition-resource-metrics button > span strong { display: block; overflow: hidden; color: var(--fx-text-primary); font-family: var(--fx-font-accent); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.composition-resource-metrics button > span svg { color: var(--fx-text-tertiary); }
+.composition-resource-card.is-school .composition-resource-total strong { color: var(--common_success1_color); }
+.composition-resource-card.is-school .composition-resource-chapter { background: var(--common_success1_selected_color, #eef9f3); }
+.composition-resource-card.is-school .composition-resource-chapter > svg { color: var(--common_success1_color); }
+.composition-task-grid > button { border-color: var(--fx-line-subtle); border-radius: 9px; box-shadow: none; }
+.composition-recent-resources > div { border-color: var(--fx-line-subtle); box-shadow: 0 2px 8px var(--common_shadow3_color); }
+.composition-recent-resources button > em { color: var(--fx-text-secondary); background: var(--fx-surface-muted); }
+
+/* 阶段一 · 迭代 157：题库卡统一为两行信息结构 */
+.composition-resource-card { border-radius: 10px; }
+.composition-resource-main { display: grid; min-height: 58px; padding: 10px 14px; grid-template-columns: 210px 100px; align-items: center; gap: 16px; }
+.composition-resource-identity,
+.composition-resource-total { display: flex; min-width: 0; padding: 0; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; border: 0; color: var(--fx-text-primary); background: transparent; cursor: pointer; text-align: left; }
+.composition-resource-identity { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: 9px; }
+.composition-resource-identity > span:last-child { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.composition-resource-identity-icon { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 8px; color: var(--fx-primary); background: var(--fx-primary-selected); }
+.composition-resource-card.is-school .composition-resource-identity-icon { color: var(--fx-primary); background: var(--fx-primary-selected); }
+.composition-resource-identity strong { font-size: 14px; font-weight: 650; }
+.composition-resource-identity small { overflow: hidden; max-width: 100%; color: var(--fx-text-tertiary); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.composition-resource-total { padding-left: 16px; border-left: 1px solid var(--fx-line-subtle); }
+.composition-resource-total strong { color: var(--fx-primary); font-family: var(--fx-font-accent); font-size: 18px; line-height: 1; }
+.composition-resource-total small { color: var(--fx-text-tertiary); font-size: 9px; }
+.composition-resource-card.is-school .composition-resource-total strong { color: var(--common_success1_color); }
+.composition-resource-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.composition-resource-actions button { display: inline-flex; height: 30px; padding: 0 11px; align-items: center; gap: 3px; border: 1px solid var(--fx-line-strong); border-radius: 7px; color: var(--fx-text-secondary); background: var(--common_bg2_color); cursor: pointer; font-size: 10px; white-space: nowrap; }
+.composition-resource-actions button:hover:not(:disabled) { border-color: var(--theme_primary1_selected2_color); color: var(--fx-primary); }
+.composition-resource-actions button.is-primary { border-color: transparent; color: var(--fx-primary); background: var(--fx-primary-selected); }
+.composition-resource-card.is-school .composition-resource-actions button.is-primary { color: var(--common_success1_color); background: var(--common_success1_selected_color, #eef9f3); }
+.composition-resource-actions button:disabled,
+.composition-resource-identity:disabled,
+.composition-resource-total:disabled { cursor: not-allowed; opacity: .55; }
+.composition-resource-categories { display: grid; min-height: 42px; padding: 7px 14px; grid-template-columns: minmax(0, 1fr) 116px; align-items: center; gap: 10px; border-top: 1px solid var(--fx-line-subtle); background: var(--fx-surface-muted); }
+.composition-resource-scope { color: var(--fx-text-secondary); font-size: 10px; font-weight: 500; }
+.composition-resource-categories .composition-resource-metrics { display: grid; padding: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+.composition-resource-card.is-school .composition-resource-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.composition-resource-categories .composition-resource-metrics button { min-height: 28px; padding: 0 12px; border-radius: 0; background: transparent; }
+.composition-resource-categories .composition-resource-metrics button + button { border-left: 1px solid var(--fx-line-subtle); }
+.composition-resource-categories .composition-resource-metrics button:hover:not(:disabled) { color: var(--fx-primary); background: var(--common_bg2_color); }
+.composition-resource-categories .composition-resource-metrics button > span { gap: 6px; }
+.composition-resource-categories .composition-resource-metrics button > span { grid-template-columns: auto minmax(0, 1fr); }
+.composition-resource-categories .composition-resource-metrics button > span small { font-size: 9px; }
+.composition-resource-categories .composition-resource-metrics button > span strong { font-size: 11px; }
+.composition-grade-select select { width: 66px; background: var(--common_bg2_color); }
+.composition-chapter-entry { display: inline-flex; min-height: 28px; padding: 0; align-items: center; justify-content: flex-end; gap: 3px; border: 0; color: var(--fx-text-secondary); background: transparent; cursor: pointer; font-size: 10px; white-space: nowrap; }
+.composition-chapter-entry:hover:not(:disabled) { color: var(--fx-primary); }
+.composition-chapter-entry:disabled { cursor: not-allowed; opacity: .55; }
+
+/* 阶段一 · 迭代 158：最近打开改为无框文本列表 */
+.composition-recent-resources > div { overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.composition-recent-resources button { min-height: 42px; padding: 6px 2px; grid-template-columns: 40px minmax(0, 1fr) auto 16px; border: 0; background: transparent; }
+.composition-recent-resources button + button { border-top: 0; }
+.composition-recent-resources button:hover:not(:disabled) { background: transparent; }
+.composition-recent-resources button > em { padding: 0; color: var(--fx-text-tertiary); background: transparent; text-align: left; }
+.composition-recent-resources button:hover:not(:disabled) strong,
+.composition-recent-resources button:hover:not(:disabled) > svg { color: var(--fx-primary); }
+
+/* 阶段一 · 迭代 161：题库卡内部仅用留白分组 */
+.composition-resource-total { padding-left: 0; border-left: 0; }
+.composition-resource-categories { border-top: 0; }
+.composition-resource-categories .composition-resource-metrics button + button { border-left: 0; }
+.composition-resource-total strong,
+.composition-resource-card.is-school .composition-resource-total strong { color: var(--fx-text-primary); }
+
+/* 阶段一 · 迭代 173：分类数据并入题库卡首行 */
+.composition-resource-main { min-height: 84px; grid-template-columns: 170px 100px minmax(0, 1fr); }
+.composition-resource-inline { display: grid; min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 28px; align-items: center; gap: 4px 10px; }
+.composition-resource-inline .composition-resource-metrics { display: contents; }
+.composition-resource-inline .composition-resource-metrics button { min-width: 0; min-height: 30px; padding: 0; border: 0; color: var(--fx-text-primary); background: transparent; cursor: pointer; }
+.composition-resource-inline .composition-resource-metrics button > span { display: flex; min-width: 0; align-items: baseline; gap: 4px; white-space: nowrap; }
+.composition-resource-inline .composition-resource-metrics button small { color: var(--fx-text-tertiary); font-size: 9px; }
+.composition-resource-inline .composition-resource-metrics button strong { display: inline; color: var(--fx-text-primary); font-family: var(--fx-font-accent); font-size: 11px; }
+.composition-resource-inline .composition-resource-metrics button:hover:not(:disabled) small,
+.composition-resource-inline .composition-resource-metrics button:hover:not(:disabled) strong { color: var(--fx-primary); }
+.composition-resource-inline .composition-chapter-entry { justify-content: flex-start; }
+
+/* 阶段一 · 迭代 176：首页资源层级与可点击性 */
+.composition-current-term select {
+  height: 28px;
+  padding-right: 24px;
+  padding-left: 9px;
+  font-size: 12px;
+}
+
+.composition-resource-main {
+  min-height: 86px;
+}
+
+.composition-resource-identity small,
+.composition-resource-total small {
+  font-size: 12px;
+}
+
+.composition-resource-total strong,
+.composition-resource-card.is-school .composition-resource-total strong {
+  font-size: 23px;
+}
+
+.composition-resource-inline {
+  grid-auto-rows: 34px;
+  gap: 6px 8px;
+}
+
+.composition-resource-inline .composition-resource-metrics button,
+.composition-resource-inline .composition-chapter-entry {
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 7px;
+  background: var(--fx-surface-muted);
+  transition: color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.composition-resource-inline .composition-resource-metrics button small {
+  color: var(--fx-text-secondary);
+  font-size: 12px;
+}
+
+.composition-resource-inline .composition-resource-metrics button strong {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.composition-resource-inline .composition-chapter-entry {
+  color: var(--fx-text-secondary);
+  font-size: 12px;
+}
+
+.composition-resource-inline .composition-resource-metrics button:hover:not(:disabled),
+.composition-resource-inline .composition-chapter-entry:hover:not(:disabled) {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  box-shadow: inset 0 0 0 1px var(--theme_primary1_selected2_color);
+}
+
+.composition-resource-inline .composition-resource-metrics button:focus-visible,
+.composition-resource-inline .composition-chapter-entry:focus-visible {
+  outline: 2px solid var(--fx-primary);
+  outline-offset: 1px;
+}
+
+.composition-task-grid small {
+  font-size: 12px;
+}
+
+/* 阶段一 · 迭代 177：题库卡固定三段，两行严格对齐 */
+.composition-resource-main {
+  grid-template-columns: 170px 154px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.composition-resource-summary-column {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 8px;
+}
+
+.composition-resource-summary-column .composition-resource-total {
+  display: flex;
+  min-height: 24px;
+  padding: 0;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 5px;
+}
+
+.composition-resource-summary-column .composition-resource-total strong {
+  font-size: 20px;
+}
+
+.composition-resource-summary-column .composition-resource-total small {
+  font-size: 12px;
+}
+
+.composition-resource-summary-column .composition-chapter-entry {
+  min-height: auto;
+  padding: 0;
+  justify-content: flex-start;
+  border-radius: 0;
+  background: transparent;
+  font-size: 12px;
+}
+
+.composition-resource-summary-column .composition-chapter-entry:hover:not(:disabled) {
+  color: var(--fx-primary);
+  background: transparent;
+  box-shadow: none;
+}
+
+.composition-resource-inline {
+  display: block;
+}
+
+.composition-resource-inline .composition-resource-metrics {
+  display: grid;
+  height: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: 8px;
+}
+
+.composition-resource-card.is-school .composition-resource-inline .composition-resource-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.composition-resource-inline .composition-resource-metrics button {
+  min-height: 52px;
+  padding: 7px 9px;
+  align-items: flex-start;
+}
+
+.composition-resource-inline .composition-resource-metrics button > span {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  flex-direction: column;
+}
+
+.composition-resource-inline .composition-resource-metrics button small,
+.composition-resource-inline .composition-resource-metrics button strong {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 阶段一 · 迭代 199：资源类型优先，数量降为说明 */
+.composition-resource-summary-column {
+  gap: 5px;
+}
+
+.composition-resource-summary-column .composition-chapter-entry {
+  color: var(--fx-text-primary);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.composition-resource-summary-column .composition-resource-total {
+  min-height: 18px;
+  gap: 4px;
+}
+
+.composition-resource-summary-column .composition-resource-total strong,
+.composition-resource-card.is-school .composition-resource-summary-column .composition-resource-total strong {
+  color: var(--fx-text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.composition-resource-summary-column .composition-resource-total small {
+  color: var(--fx-text-tertiary);
+  font-size: 11px;
+}
+
+.composition-resource-inline .composition-resource-metrics button small {
+  color: var(--fx-text-primary);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.composition-resource-inline .composition-resource-metrics button strong {
+  color: var(--fx-text-tertiary);
+  font-family: var(--fx-font-body);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* 阶段一 · 迭代 200：题库卡评审方案二 */
+.composition-scheme-switch {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 2px;
+  align-items: center;
+  gap: 2px;
+  border-radius: var(--fx-radius-control);
+  background: var(--fx-surface-muted);
+}
+
+.composition-scheme-switch button {
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: calc(var(--fx-radius-control) - 2px);
+  color: var(--fx-text-tertiary);
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.composition-scheme-switch button:hover,
+.composition-scheme-switch button.is-active {
+  color: var(--fx-primary);
+}
+
+.composition-scheme-switch button.is-active {
+  background: var(--common_bg2_color);
+  box-shadow: 0 1px 4px var(--common_shadow3_color);
+  font-weight: 600;
+}
+
+.composition-resource-main--scheme-two {
+  min-height: 94px;
+  padding: 12px 14px;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.composition-resource-identity--with-total > span:last-child {
+  gap: 2px;
+}
+
+.composition-resource-identity--with-total em {
+  margin-top: 2px;
+  color: var(--fx-text-secondary);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.composition-resource-type-grid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 1.35fr repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 7px;
+}
+
+.composition-resource-card.is-school .composition-resource-type-grid {
+  grid-template-columns: 1.25fr repeat(2, minmax(0, 1fr));
+}
+
+.composition-resource-type {
+  display: flex;
+  min-width: 0;
+  min-height: 56px;
+  padding: 9px 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--fx-text-primary);
+  background: var(--fx-surface-muted);
+  cursor: pointer;
+  text-align: left;
+  transition: color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.composition-resource-type strong,
+.composition-resource-type small {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.composition-resource-type strong {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.composition-resource-type small {
+  color: var(--fx-text-tertiary);
+  font-size: 10px;
+}
+
+.composition-resource-type:hover:not(:disabled),
+.composition-resource-type:focus-visible {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  box-shadow: inset 0 0 0 1px var(--theme_primary1_selected2_color);
+}
+
+.composition-resource-type:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+/* 阶段一 · 迭代 201：两套题库卡统一提升可读性 */
+.composition-scheme-switch button {
+  font-size: 12px;
+}
+
+.composition-resource-card .composition-resource-identity strong {
+  font-size: 16px;
+}
+
+.composition-resource-card.is-scheme-one .composition-resource-main {
+  min-height: 94px;
+}
+
+.composition-resource-card.is-scheme-one .composition-resource-identity small {
+  font-size: 12px;
+}
+
+.composition-resource-card.is-scheme-one .composition-resource-summary-column .composition-chapter-entry {
+  font-size: 14px;
+}
+
+.composition-resource-card.is-scheme-one .composition-resource-summary-column .composition-resource-total strong,
+.composition-resource-card.is-scheme-one.is-school .composition-resource-summary-column .composition-resource-total strong {
+  font-size: 15px;
+}
+
+.composition-resource-card.is-scheme-one .composition-resource-summary-column .composition-resource-total small {
+  font-size: 12px;
+}
+
+.composition-resource-card.is-scheme-one .composition-resource-inline .composition-resource-metrics button small {
+  font-size: 15px;
+}
+
+.composition-resource-card.is-scheme-one .composition-resource-inline .composition-resource-metrics button strong {
+  font-size: 13px;
+}
+
+.composition-resource-main--scheme-two {
+  min-height: 100px;
+}
+
+.composition-resource-identity--with-total em {
+  font-size: 12px;
+}
+
+.composition-resource-type strong {
+  font-size: 14px;
+}
+
+.composition-resource-type small {
+  font-size: 12px;
+}
+
+/* 阶段一 · 迭代 202：带轻插画的题库卡方案三 */
+.composition-resource-card.is-scheme-three {
+  background: linear-gradient(135deg, var(--common_bg2_color) 0%, var(--common_bg2_color) 62%, var(--fx-primary-selected) 100%);
+  box-shadow: 0 5px 18px var(--common_shadow3_color);
+}
+
+.composition-resource-main--scheme-three {
+  display: grid;
+  min-height: 148px;
+  padding: 15px 16px 14px;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  grid-template-rows: 56px minmax(58px, auto);
+  align-items: center;
+  gap: 10px 16px;
+}
+
+.composition-resource-identity--illustrated {
+  width: max-content;
+  max-width: 100%;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 11px;
+}
+
+.composition-resource-identity--illustrated .composition-resource-identity-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.composition-resource-identity--illustrated > span:last-child {
+  gap: 4px;
+}
+
+.composition-resource-identity--illustrated em {
+  color: var(--fx-text-secondary);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.composition-resource-illustration {
+  position: relative;
+  width: 104px;
+  height: 54px;
+  justify-self: end;
+  pointer-events: none;
+}
+
+.composition-resource-illustration::before {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  background-image: linear-gradient(var(--fx-line-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--fx-line-subtle) 1px, transparent 1px);
+  background-size: 12px 12px;
+  content: '';
+  opacity: .6;
+}
+
+.composition-resource-illustration i {
+  position: absolute;
+  display: grid;
+  width: 62px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: 8px;
+  background: var(--common_bg2_color);
+  box-shadow: 0 4px 10px var(--common_shadow3_color);
+}
+
+.composition-resource-illustration .is-back {
+  top: 5px;
+  right: 25px;
+  transform: rotate(-7deg);
+}
+
+.composition-resource-illustration .is-middle {
+  top: 13px;
+  right: 10px;
+  transform: rotate(5deg);
+}
+
+.composition-resource-illustration .is-front {
+  right: 18px;
+  bottom: 0;
+  color: var(--fx-primary);
+}
+
+.composition-resource-type-grid--illustrated {
+  grid-column: 1 / -1;
+  grid-template-columns: 1.35fr repeat(4, minmax(0, 1fr));
+  gap: 0;
+  padding: 4px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--fx-surface-muted) 82%, transparent);
+}
+
+.composition-resource-card.is-school .composition-resource-type-grid--illustrated {
+  grid-template-columns: 1.35fr repeat(4, minmax(0, 1fr));
+}
+
+.composition-resource-type-grid--illustrated .composition-resource-type {
+  position: relative;
+  min-height: 58px;
+  padding-right: 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.composition-resource-type-grid--illustrated .composition-resource-type + .composition-resource-type::before {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 1px;
+  background: var(--fx-line-subtle);
+  content: '';
+}
+
+.composition-resource-type-grid--illustrated .composition-resource-type:hover:not(:disabled),
+.composition-resource-type-grid--illustrated .composition-resource-type:focus-visible {
+  background: var(--fx-primary-selected);
+  box-shadow: none;
+}
+
+
+/* 阶段一 · 迭代 203：无分类数字的方案四与方案五 */
+.composition-resource-main--scheme-four {
+  display: grid;
+  min-height: 148px;
+  padding: 14px 16px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 42px minmax(70px, auto);
+  gap: 10px;
+}
+
+.composition-resource-identity--minimal {
+  width: max-content;
+  max-width: 100%;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.composition-resource-identity--minimal > span:last-child {
+  gap: 2px;
+}
+
+.composition-resource-identity--minimal em {
+  color: var(--fx-text-secondary);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.composition-resource-standard-grid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 1.35fr repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.composition-resource-card.is-school .composition-resource-standard-grid {
+  grid-template-columns: 1.35fr repeat(4, minmax(0, 1fr));
+}
+
+.composition-resource-standard-grid > button {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 70px;
+  padding: 12px;
+  overflow: hidden;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--fx-line-subtle);
+  border-radius: 10px;
+  color: var(--fx-primary);
+  background: var(--common_bg2_color);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.composition-resource-standard-grid > button > svg {
+  display: none;
+}
+
+.composition-resource-standard-grid > button strong {
+  position: relative;
+  z-index: 1;
+  color: var(--fx-text-primary);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 20px;
+}
+
+.composition-resource-standard-grid > button i {
+  position: absolute;
+  right: 10px;
+  bottom: 7px;
+  width: 46px;
+  height: 36px;
+  color: var(--fx-primary);
+  background: transparent;
+  opacity: .42;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+.composition-resource-standard-grid > button i::before,
+.composition-resource-standard-grid > button i::after {
+  position: absolute;
+  box-sizing: border-box;
+  content: '';
+}
+
+.composition-resource-standard-grid > button.is-paper i {
+  right: 13px;
+  width: 28px;
+  height: 36px;
+  border: 1px solid var(--theme_primary1_selected2_color);
+  border-radius: 5px;
+  background: var(--common_bg2_color);
+  box-shadow: -4px 3px 0 var(--fx-primary-selected);
+  transform: rotate(4deg);
+}
+
+.composition-resource-standard-grid > button.is-paper i::before {
+  top: 9px;
+  right: 5px;
+  left: 5px;
+  height: 12px;
+  border-top: 2px solid var(--theme_primary1_selected2_color);
+  border-bottom: 2px solid var(--theme_primary1_selected2_color);
+}
+
+.composition-resource-standard-grid > button.is-workbook i {
+  width: 44px;
+  height: 30px;
+  border: 1px solid var(--theme_primary1_selected2_color);
+  border-radius: 4px 4px 8px 8px;
+  background: linear-gradient(90deg, var(--common_bg2_color) 0 48%, var(--theme_primary1_selected2_color) 49% 51%, var(--common_bg2_color) 52% 100%);
+  transform: rotate(-3deg);
+}
+
+.composition-resource-standard-grid > button.is-workbook i::before,
+.composition-resource-standard-grid > button.is-workbook i::after {
+  top: 8px;
+  width: 12px;
+  height: 8px;
+  border-top: 1px solid var(--fx-line-strong);
+  border-bottom: 1px solid var(--fx-line-strong);
+}
+
+.composition-resource-standard-grid > button.is-workbook i::before { left: 6px; }
+.composition-resource-standard-grid > button.is-workbook i::after { right: 6px; }
+
+.composition-resource-standard-grid > button.is-sync i {
+  right: 12px;
+  width: 34px;
+  height: 27px;
+  border: 1px solid var(--theme_primary1_selected2_color);
+  border-radius: 5px;
+  background: var(--common_bg2_color);
+  box-shadow: -4px -3px 0 var(--fx-primary-selected), -8px -6px 0 color-mix(in srgb, var(--fx-primary-selected) 65%, var(--common_bg2_color));
+}
+
+.composition-resource-standard-grid > button.is-sync i::before {
+  top: 8px;
+  right: 6px;
+  left: 6px;
+  height: 9px;
+  border-top: 2px solid var(--theme_primary1_selected2_color);
+  border-bottom: 2px solid var(--theme_primary1_selected2_color);
+}
+
+.composition-resource-standard-grid > button.is-special i {
+  right: 11px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--theme_primary1_selected2_color);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--fx-primary) 0 4px, var(--common_bg2_color) 5px 9px, var(--theme_primary1_selected2_color) 10px 12px, var(--common_bg2_color) 13px 16px, var(--fx-primary-selected) 17px);
+}
+
+.composition-resource-standard-grid > button.is-chapter i {
+  width: 52px;
+  height: 38px;
+  background:
+    radial-gradient(circle at 8px 7px, var(--fx-primary) 0 3px, transparent 4px),
+    radial-gradient(circle at 43px 7px, var(--fx-primary) 0 3px, transparent 4px),
+    radial-gradient(circle at 25px 31px, var(--fx-primary) 0 4px, transparent 5px);
+}
+
+.composition-resource-standard-grid > button.is-chapter i::before {
+  top: 8px;
+  left: 10px;
+  width: 34px;
+  height: 23px;
+  border-right: 1px solid var(--theme_primary1_selected2_color);
+  border-bottom: 1px solid var(--theme_primary1_selected2_color);
+  border-left: 1px solid var(--theme_primary1_selected2_color);
+  transform: skewX(-28deg);
+}
+
+.composition-resource-standard-grid > button:hover:not(:disabled),
+.composition-resource-standard-grid > button:focus-visible {
+  border-color: var(--theme_primary1_selected2_color);
+  background: var(--fx-primary-selected);
+  box-shadow: 0 3px 10px var(--common_shadow3_color);
+  transform: translateY(-1px);
+}
+
+.composition-resource-standard-grid > button:hover:not(:disabled) i,
+.composition-resource-standard-grid > button:focus-visible i {
+  opacity: .66;
+}
+
+.composition-resource-standard-grid > button:disabled,
+.composition-resource-chip-list > button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.composition-resource-main--scheme-five {
+  display: grid;
+  min-height: 102px;
+  padding: 15px 16px;
+  grid-template-columns: 174px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+}
+
+.composition-resource-chip-list {
+  display: flex;
+  min-width: 0;
+  align-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.composition-resource-chip-list > button {
+  display: inline-flex;
+  min-height: 36px;
+  padding: 0 12px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--aiq_radius_pill);
+  color: var(--fx-primary);
+  background: var(--common_bg2_color);
+  box-shadow: 0 2px 7px var(--common_shadow3_color);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 150ms ease, color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.composition-resource-chip-list > button strong {
+  color: var(--fx-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.composition-resource-chip-list > button:hover:not(:disabled),
+.composition-resource-chip-list > button:focus-visible {
+  border-color: var(--theme_primary1_selected2_color);
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  transform: translateY(-1px);
+}
+
+/* 阶段一 · 迭代 210：方案五双列等宽模块 */
+.composition-resource-card.is-scheme-six {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--fx-line-subtle);
+  background: var(--common_bg2_color);
+  box-shadow: none;
+}
+
+.composition-resource-card.is-scheme-six::after {
+  position: absolute;
+  right: -18px;
+  bottom: -25px;
+  width: 92px;
+  height: 72px;
+  border: 1px solid var(--theme_primary1_selected2_color);
+  border-radius: 24px 8px 18px 8px;
+  background: var(--fx-primary-selected);
+  opacity: .42;
+  transform: rotate(-10deg);
+  pointer-events: none;
+  content: '';
+}
+
+.composition-resource-card.is-scheme-six.is-school::after {
+  border-radius: 50% 12px 20px 8px;
+  transform: rotate(9deg);
+}
+
+.composition-hub.is-scheme-six .composition-resource-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 10px;
+}
+
+.composition-resource-main--scheme-six {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 14px 16px;
+  min-height: 0;
+}
+
+.composition-resource-equal-heading {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 100%;
+  min-height: 50px;
+  padding: 0 64px 0 0;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  color: var(--fx-text-primary);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.composition-resource-equal-heading > span:first-child {
+  position: absolute;
+  right: 2px;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid var(--theme_primary1_selected2_color);
+  border-radius: 14px;
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  box-shadow: -7px 6px 0 color-mix(in srgb, var(--fx-primary-selected) 62%, transparent);
+  transform: rotate(-5deg);
+}
+
+.composition-resource-equal-heading > span:nth-child(2) {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.composition-resource-equal-heading strong {
+  color: var(--fx-text-primary);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.composition-resource-equal-heading small {
+  color: var(--fx-text-tertiary);
+  font-size: 12px;
+}
+
+.composition-resource-equal-heading:hover:not(:disabled) strong,
+.composition-resource-equal-heading:focus-visible strong {
+  color: var(--fx-primary);
+}
+
+.composition-hub.is-scheme-six .composition-task-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.composition-hub.is-scheme-six .composition-task-grid > button {
+  position: relative;
+  display: flex;
+  min-height: 74px;
+  padding: 12px 72px 12px 14px;
+  overflow: hidden;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 10px;
+  background: var(--common_bg2_color);
+}
+
+.composition-hub.is-scheme-six .composition-task-grid > button::after {
+  position: absolute;
+  right: -16px;
+  bottom: -28px;
+  width: 82px;
+  height: 64px;
+  border: 1px solid var(--theme_primary1_selected2_color);
+  border-radius: 50% 12px 18px 10px;
+  background: var(--fx-primary-selected);
+  opacity: .38;
+  transform: rotate(-8deg);
+  pointer-events: none;
+  content: '';
+}
+
+.composition-hub.is-scheme-six .composition-task-grid > button:nth-child(even)::after {
+  border-radius: 16px 50% 12px 18px;
+  transform: rotate(8deg);
+}
+
+.composition-hub.is-scheme-six .composition-task-grid > button > .composition-task-icon {
+  position: absolute;
+  z-index: 1;
+  right: 13px;
+  bottom: 13px;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--theme_primary1_selected2_color);
+  border-radius: 13px;
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  box-shadow: -6px 5px 0 color-mix(in srgb, var(--fx-primary-selected) 62%, transparent);
+  transform: rotate(-4deg);
+}
+
+.composition-hub.is-scheme-six .composition-task-grid > button:nth-child(even) > .composition-task-icon {
+  transform: rotate(4deg);
+}
+
+.composition-hub.is-scheme-six .composition-task-grid > button > span:nth-child(2) {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.composition-hub.is-scheme-six .composition-task-grid strong {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.composition-hub.is-scheme-six .composition-task-grid small {
+  font-size: 12px;
+}
+
+/* 阶段一 · 迭代 206：方案四卡片系统统一 */
+.composition-hub.is-scheme-four .composition-task-grid {
+  gap: 8px;
+}
+
+.composition-hub.is-scheme-four .composition-task-grid > button {
+  position: relative;
+  display: flex;
+  min-height: 82px;
+  padding: 13px 48px 13px 13px;
+  overflow: hidden;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0;
+  border-color: var(--fx-line-subtle);
+  border-radius: 10px;
+  background: var(--common_bg2_color);
+  transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.composition-hub.is-scheme-four .composition-task-grid > button > .composition-task-icon {
+  position: absolute;
+  right: 12px;
+  bottom: 11px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--theme_primary1_selected2_color);
+  border-radius: 10px;
+  opacity: .52;
+  transform: rotate(-4deg);
+}
+
+.composition-hub.is-scheme-four .composition-task-grid > button:nth-child(even) > .composition-task-icon {
+  transform: rotate(4deg);
+}
+
+.composition-hub.is-scheme-four .composition-task-grid > button > span:nth-child(2) {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.composition-hub.is-scheme-four .composition-task-grid strong {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.composition-hub.is-scheme-four .composition-task-grid small {
+  font-size: 11px;
+}
+
+.composition-hub.is-scheme-four .composition-task-grid > button:hover:not(:disabled),
+.composition-hub.is-scheme-four .composition-task-grid > button:focus-visible {
+  border-color: var(--theme_primary1_selected2_color);
+  background: var(--fx-primary-selected);
+  box-shadow: 0 3px 10px var(--common_shadow3_color);
+  transform: translateY(-1px);
+}
+
+.composition-hub.is-scheme-four .composition-task-grid > button:hover:not(:disabled) > .composition-task-icon,
+.composition-hub.is-scheme-four .composition-task-grid > button:focus-visible > .composition-task-icon {
+  opacity: .75;
+}
+
+.workspace-shell.is-split-source .editor-document { min-height: calc(100vh - 112px); }
+
+.editor-question.is-selected { padding-top: 58px; }
+.editor-question-tools { top: 8px; transform: none; }
+.editor-question:hover .editor-question-tools,
+.editor-question:focus-within .editor-question-tools { transform: none; }
+
+.contextual-ai-popover form { display: flex; flex-direction: column; gap: 9px; }
+.contextual-ai-quick-actions { display: grid !important; margin: 0 !important; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.contextual-ai-quick-actions > button { width: auto !important; height: 28px !important; padding: 0 7px !important; border: 1px solid var(--fx-line-subtle) !important; border-radius: var(--fx-radius-control) !important; color: var(--fx-primary) !important; background: var(--fx-primary-selected) !important; font-size: 10px; white-space: nowrap; }
+.contextual-ai-compare { display: grid; margin-top: 4px; gap: 7px; }
+.contextual-ai-compare section { padding: 9px 10px; border: 1px solid var(--fx-line-subtle); border-radius: var(--fx-radius-control); background: var(--fx-surface-muted); }
+.contextual-ai-compare section.is-new { border-color: var(--fx-primary-selected-strong); background: var(--fx-primary-selected); }
+.contextual-ai-compare small { display: block; margin-bottom: 5px; color: var(--fx-text-tertiary); font-size: 9px; }
+.contextual-ai-compare p { max-height: 88px; color: var(--fx-text-secondary); }
+
+/* 阶段一 · 迭代 182：单题 AI 编辑浮层视觉重构 */
+.contextual-ai-popover {
+  border-color: var(--fx-line-strong);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px var(--common_shadow2_color);
+}
+
+.editor-document.is-ai-focus {
+  background: var(--fx-surface-muted);
+}
+
+.editor-document.is-ai-focus > .editor-document-heading,
+.editor-document.is-ai-focus > .editor-document-intro,
+.editor-document.is-ai-focus .editor-question-list > :not(.editor-question-block:has(.editor-question.is-ai-open)),
+.editor-document.is-ai-focus .editor-question-block:has(.editor-question.is-ai-open) > :not(.editor-question) {
+  opacity: 0.34;
+  filter: grayscale(0.2);
+  transition: opacity 140ms ease, filter 140ms ease;
+}
+
+.editor-document.is-ai-focus .editor-question-block:has(.editor-question.is-ai-open) {
+  position: relative;
+  z-index: 80;
+}
+
+.editor-question.is-ai-open > .contextual-ai-popover {
+  z-index: 90;
+  opacity: 1;
+  filter: none;
+}
+
+.editor-question > .contextual-ai-popover {
+  width: min(520px, calc(100% - 16px));
+}
+
+.contextual-ai-popover > header {
+  min-height: 46px;
+  padding: 0 10px 0 14px;
+  border-bottom-color: var(--fx-line-subtle);
+}
+
+.contextual-ai-popover > header > span {
+  gap: 8px;
+  color: var(--fx-text-primary);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.contextual-ai-popover > header > span > svg {
+  box-sizing: content-box;
+  padding: 5px;
+  border-radius: 7px;
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+
+.contextual-ai-popover > header > button {
+  color: var(--fx-text-tertiary);
+}
+
+.contextual-ai-form {
+  display: flex;
+  padding: 14px !important;
+  flex-direction: column;
+  gap: 14px !important;
+}
+
+.contextual-ai-action-section {
+  display: grid;
+  gap: 9px;
+}
+
+.contextual-ai-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.contextual-ai-section-title > span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.contextual-ai-section-title strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--fx-text-primary);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.contextual-ai-section-title em {
+  color: var(--fx-text-tertiary);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.contextual-ai-section-title > button {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  color: var(--fx-text-tertiary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.contextual-ai-section-title > button:hover {
+  color: var(--fx-text-primary);
+  background: var(--fx-fill-hover);
+}
+
+.contextual-ai-quick-actions {
+  display: flex !important;
+  min-width: 0;
+  flex: 1;
+  gap: 6px !important;
+}
+
+/* 阶段一 · 迭代 190：AI 助手就近悬浮在当前题目下方 */
+.editor-question > .contextual-ai-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  bottom: auto;
+  left: 0;
+  width: 100%;
+  max-height: min(520px, calc(100vh - 120px));
+  margin: 0;
+  overflow: auto;
+  transform: none;
+}
+
+.editor-question { scroll-margin-top: 130px; }
+
+.contextual-ai-result-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.contextual-ai-result-heading > button { border: 0; color: var(--fx-text-secondary); background: transparent; cursor: pointer; font-size: 11px; }
+.contextual-ai-result-heading > button:hover { color: var(--fx-primary); }
+.contextual-ai-variants { display: grid; width: 100%; max-height: 330px; margin-top: 8px; overflow: auto; gap: 8px; }
+.contextual-ai-variants section { display: grid; padding: 10px 11px; border: 1px solid var(--fx-line-subtle); border-radius: 8px; background: var(--fx-surface-muted); gap: 7px; }
+.contextual-ai-variants small { color: var(--fx-text-tertiary); font-size: 10px; }
+.contextual-ai-variants p { max-height: none; color: var(--fx-text-primary); line-height: 20px; }
+.contextual-ai-variants section > button { justify-self: end; height: 28px; padding: 0 10px; border: 1px solid var(--fx-primary); border-radius: 6px; color: var(--common_fg_color); background: var(--fx-primary); cursor: pointer; font-size: 11px; }
+
+.block-command-assistant-first {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--fx-line-subtle);
+}
+
+.block-command-assistant-first > button.is-ai {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+  font-weight: 650;
+}
+
+.contextual-ai-quick-actions > button {
+  display: flex !important;
+  width: auto !important;
+  min-width: 0;
+  height: 30px !important;
+  padding: 0 9px !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border: 1px solid var(--fx-line-subtle) !important;
+  border-radius: 15px !important;
+  color: var(--fx-text-secondary) !important;
+  background: var(--fx-surface-muted) !important;
+  cursor: pointer;
+  font-size: 12px !important;
+  font-weight: 500;
+  transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+}
+
+.contextual-ai-quick-actions > button svg {
+  display: none;
+}
+
+.contextual-ai-quick-actions > button:hover {
+  border-color: var(--theme_primary1_selected2_color) !important;
+  color: var(--fx-primary) !important;
+  background: var(--fx-primary-selected) !important;
+}
+
+.contextual-ai-requirement {
+  display: grid;
+  gap: 7px;
+}
+
+.contextual-ai-requirement.is-assistant-input {
+  position: relative;
+  display: block;
+}
+
+.contextual-ai-requirement > span {
+  color: var(--fx-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.contextual-ai-popover .contextual-ai-requirement textarea {
+  min-height: 82px;
+  padding: 11px 12px;
+  border-color: transparent;
+  border-radius: 8px;
+  background: var(--fx-surface-muted);
+  line-height: 20px;
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+
+.contextual-ai-popover .contextual-ai-requirement.is-assistant-input textarea {
+  min-height: 70px;
+  padding: 15px 54px 15px 14px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: 14px;
+  background: var(--common_bg2_color);
+  resize: none;
+}
+
+.contextual-ai-requirement.is-assistant-input > button {
+  position: absolute;
+  right: 12px;
+  bottom: 14px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--common_fg_color);
+  background: var(--fx-primary);
+  cursor: pointer;
+}
+
+.contextual-ai-requirement.is-assistant-input > button:disabled {
+  color: var(--common_level5_base_color);
+  background: var(--fx-line-strong);
+  cursor: not-allowed;
+}
+
+.contextual-ai-popover .contextual-ai-requirement textarea:focus {
+  border-color: var(--theme_primary1_selected2_color);
+  background: var(--common_bg2_color);
+  box-shadow: 0 0 0 3px var(--fx-primary-selected);
+}
+
+.contextual-ai-popover form > .contextual-ai-submit-row {
+  display: flex;
+  margin-top: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--fx-line-subtle);
+}
+
+.contextual-ai-submit-row > span {
+  color: var(--fx-text-tertiary);
+  font-size: 10px;
+}
+
+.contextual-ai-popover form > .contextual-ai-submit-row > button {
+  display: inline-flex;
+  width: auto;
+  height: 32px;
+  padding: 0 13px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 7px;
+  font-size: 11px;
+}
+
+.contextual-ai-submit-row button strong {
+  font-weight: 600;
+}
+
+/* 阶段一 · 迭代 183：窄题单点击题目后悬浮展示答案解析 */
+.editor-question-answer-popover {
+  display: none;
+}
+
+.workspace-shell.is-split-source .editor-question-block.has-answer-popover {
+  position: relative;
+  z-index: 32;
+}
+
+.workspace-shell.is-split-source .editor-question.is-selected {
+  padding-top: 16px;
+}
+
+.workspace-shell.is-split-source .editor-question-tools {
+  top: 0;
+  transform: translateY(calc(-100% - 4px));
+}
+
+.workspace-shell.is-split-source .editor-question:hover .editor-question-tools,
+.workspace-shell.is-split-source .editor-question:focus-within .editor-question-tools {
+  transform: translateY(calc(-100% - 4px));
+}
+
+.workspace-shell.is-split-source .editor-question-answer-popover {
+  position: absolute;
+  z-index: 6;
+  top: calc(100% - 3px);
+  right: 12px;
+  left: 12px;
+  display: grid;
+  gap: 7px;
+  padding: 12px 14px;
+  border: 1px solid var(--fx-line-strong);
+  border-top-color: var(--fx-line-subtle);
+  border-radius: 0 0 8px 8px;
+  color: var(--fx-text-primary);
+  background: var(--common_bg2_color);
+  box-shadow: 0 12px 28px var(--common_shadow2_color);
+  cursor: default;
+}
+
+.workspace-shell.is-split-source .editor-question-answer-popover > div {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+
+.workspace-shell.is-split-source .editor-question-answer-popover strong {
+  color: var(--fx-text-primary);
+  font-family: var(--fx-font-body);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 20px;
+}
+
+.workspace-shell.is-split-source .editor-question-answer-popover p {
+  margin: 0;
+  color: var(--fx-text-secondary);
+  font-family: var(--question-font-family, "Songti SC", "STSong", serif);
+  font-size: 13px;
+  line-height: 20px;
+  white-space: pre-wrap;
+}
+
+.question-fly-card { position: fixed; z-index: 999; display: flex; width: 92px; height: 34px; box-sizing: border-box; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--fx-primary-selected-strong); border-radius: var(--fx-radius-control); color: var(--fx-primary); background: var(--common_bg2_color); box-shadow: var(--fx-shadow-card); font-size: 11px; pointer-events: none; will-change: transform, opacity; }
+.question-fly-card span { display: grid; width: 18px; height: 18px; place-items: center; border-radius: 50%; color: var(--common_fg_color); background: var(--fx-primary); font-size: 13px; }
+.question-fly-card strong { font-weight: 600; }

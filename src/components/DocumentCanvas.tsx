@@ -9,7 +9,9 @@ import { DocumentFormatToolbar } from './DocumentFormatToolbar'
 
 interface DocumentCanvasProps {
   document: WorkbenchDocument
+  compactPreview: boolean
   selectedQuestionId: string | null
+  highlightedQuestionId?: string | null
   onTitleChange: (title: string) => void
   onSelectQuestion: (questionId: string) => void
   onRewriteRequirement: (requirement: string) => void
@@ -137,6 +139,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
   const [editRequirement, setEditRequirement] = useState('')
   const [questionAiOpen, setQuestionAiOpen] = useState(false)
   const [questionAiSubmitted, setQuestionAiSubmitted] = useState(false)
+  const [answerPreviewQuestionId, setAnswerPreviewQuestionId] = useState<string | null>(null)
   const documentFormat = { ...defaultDocumentFormat, ...props.document.format }
   const questionRows = useMemo(() => {
     let sectionNumber = 0
@@ -149,6 +152,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
 
   useEffect(() => {
     setQuestionStyles({})
+    setAnswerPreviewQuestionId(null)
   }, [props.document.format, props.document.id])
   useEffect(() => {
     setQuestionAiOpen(false)
@@ -158,7 +162,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
 
   return (
     <article
-      className="editor-document"
+      className={`editor-document${questionAiOpen ? ' is-ai-focus' : ''}`}
       data-sec="3"
       aria-label="题单编辑区"
       style={{
@@ -186,12 +190,14 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
       <div className="editor-question-list">
         {questionRows.map(({ question, index, sectionNumber }) => {
           const selected = question.id === props.selectedQuestionId
-          const questionStyle = questionStyles[question.id] ?? { ...documentFormat, bold: false, italic: false, underline: false }
+          const editing = selected && !props.compactPreview
+          const answerPreviewOpen = answerPreviewQuestionId === question.id
+          const questionStyle = questionStyles[question.id] ?? { ...documentFormat }
           const updateQuestionStyle = <Key extends keyof QuestionStyle>(key: Key, value: QuestionStyle[Key]) => {
             setQuestionStyles((current) => ({ ...current, [question.id]: { ...questionStyle, [key]: value } }))
           }
           return (
-            <div className="editor-question-block" key={question.id}>
+            <div className={`editor-question-block${answerPreviewOpen ? ' has-answer-popover' : ''}`} key={question.id}>
             {sectionNumber ? (
               <EditableSectionTitle
                 number={sectionNumber}
@@ -202,9 +208,16 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
             ) : null}
             <section
               id={`question-${question.id}`}
-              className={`editor-question${selected ? ' is-selected' : ''}`}
+              className={`editor-question${selected ? ' is-selected' : ''}${selected && questionAiOpen ? ' is-ai-open' : ''}${question.id === props.highlightedQuestionId ? ' is-newly-added' : ''}`}
               onMouseEnter={() => props.onSelectQuestion(question.id)}
-              onClick={() => props.onSelectQuestion(question.id)}
+              onMouseDown={(event) => {
+                if (!props.compactPreview) return
+                if ((event.target as HTMLElement).closest('.editor-question-tools, .contextual-ai-popover, .editor-question-answer-popover')) return
+                setAnswerPreviewQuestionId((current) => current === question.id ? null : question.id)
+              }}
+              onClick={(event) => {
+                props.onSelectQuestion(question.id)
+              }}
               onKeyDown={(event) => {
                 if (event.target !== event.currentTarget) return
                 if (event.key === 'Enter' || event.key === ' ') {
@@ -215,13 +228,13 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
               tabIndex={0}
               aria-current={selected ? 'true' : undefined}
               aria-label={`第 ${index + 1} 题`}
-              style={{ '--question-font-family': questionStyle.fontFamily === 'sans' ? 'var(--fx-font-body)' : questionStyle.fontFamily === 'kaiti' ? '"Kaiti SC", "STKaiti", serif' : '"Songti SC", "STSong", serif', '--question-font-size': `${questionStyle.fontSize}px`, '--question-line-height': questionStyle.lineHeight, '--question-letter-spacing': `${questionStyle.letterSpacing}px`, '--question-font-weight': questionStyle.bold ? '700' : '400', '--question-font-style': questionStyle.italic ? 'italic' : 'normal', '--question-text-decoration': questionStyle.underline ? 'underline' : 'none' } as React.CSSProperties}
+              style={{ '--question-font-family': questionStyle.fontFamily === 'sans' ? 'var(--fx-font-body)' : questionStyle.fontFamily === 'kaiti' ? '"Kaiti SC", "STKaiti", serif' : '"Songti SC", "STSong", serif', '--question-font-size': `${questionStyle.fontSize}px`, '--question-line-height': questionStyle.lineHeight, '--question-letter-spacing': `${questionStyle.letterSpacing}px`, '--question-font-weight': questionStyle.bold ? '700' : '400', '--question-font-style': questionStyle.italic ? 'italic' : 'normal', '--question-text-decoration': questionStyle.underline ? 'underline' : 'none', '--question-text-color': questionStyle.textColor, '--question-text-align': questionStyle.textAlign, '--question-indent': `${questionStyle.indentLevel * 16}px` } as React.CSSProperties}
             >
               <button type="button" className="editor-question-drag" draggable aria-label={`拖动第 ${index + 1} 题`} onClick={(event) => event.stopPropagation()}><GripVertical size={16} /></button>
               {selected ? (
                 <div className="editor-question-tools" onClick={(event) => event.stopPropagation()}>
                   <div className="editor-question-toolbar">
-                    <button type="button" className="editor-question-ai-trigger" onClick={() => { setQuestionAiSubmitted(false); setQuestionAiOpen((open) => !open) }} aria-expanded={questionAiOpen}><Sparkles size={14} />飞象 AI</button>
+                    <button type="button" className="editor-question-ai-trigger" onClick={() => { setQuestionAiSubmitted(false); setAnswerPreviewQuestionId(null); setQuestionAiOpen((open) => { const next = !open; if (next) requestAnimationFrame(() => document.getElementById(`question-${question.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })); return next }) }} aria-expanded={questionAiOpen}><Sparkles size={14} />AI 助手</button>
                     <label className="question-format-control" title="字体"><select aria-label="题目字体" value={questionStyle.fontFamily} onChange={(event) => updateQuestionStyle('fontFamily', event.target.value as DocumentFormat['fontFamily'])}><option value="serif">宋体</option><option value="sans">黑体</option><option value="kaiti">楷体</option></select></label>
                     <label className="question-format-control" title="字号"><select aria-label="题目字号" value={questionStyle.fontSize} onChange={(event) => updateQuestionStyle('fontSize', event.target.value as DocumentFormat['fontSize'])}><option value="14">小</option><option value="16">标准</option><option value="18">大</option></select></label>
                     <label className="question-format-control" title="行距"><select aria-label="题目行距" value={questionStyle.lineHeight} onChange={(event) => updateQuestionStyle('lineHeight', event.target.value as DocumentFormat['lineHeight'])}><option value="1.5">1.5</option><option value="1.7">1.7</option><option value="2">2.0</option></select></label>
@@ -246,7 +259,26 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
                   placeholder="例如：降低难度，换成生活化情境"
                   status={questionAiSubmitted ? props.rewriteStatus : 'idle'}
                   resultText={questionAiSubmitted ? props.rewritePreview?.stem : undefined}
+                  resultVariants={questionAiSubmitted && props.rewritePreview?.stem ? [
+                    props.rewritePreview.stem,
+                    `保持原考点不变，换一种表达：${props.rewritePreview.stem}`,
+                    `结合真实学习情境，重新设计：${props.rewritePreview.stem}`,
+                  ] : undefined}
                   resultMeta="已生成改写结果"
+                  originalText={question.stem}
+                  quickActions={[
+                    { label: '润色表达', instruction: '润色题目文案，使表达更准确简洁' },
+                    { label: '调整难度', instruction: '调整题目难度' },
+                    { label: '增加情境', instruction: '换生活情境' },
+                    { label: '同考点变式', instruction: '保持考点不变，生成不同形式的变式题' },
+                  ].map((action) => ({
+                    label: action.label,
+                    onSelect: () => {
+                      setEditRequirement(action.label)
+                      setQuestionAiSubmitted(true)
+                      props.onRewriteRequirement(action.instruction)
+                    },
+                  }))}
                   onPromptChange={setEditRequirement}
                   onSubmit={() => { setQuestionAiSubmitted(true); props.onRewriteRequirement(editRequirement.trim()) }}
                   onClose={() => { setQuestionAiOpen(false); setQuestionAiSubmitted(false) }}
@@ -256,7 +288,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
               ) : null}
               <div className="editor-question-mainline">
                 <span className="editor-question-number">{index + 1}.</span>
-                {selected ? (
+                {editing ? (
                   <EditableQuestionText
                     value={question.stem}
                     multiline
@@ -267,7 +299,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
               </div>
               {question.options ? (
                 <div className="editor-question-options">
-                  {question.options.map((option, optionIndex) => selected ? (
+                  {question.options.map((option, optionIndex) => editing ? (
                     <EditableQuestionText
                       key={`${question.id}-option-${optionIndex}`}
                       value={option}
@@ -280,6 +312,12 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
                     />
                   ) : <span key={`${question.id}-option-${optionIndex}`}>{option}</span>)}
                 </div>
+              ) : null}
+              {answerPreviewOpen ? (
+                <aside className="editor-question-answer-popover" aria-label={`第 ${index + 1} 题答案与解析`} onClick={(event) => event.stopPropagation()}>
+                  <div><strong>答案</strong><p>{question.answer || '暂无答案'}</p></div>
+                  <div><strong>解析</strong><p>{question.analysis || '暂无解析'}</p></div>
+                </aside>
               ) : null}
             </section>
             </div>

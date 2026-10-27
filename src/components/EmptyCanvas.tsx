@@ -129,42 +129,83 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       <div className="editor-empty-content">
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
-            <div className="empty-first-block" role="group" aria-label="题单内容块" key={blockId}>
+            <div className={`empty-first-block${blockId === 'initial' && !props.document.intro ? ' is-add-only' : ''}`} role="group" aria-label="题单内容块" key={blockId}>
               <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenAssistant={() => props.onOpenAssistant()} />
-              <div
-                className="empty-block-input"
-                ref={(node) => {
-                  if (node) blockRefs.current.set(blockId, node)
-                  else blockRefs.current.delete(blockId)
-                }}
-                contentEditable
-                suppressContentEditableWarning
-                role="textbox"
-                aria-multiline="true"
-                aria-label="题稿说明，可输入考试说明或作答要求"
-                data-placeholder="补充考试说明或作答要求（选填）"
-                onMouseUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
-                onKeyUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
-                onInput={syncBlockContent}
-                onKeyDown={(event) => {
-                  const isEmpty = !event.currentTarget.textContent?.trim()
-                  const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
-                  if (!hasModifier && event.key === 'Enter' && !event.nativeEvent.isComposing) {
-                    event.preventDefault()
-                    if (!isEmpty) insertBlockAfter(blockId)
-                  }
-                  if (isEmpty && !hasModifier && event.code === 'Space' && !event.nativeEvent.isComposing && !event.repeat) {
-                    event.preventDefault()
-                    props.onOpenAssistant()
-                  }
-                  if (isEmpty && !hasModifier && event.key === '/' && !event.nativeEvent.isComposing && !event.repeat) {
-                    event.preventDefault()
-                    setAddMenuRequests((current) => ({ ...current, [blockId]: (current[blockId] ?? 0) + 1 }))
-                  }
-                }}
-              />
+              {blockId !== 'initial' || props.document.intro ? (
+                <div
+                  className="empty-block-input"
+                  ref={(node) => {
+                    if (node) blockRefs.current.set(blockId, node)
+                    else blockRefs.current.delete(blockId)
+                  }}
+                  contentEditable
+                  suppressContentEditableWarning
+                  role="textbox"
+                  aria-multiline="true"
+                  aria-label="题稿说明，可输入考试说明或作答要求"
+                  onMouseUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
+                  onKeyUp={() => window.requestAnimationFrame(updateSelectionToolbar)}
+                  onInput={syncBlockContent}
+                  onKeyDown={(event) => {
+                    const isEmpty = !event.currentTarget.textContent?.trim()
+                    const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey
+                    if (!hasModifier && event.key === 'Enter' && !event.nativeEvent.isComposing) {
+                      event.preventDefault()
+                      if (!isEmpty) insertBlockAfter(blockId)
+                    }
+                    if (isEmpty && !hasModifier && event.code === 'Space' && !event.nativeEvent.isComposing && !event.repeat) {
+                      event.preventDefault()
+                      props.onOpenAssistant()
+                    }
+                    if (isEmpty && !hasModifier && event.key === '/' && !event.nativeEvent.isComposing && !event.repeat) {
+                      event.preventDefault()
+                      setAddMenuRequests((current) => ({ ...current, [blockId]: (current[blockId] ?? 0) + 1 }))
+                    }
+                  }}
+                />
+              ) : null}
             </div>
           ))}
+        </div>
+
+        <div className="empty-question-preview" aria-hidden="true">
+          <div className="empty-preview-section-title"><strong>一、选择题</strong><span /></div>
+          <div className="empty-preview-question">
+            <b>1.</b>
+            <div>
+              <span className="is-stem" />
+              <span className="is-stem is-short" />
+              <div className="empty-preview-options"><i /><i /><i /><i /></div>
+            </div>
+          </div>
+          <div className="empty-preview-question is-secondary">
+            <b>2.</b>
+            <div>
+              <span className="is-stem" />
+              <div className="empty-preview-options"><i /><i /><i /><i /></div>
+            </div>
+          </div>
+
+          <div className="empty-preview-section-title"><strong>二、填空题</strong><span /></div>
+          <div className="empty-preview-question is-compact">
+            <b>3.</b>
+            <div><span className="is-stem is-short" /><i className="is-answer-line" /></div>
+          </div>
+          <div className="empty-preview-question is-compact is-secondary">
+            <b>4.</b>
+            <div><span className="is-stem is-shorter" /><i className="is-answer-line is-long" /></div>
+          </div>
+
+          <div className="empty-preview-section-title"><strong>三、解答题</strong><span /></div>
+          <div className="empty-preview-question is-compact">
+            <b>5.</b>
+            <div><span className="is-stem" /><span className="is-stem is-short" /><i className="is-solution-area" /></div>
+          </div>
+          <div className="empty-preview-question is-compact is-secondary">
+            <b>6.</b>
+            <div><span className="is-stem" /><span className="is-stem is-shorter" /><i className="is-solution-area" /></div>
+          </div>
+          <p>从左侧找到题目后，点击「添加」</p>
         </div>
 
         {selectionToolbar ? (

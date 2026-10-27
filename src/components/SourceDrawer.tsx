@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react'
 import { MetisButton } from '@yuanfudao/metis-web-component'
 import {
+  CheckCircle2,
+  ClipboardPaste,
   FilePenLine,
+  FileText,
   FileUp,
+  Image,
   Minus,
   Plus,
   School,
@@ -20,6 +24,7 @@ import type {
   ResourceType,
   SourceRecord,
 } from '../prototype/types'
+import { animateQuestionToDraft } from '../utils/animateQuestionToDraft'
 import { LibraryPicker } from './LibraryPicker'
 
 interface SourceDrawerProps {
@@ -81,6 +86,8 @@ const structuredKnowledgeExamples: Record<string, string> = {
 
 export function SourceDrawer(props: SourceDrawerProps) {
   const [libraryDetailOpen, setLibraryDetailOpen] = useState(false)
+  const [uploadInputMode, setUploadInputMode] = useState<'paste' | 'file'>('paste')
+  const [uploadDraft, setUploadDraft] = useState('')
   const docked = props.presentation === 'docked'
   const createTotal = props.createConfig.allocations.reduce((sum, item) => sum + item.count, 0)
 
@@ -214,7 +221,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
                 {props.createError ? <div className="inline-error" role="alert">{props.createError}</div> : null}
                 {props.createPreview.length > 0 ? (
                   <div className="create-preview-block structured-create-preview">
-                    <div className="create-preview-heading"><strong>生成预览</strong><span>{props.createPreview.length} 道 · 确认后加入右侧题稿</span></div>
+                    <div className="create-preview-heading"><strong>生成预览</strong><span>{props.createPreview.length} 道 · 确认后添加到题单</span></div>
                     <div className="create-preview-list">
                       {props.createPreview.map((question, index) => (
                         <article key={question.id}><span>{index + 1}</span><p>{question.stem}</p></article>
@@ -222,7 +229,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
                     </div>
                     <div className="structured-create-actions">
                       <MetisButton type="bordered" disabled={props.contentBusy} onClick={generateStructuredQuestions}>重新生成</MetisButton>
-                      <MetisButton type="primary" icon={<Plus size={16} />} disabled={props.contentBusy} onClick={props.onAddCreated}>加入当前题单</MetisButton>
+                      <MetisButton type="primary" icon={<Plus size={16} />} disabled={props.contentBusy} onClick={(event) => { animateQuestionToDraft(event.currentTarget); props.onAddCreated() }}>添加</MetisButton>
                     </div>
                   </div>
                 ) : (
@@ -235,23 +242,62 @@ export function SourceDrawer(props: SourceDrawerProps) {
           ) : null}
 
           {props.mode === 'upload' ? (
-            <div className="add-mode-content upload-panel">
-              <div className="upload-dropzone">
-                <div className="upload-icon"><UploadCloud size={28} /></div>
-                <h3>上传后自动识别题目</h3>
-                <p>支持 PDF、DOCX、JPG、PNG，单文件 20MB 内；识别结果会标记待校验。</p>
+            <div className="add-mode-content upload-workbench">
+              <header className="upload-workbench-heading">
+                <div className="upload-workbench-title">
+                  <span><FileUp size={21} /></span>
+                  <div><h2>AI 智能录题</h2><p>粘贴题目或上传文件，AI 自动识别题干、选项、答案与解析</p></div>
+                </div>
+                <span className="upload-workbench-badge">识别结果待校验</span>
+              </header>
+
+              <div className="upload-method-tabs" role="tablist" aria-label="录题方式">
+                <button type="button" role="tab" aria-selected={uploadInputMode === 'paste'} className={uploadInputMode === 'paste' ? 'is-active' : ''} onClick={() => setUploadInputMode('paste')}><ClipboardPaste size={16} />粘贴录题</button>
+                <button type="button" role="tab" aria-selected={uploadInputMode === 'file'} className={uploadInputMode === 'file' ? 'is-active' : ''} onClick={() => setUploadInputMode('file')}><UploadCloud size={16} />文件录题</button>
+              </div>
+
+              <div className="upload-workbench-main">
+                <section className="upload-input-card">
+                  {uploadInputMode === 'paste' ? (
+                    <>
+                      <div className="upload-card-heading"><div><strong>粘贴题目内容</strong><span>支持一次粘贴多道题</span></div><button type="button" onClick={() => setUploadDraft('1. 已知一次函数 y = 2x - 3，当 x = 2 时，求 y 的值。\n答案：1\n解析：将 x = 2 代入函数解析式。')}>填入示例</button></div>
+                      <textarea value={uploadDraft} onChange={(event) => setUploadDraft(event.target.value)} placeholder={'请粘贴或输入题目内容\n\n支持识别题干、选项、答案、解析和图片说明'} />
+                      <div className="upload-input-hint"><span>可直接从网页、Word 或聊天内容中复制</span><span>{uploadDraft.length} 字</span></div>
+                    </>
+                  ) : (
+                    <button type="button" className="upload-file-dropzone" disabled={props.contentBusy} onClick={props.onUpload}>
+                      <span className="upload-icon"><UploadCloud size={28} /></span>
+                      <strong>点击选择或拖拽文件到这里</strong>
+                      <small>支持 Word、PDF、JPG、PNG，单文件不超过 20MB</small>
+                      <em><FileUp size={15} />选择文件</em>
+                    </button>
+                  )}
+                </section>
+
+                <aside className="upload-recognition-card">
+                  <h3>AI 可自动识别</h3>
+                  <ul>
+                    <li><span><FileText size={16} /></span><div><strong>题目结构</strong><small>题干、选项、答案与解析</small></div><CheckCircle2 size={16} /></li>
+                    <li><span><Image size={16} /></span><div><strong>图文与公式</strong><small>保留图片位置与数学公式</small></div><CheckCircle2 size={16} /></li>
+                    <li><span><Sparkles size={16} /></span><div><strong>题型判断</strong><small>自动拆分多题并识别题型</small></div><CheckCircle2 size={16} /></li>
+                  </ul>
+                  <div className="upload-flow-note"><strong>识别后</strong><p>先预览校验，再添加到右侧题单，不会直接覆盖已有内容。</p></div>
+                </aside>
+              </div>
+
+              <footer className="upload-workbench-actions">
+                <div><span>1</span>智能识别<i /> <span>2</span>校验题目<i /> <span>3</span>添加到题单</div>
                 <MetisButton
                   type="primary"
-                  icon={<FileUp size={17} />}
+                  icon={<Sparkles size={17} />}
                   loading={props.addStatus === 'loading'}
-                  disabled={props.contentBusy}
+                  disabled={props.contentBusy || (uploadInputMode === 'paste' && !uploadDraft.trim())}
                   onClick={props.onUpload}
-                  data-track="/click/aiQuestionHome/uploadQuestion | 上传材料录题 | 无"
+                  data-track="/click/aiQuestionHome/uploadQuestion | AI智能录题 | 无"
                 >
-                  选择文件并识别
+                  开始识别
                 </MetisButton>
-              </div>
-              <div className="upload-steps"><span>1. 识别题目</span><span>2. 加入题单</span><span>3. 人工校验</span></div>
+              </footer>
             </div>
           ) : null}
 

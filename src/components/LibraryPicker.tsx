@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { baseQuestions, sourceOptions, sourceRecords as allSourceRecords } from '../data/workbenchData'
 import type { AsyncStatus, LibraryInitialView, Question, ResourceType, SourceRecord } from '../prototype/types'
+import { animateQuestionToDraft } from '../utils/animateQuestionToDraft'
 
 interface LibraryPickerProps {
   variant?: 'dialog' | 'home'
@@ -209,7 +210,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                         <span>知识点：{question.knowledgePoint}</span>
                         <div>
                           <button type="button">纠错</button><button type="button"><Star size={14} />收藏</button><button type="button">解析</button><button type="button">相似题</button>
-                          {props.embedded ? <button type="button" className={`is-add${selected ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={selected || pending} onClick={() => void props.onToggleQuestion(question)}>{selected ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button> : null}
+                          {props.embedded ? <button type="button" className={`is-add${selected ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={selected || pending} onClick={(event) => { animateQuestionToDraft(event.currentTarget); void props.onToggleQuestion(question) }}>{selected ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button> : null}
                         </div>
                       </footer>
                     </article>
@@ -488,7 +489,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
                     <div className="chapter-question-meta"><span>{question.type} / {question.difficulty} / {question.estimatedMinutes}分钟</span></div>
                     <div className="chapter-question-stem"><b>{index + 1}.</b><p>{question.stem}</p></div>
                     {question.options ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
-                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className={`is-add${added ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={added || pending} onClick={() => void addQuestionImmediately(question)}>{added ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button></div></footer>
+                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className={`is-add${added ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={added || pending} onClick={(event) => { animateQuestionToDraft(event.currentTarget); void addQuestionImmediately(question) }}>{added ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button></div></footer>
                   </article>
                 )
               })}

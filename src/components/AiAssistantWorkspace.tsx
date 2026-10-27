@@ -1,5 +1,6 @@
 import { AlertCircle, BrainCircuit, Check, Circle, LoaderCircle } from 'lucide-react'
 import type { AiAssistantRun, AsyncStatus } from '../prototype/types'
+import { animateQuestionToDraft } from '../utils/animateQuestionToDraft'
 import { AiComposer } from './AiComposer'
 
 interface AiAssistantWorkspaceProps {
@@ -40,7 +41,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
               <div className="ai-assistant-response-body">
                 <div className="ai-assistant-response-heading">
                   <strong>{run.status === 'loading' ? '正在处理' : run.status === 'success' ? '处理完成' : '处理遇到问题'}</strong>
-                  <span>{run.status === 'loading' ? '生成后需要确认才会加入题稿' : run.status === 'success' ? run.confirmed ? '已加入当前题稿' : '请确认预览结果' : '可修改要求后重试'}</span>
+                  <span>{run.status === 'loading' ? '生成后需要确认才会添加到题稿' : run.status === 'success' ? run.confirmed ? '已添加到当前题稿' : '请确认预览结果' : '可修改要求后重试'}</span>
                 </div>
 
                 <ol className="ai-assistant-steps">
@@ -63,9 +64,9 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
                   <div className="ai-assistant-result" role="status">
                     <span><Check size={16} /></span>
                     <div>
-                      <strong>{run.confirmed ? '已加入右侧题稿' : `已生成 ${run.resultCount} 道题`}</strong>
+                      <strong>{run.confirmed ? '已添加到右侧题稿' : `已生成 ${run.resultCount} 道题`}</strong>
                       <p>{run.confirmed ? '可继续在右侧调整顺序、编辑或删除。' : props.previewText}</p>
-                      {!run.confirmed ? <button type="button" className="ai-assistant-confirm" onClick={props.onConfirm}>确认加入题稿</button> : null}
+                      {!run.confirmed ? <button type="button" className="ai-assistant-confirm" onClick={(event) => { animateQuestionToDraft(event.currentTarget); props.onConfirm() }}>添加</button> : null}
                     </div>
                   </div>
                 ) : null}
@@ -80,7 +81,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
           <div className="ai-assistant-empty">
             <span><BrainCircuit size={22} /></span>
             <strong>描述你的组题需求</strong>
-            <p>AI 会展示处理过程，老师确认结果后再加入右侧题稿。</p>
+            <p>AI 会展示处理过程，老师确认结果后再添加到右侧题稿。</p>
           </div>
         )}
       </div>

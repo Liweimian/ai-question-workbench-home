@@ -6,6 +6,17 @@ import type {
   WorkbenchDocument,
 } from '../prototype/types'
 
+export function formatDefaultDocumentTitle(date = new Date()) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}.${month}.${day}题单`
+}
+
+export function isDefaultDocumentTitle(title: string) {
+  return /^\d{4}\.\d{2}\.\d{2}题单(?:（\d+）)?$/.test(title.trim())
+}
+
 export const sourceOptions: SourceOption[] = [
   { type: 'paper', title: '试卷', description: '整卷或挑题加入', eyebrow: '已有资源' },
   { type: 'workbook', title: '练习册', description: '按章节或页码加入', eyebrow: '已有资源' },
@@ -106,6 +117,72 @@ export const baseQuestions: Question[] = [
     verifyStatus: '已校验',
     usageCount: 73,
   },
+  {
+    id: 'q-105',
+    type: '选择题',
+    stem: '一次函数 y = -3x + 2 的图象经过的象限是（　　）',
+    options: ['A. 一、二、三', 'B. 一、二、四', 'C. 一、三、四', 'D. 二、三、四'],
+    answer: 'B',
+    analysis: '斜率小于 0，图象经过第一、二、四象限。',
+    knowledgePoint: '一次函数图象与性质',
+    difficulty: '基础',
+    estimatedMinutes: 2,
+    score: 3,
+    sourceLabel: '一次函数同步精练',
+    sourceDetail: '第四章 · 图象与性质',
+    origin: 'question-bank',
+    verifyStatus: '已校验',
+    usageCount: 112,
+  },
+  {
+    id: 'q-106',
+    type: '填空题',
+    stem: '将直线 y = 2x 向上平移 3 个单位，所得直线的解析式为 ______。',
+    answer: 'y = 2x + 3',
+    analysis: '一次函数图象向上平移 3 个单位，常数项增加 3。',
+    knowledgePoint: '一次函数图象平移',
+    difficulty: '基础',
+    estimatedMinutes: 2,
+    score: 4,
+    sourceLabel: '一次函数课时作业',
+    sourceDetail: '第四章 · 图象平移',
+    origin: 'question-bank',
+    verifyStatus: '已校验',
+    usageCount: 96,
+  },
+  {
+    id: 'q-107',
+    type: '解答题',
+    stem: '已知一次函数的图象经过点（1，3）和（3，7），求这个一次函数的解析式。',
+    answer: 'y = 2x + 1',
+    analysis: '设 y = kx + b，将两点坐标代入，解方程组得 k = 2，b = 1。',
+    knowledgePoint: '待定系数法求解析式',
+    difficulty: '中等',
+    estimatedMinutes: 5,
+    score: 6,
+    sourceLabel: '一次函数单元训练',
+    sourceDetail: '第四章 · 待定系数法',
+    origin: 'question-bank',
+    verifyStatus: '已校验',
+    usageCount: 81,
+  },
+  {
+    id: 'q-108',
+    type: '选择题',
+    stem: '若一次函数 y =（m - 1）x + 3 中，y 随 x 的增大而增大，则 m 的取值范围是（　　）',
+    options: ['A. m＜1', 'B. m≤1', 'C. m＞1', 'D. m≥1'],
+    answer: 'C',
+    analysis: 'y 随 x 增大而增大，所以一次项系数 m - 1＞0，即 m＞1。',
+    knowledgePoint: '一次函数增减性',
+    difficulty: '中等',
+    estimatedMinutes: 3,
+    score: 3,
+    sourceLabel: '一次函数易错题精选',
+    sourceDetail: '第四章 · 函数性质',
+    origin: 'question-bank',
+    verifyStatus: '已校验',
+    usageCount: 104,
+  },
 ]
 
 export const recentDocument: WorkbenchDocument = {
@@ -118,7 +195,7 @@ export const recentDocument: WorkbenchDocument = {
 
 export const blankDocument: WorkbenchDocument = {
   id: 'draft-initial',
-  title: '未命名组题',
+  title: formatDefaultDocumentTitle(),
   gradeSubject: '初中数学 · 八年级上册 · 人教版',
   questions: [],
   updatedAt: '刚刚',

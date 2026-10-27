@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
 import { BookOpenCheck, ChevronDown, Download, FileQuestion, FileText, Folder, FolderPlus, ListChecks, MoreHorizontal, Plus, Search, Star } from 'lucide-react'
 import type { HistoryDocumentSummary, MyResourceKind, MyResourceSummary } from '../prototype/types'
+import { animateQuestionToDraft } from '../utils/animateQuestionToDraft'
 
 type SpaceTab = 'created' | 'favorites'
 type ResourceKind = '全部' | MyResourceKind
@@ -143,8 +144,8 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
                   type="button"
                   className={added ? 'is-added' : ''}
                   disabled={pending || added}
-                  onClick={() => props.onAddResource(resource)}
-                ><Plus size={15} />{pending ? '加入中…' : added ? '已加入' : '加入题稿'}</button>
+                  onClick={(event) => { animateQuestionToDraft(event.currentTarget); props.onAddResource(resource) }}
+                ><Plus size={15} />{pending ? '添加中…' : added ? '已添加' : '添加'}</button>
               )}
               <button type="button" className="resource-download-action" aria-label={`下载：${title}`} title="下载" onClick={() => MetisMessage.info(`正在下载“${title}”`)}><Download size={16} /><span className="resource-action-label">下载</span></button>
               {space === 'favorites' ? <button type="button" className="is-favorite" aria-label={`已收藏：${title}`} title="已收藏"><Star size={16} fill="currentColor" /><span className="resource-action-label">已收藏</span></button> : null}

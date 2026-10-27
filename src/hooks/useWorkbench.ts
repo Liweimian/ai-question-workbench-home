@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
-import { blankDocument } from '../data/workbenchData'
+import { blankDocument, formatDefaultDocumentTitle, isDefaultDocumentTitle } from '../data/workbenchData'
 import { defaultDocumentFormat } from '../prototype/types'
 import type {
   AddQuestionMode,
@@ -65,6 +65,19 @@ const cloneQuestion = (question: Question): Question => ({
 
 const cloneQuestions = (questions: Question[]) => questions.map(cloneQuestion)
 
+const insertQuestionsAtTypeEnd = (current: Question[], incoming: Question[]) => {
+  const next = cloneQuestions(current)
+  cloneQuestions(incoming).forEach((question) => {
+    let lastSameTypeIndex = -1
+    next.forEach((item, index) => {
+      if (item.type === question.type) lastSameTypeIndex = index
+    })
+    if (lastSameTypeIndex < 0) next.push(question)
+    else next.splice(lastSameTypeIndex + 1, 0, question)
+  })
+  return next
+}
+
 const cloneDocument = (document: WorkbenchDocument): WorkbenchDocument => ({
   ...document,
   format: document.format ? { ...document.format } : undefined,
@@ -83,7 +96,7 @@ const documentFingerprint = (document: WorkbenchDocument) => JSON.stringify({
 const isUntouchedBlankDocument = (document: WorkbenchDocument) => (
   document.questions.length === 0
   && !document.intro?.trim()
-  && ['未命名组题', '未命名题单'].includes(document.title.trim())
+  && (['未命名组题', '未命名题单'].includes(document.title.trim()) || isDefaultDocumentTitle(document.title))
   && Object.entries(defaultDocumentFormat).every(
     ([key, value]) => ({ ...defaultDocumentFormat, ...document.format })[key as keyof DocumentFormat] === value,
   )
@@ -96,7 +109,7 @@ const toHistorySummary = (
   assignmentOutdated?: boolean,
 ): HistoryDocumentSummary => ({
   id: document.id,
-  title: document.title.trim() || '未命名组题',
+  title: document.title.trim() || formatDefaultDocumentTitle(),
   gradeSubject: document.gradeSubject,
   questionCount: document.questions.length,
   updatedAt: '刚刚',
@@ -165,8 +178,8 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     return {
       document: {
         ...state.document,
-        title: state.document.title === '未命名' || state.document.title === '未命名组题' ? '未命名组题' : state.document.title,
-        questions: [...state.document.questions, ...cloneQuestions(action.questions)],
+        title: state.document.title === '未命名' || state.document.title === '未命名组题' ? formatDefaultDocumentTitle() : state.document.title,
+        questions: insertQuestionsAtTypeEnd(state.document.questions, action.questions),
         updatedAt: '刚刚',
       },
       undoDocument: cloneDocument(state.document),
@@ -567,7 +580,7 @@ export function useWorkbench() {
     setSourceAddStatus('loading')
     try {
       const questions = await workbenchRepository.addSource(type, sourceId, count, selectedQuestions)
-      appendQuestions(questions, `已从题库添加 ${questions.length} 道题，可继续选题`, false)
+      appendQuestions(questions, `已添加 ${questions.length} 道题，可继续在左侧选题`, false)
       setSourceAddStatus('success')
       return true
     } catch {
@@ -779,15 +792,23 @@ export function useWorkbench() {
       MetisMessage.info('正在处理上一项内容，请稍候')
       return false
     }
-    if (document.questions.length === 0 && !document.intro?.trim() && ['未命名组题', '未命名题单'].includes(document.title.trim())) {
+    if (document.questions.length === 0 && !document.intro?.trim() && (['未命名组题', '未命名题单'].includes(document.title.trim()) || isDefaultDocumentTitle(document.title))) {
       MetisMessage.info('当前已经是一份空白题单')
       return false
     }
 
     rememberDocument(document)
+    const baseTitle = formatDefaultDocumentTitle()
+    const existingTitles = new Set([document.title.trim(), ...historyDocuments.map((item) => item.title.trim())])
+    let nextTitle = baseTitle
+    let suffix = 2
+    while (existingTitles.has(nextTitle)) {
+      nextTitle = `${baseTitle}（${suffix}）`
+      suffix += 1
+    }
     const nextDocument: WorkbenchDocument = {
       id: `draft-${Date.now()}`,
-      title: '未命名组题',
+      title: nextTitle,
       gradeSubject: document.gradeSubject,
       questions: [],
       updatedAt: '刚刚',
@@ -808,7 +829,7 @@ export function useWorkbench() {
     clearAssistantRun()
     MetisMessage.success('已新建空白题单，上一份已保留在最近记录，可撤销')
     return true
-  }, [clearAssistantRun, document, invalidateRewrite, rememberDocument])
+  }, [clearAssistantRun, document, historyDocuments, invalidateRewrite, rememberDocument])
 
   const openHistoryDocument = useCallback(async (documentId: string) => {
     if (document.id === documentId) {

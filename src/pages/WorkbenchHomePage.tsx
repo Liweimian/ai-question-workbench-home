@@ -2,13 +2,15 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { QuestionInspector } from '../components/AiInspector'
 import { AiAssistantWorkspace } from '../components/AiAssistantWorkspace'
 import { CompositionHub } from '../components/CompositionHub'
+import type { RecentOpenedResource } from '../components/CompositionHub'
 import { QuestionSortPanel } from '../components/QuestionSortPanel'
 import { DocumentCanvas } from '../components/DocumentCanvas'
 import { EmptyCanvas } from '../components/EmptyCanvas'
 import { MyResourcesPanel } from '../components/MyResourcesPanel'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
-import { ElephantIcon } from '../components/ElephantIcon'
+import { ElephantIcon, FeixiangAiLibraryLogo } from '../components/ElephantIcon'
+import { isDefaultDocumentTitle, sourceRecords } from '../data/workbenchData'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { defaultDocumentFormat } from '../prototype/types'
 import type { AddQuestionMode, MyResourceKind, SourceRecord } from '../prototype/types'
@@ -35,10 +37,18 @@ function isLibraryTabMode(mode: AddTabMode): mode is LibraryTabMode {
   return mode === 'resource' || mode === 'school'
 }
 
+const recentOpenedResources: RecentOpenedResource[] = [
+  { id: 'recent-paper-1', type: '试卷', title: sourceRecords.find((item) => item.id === 'paper-1')!.title, progress: '看到第 12 题 · 已选 5 题', updatedAt: '今天 15:20', libraryMode: 'resource', record: sourceRecords.find((item) => item.id === 'paper-1')!, scrollTop: 520 },
+  { id: 'recent-workbook-1', type: '练习册', title: sourceRecords.find((item) => item.id === 'workbook-1')!.title, progress: '看到综合练习 · 已选 2 题', updatedAt: '今天 11:08', libraryMode: 'resource', record: sourceRecords.find((item) => item.id === 'workbook-1')!, scrollTop: 310 },
+  { id: 'recent-special-1', type: '章节', title: sourceRecords.find((item) => item.id === 'special-1')!.title, progress: '看到图象与性质 · 已选 3 题', updatedAt: '昨天 18:42', libraryMode: 'resource', record: sourceRecords.find((item) => item.id === 'special-1')!, scrollTop: 420 },
+]
+
 export function WorkbenchHomePage() {
   const workbench = useWorkbench()
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const previousDocumentId = useRef(workbench.document.id)
+  const highlightTimerRef = useRef<number | null>(null)
+  const recentResourceResumeRef = useRef<{ key: string; scrollTop: number } | null>(null)
   const assistantTabRef = useRef<HTMLButtonElement>(null)
   const [sortCollapsed, setSortCollapsed] = useState(false)
   const [sidePanelOpen, setSidePanelOpen] = useState(true)
@@ -51,11 +61,18 @@ export function WorkbenchHomePage() {
   const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
   const [myResourcesActive, setMyResourcesActive] = useState(false)
   const [myResourcesInitialKind, setMyResourcesInitialKind] = useState<MyResourceKind | '全部'>('全部')
+  const [recentlyAddedQuestionId, setRecentlyAddedQuestionId] = useState<string | null>(null)
   const hasQuestions = workbench.document.questions.length > 0
   const activeLibraryDetail = libraryDetailTabs.find((tab) => tab.key === activeLibraryDetailKey) ?? null
 
   useEffect(() => {
     if (workbench.document.questions.length > previousQuestionCount.current && workbench.selectedQuestionId) {
+      setRecentlyAddedQuestionId(workbench.selectedQuestionId)
+      if (highlightTimerRef.current !== null) window.clearTimeout(highlightTimerRef.current)
+      highlightTimerRef.current = window.setTimeout(() => {
+        setRecentlyAddedQuestionId(null)
+        highlightTimerRef.current = null
+      }, 1800)
       window.requestAnimationFrame(() => {
         document.getElementById(`question-${workbench.selectedQuestionId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       })
@@ -63,9 +80,14 @@ export function WorkbenchHomePage() {
     previousQuestionCount.current = workbench.document.questions.length
   }, [workbench.document.questions.length, workbench.selectedQuestionId])
 
+  useEffect(() => () => {
+    if (highlightTimerRef.current !== null) window.clearTimeout(highlightTimerRef.current)
+  }, [])
+
   useEffect(() => {
     if (previousDocumentId.current === workbench.document.id) return
     previousDocumentId.current = workbench.document.id
+    setRecentlyAddedQuestionId(null)
     setAssistantTabOpen(false)
     setAssistantActive(false)
     setMyResourcesTabOpen(false)
@@ -148,6 +170,19 @@ export function WorkbenchHomePage() {
     window.requestAnimationFrame(() => {
       document.querySelector<HTMLButtonElement>(`[data-detail-tab-key="${key}"]`)?.focus()
     })
+  }
+
+  const openRecentResource = (resource: RecentOpenedResource) => {
+    recentResourceResumeRef.current = { key: `${resource.libraryMode}:${resource.record.id}`, scrollTop: resource.scrollTop }
+    openLibraryDetail(resource.libraryMode, resource.record)
+    window.setTimeout(() => {
+      const pending = recentResourceResumeRef.current
+      if (!pending) return
+      const scrollHost = document.querySelector<HTMLElement>('.legacy-detail-scroll')
+      if (!scrollHost) return
+      scrollHost.scrollTop = pending.scrollTop
+      recentResourceResumeRef.current = null
+    }, 120)
   }
 
   const activateLibraryDetail = (tab: LibraryDetailTab) => {
@@ -258,15 +293,19 @@ export function WorkbenchHomePage() {
       <main className="fx-content workbench-page">
         <div className="fx-zoom-area workbench-zoom-area">
           <WorkspaceHeader
+            documentId={workbench.document.id}
             documentTitle={workbench.document.title}
+            documentUpdatedAt={workbench.document.updatedAt}
             questionCount={workbench.document.questions.length}
-            canSave={workbench.document.questions.length > 0 || Boolean(workbench.document.intro?.trim()) || hasCustomDocumentFormat || !['未命名组题', '未命名题单'].includes(workbench.document.title.trim())}
+            canSave={workbench.document.questions.length > 0 || Boolean(workbench.document.intro?.trim()) || hasCustomDocumentFormat || (!['未命名组题', '未命名题单'].includes(workbench.document.title.trim()) && !isDefaultDocumentTitle(workbench.document.title))}
             canUndo={workbench.canUndo && !workbench.isContentBusy}
             contentBusy={workbench.isContentBusy}
             documentStatus={workbench.documentStatus}
             syncState={workbench.documentSyncState}
             assignmentOutdated={workbench.assignmentOutdated}
             hasPersistedDraft={workbench.historyDocuments.some((item) => item.id === workbench.document.id)}
+            histories={workbench.historyDocuments}
+            historyStatus={workbench.historyStatus}
             onUndo={() => {
               setAssistantTabOpen(false)
               setAssistantActive(false)
@@ -282,9 +321,16 @@ export function WorkbenchHomePage() {
             }}
             onSave={() => { void workbench.saveDocument() }}
             onAssign={() => { void workbench.assignDocument() }}
+            onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
+            onReloadHistory={() => { void workbench.reloadHistory() }}
+            onOpenAllDocuments={() => openMyResources('题单')}
             sidePanelOpen={sidePanelOpen}
             onSidePanelOpen={() => {
               setSidePanelOpen(true)
+              setDraftCollapsed(false)
+            }}
+            onEnterEdit={() => {
+              setSidePanelOpen(false)
               setDraftCollapsed(false)
             }}
             draftCollapsed={draftCollapsed}
@@ -318,7 +364,9 @@ export function WorkbenchHomePage() {
               ) : (
                 <DocumentCanvas
                   document={workbench.document}
+                  compactPreview={sidePanelOpen}
                   selectedQuestionId={workbench.selectedQuestionId}
+                  highlightedQuestionId={recentlyAddedQuestionId}
                   onTitleChange={workbench.setTitle}
                   onSelectQuestion={workbench.selectQuestion}
                   onRewriteRequirement={(requirement) => { void workbench.rewrite('自定义要求', requirement) }}
@@ -351,12 +399,14 @@ export function WorkbenchHomePage() {
             {sidePanelOpen ? (
               <div className="add-workspace" aria-label="添加题目多任务工作区">
                 <div className="add-workspace-brand" aria-label="选择学段科目">
-                  <span className="header-workbench-mark"><ElephantIcon /></span>
-                  <select aria-label="学段科目" defaultValue="初中数学">
-                    <option>小学数学</option>
-                    <option>初中数学</option>
-                    <option>高中数学</option>
-                  </select>
+                  <FeixiangAiLibraryLogo />
+                  <span className="add-workspace-subject">
+                    <select aria-label="学段科目" defaultValue="初中数学">
+                      <option>小学数学</option>
+                      <option>初中数学</option>
+                      <option>高中数学</option>
+                    </select>
+                  </span>
                 </div>
                 <nav className="add-workspace-tabs" aria-label="已打开的添加方式" role="tablist">
                   <button
@@ -499,19 +549,11 @@ export function WorkbenchHomePage() {
                 ) : (
                   <CompositionHub
                     contentBusy={workbench.isContentBusy}
-                    composePrompt={workbench.composePrompt}
-                    composeError={workbench.composeError}
-                    composeStatus={workbench.composeStatus}
-                    currentDocumentId={workbench.document.id}
-                    histories={workbench.historyDocuments}
-                    historyStatus={workbench.historyStatus}
-                    historyDisabled={workbench.isContentBusy || workbench.documentSyncState === 'dirty' || workbench.documentSyncState === 'saving'}
                     onOpenAdd={openAdd}
                     onOpenMyResources={() => openMyResources('全部')}
                     onOpenAssistant={openAssistantWorkspace}
-                    onComposePromptChange={workbench.setComposePrompt}
-                    onCompose={submitAssistant}
-                    onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
+                    recentResources={recentOpenedResources}
+                    onOpenRecentResource={openRecentResource}
                   />
                 )}
               </div>

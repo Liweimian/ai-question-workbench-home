@@ -8,3 +8,12 @@ export function ElephantIcon() {
     </svg>
   )
 }
+
+export function FeixiangAiLibraryLogo() {
+  return (
+    <svg className="feixiang-ai-library-logo" viewBox="0 0 104 104" width="32" height="32" role="img" aria-label="飞象 AI 题库">
+      <path d="M32 27 59 14v13H32Z" fill="#20c7f2" />
+      <path d="M29 31h46v22.5C75 71.2 63.7 84 45 90V72.4C53.4 69.6 58.2 66 59.6 62H29V31Z" fill="#1677ff" />
+    </svg>
+  )
+}

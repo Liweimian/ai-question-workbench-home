@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { MetisButton } from '@yuanfudao/metis-web-component'
 import { FileText, FolderHeart, Plus, Sparkles } from 'lucide-react'
+import { formatDefaultDocumentTitle } from '../data/workbenchData'
 import type {
   AsyncStatus,
   HistoryDocumentSummary,
@@ -30,7 +31,7 @@ interface WorkbenchLandingPageProps {
 
 const toCurrentSummary = (document: WorkbenchDocument): HistoryDocumentSummary => ({
   id: document.id,
-  title: document.title.trim() || '未命名组题',
+  title: document.title.trim() || formatDefaultDocumentTitle(),
   gradeSubject: document.gradeSubject,
   questionCount: document.questions.length,
   updatedAt: document.updatedAt,
