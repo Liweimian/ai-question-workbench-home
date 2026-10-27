@@ -203,6 +203,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
             <section
               id={`question-${question.id}`}
               className={`editor-question${selected ? ' is-selected' : ''}`}
+              onMouseEnter={() => props.onSelectQuestion(question.id)}
               onClick={() => props.onSelectQuestion(question.id)}
               onKeyDown={(event) => {
                 if (event.target !== event.currentTarget) return

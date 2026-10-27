@@ -2123,7 +2123,7 @@
 .editor-question:focus-within .editor-question-tools {
   opacity: 1;
   pointer-events: auto;
-  transform: translateY(calc(-100% - 6px));
+  transform: translateY(calc(-100% - 1px));
   visibility: visible;
 }
 
