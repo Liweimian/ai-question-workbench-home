@@ -1,4 +1,4 @@
-import { BookOpen, BrainCircuit, ChevronDown, ChevronRight, Clock3, FileScan, FileText, FolderHeart, Layers3, Library, ListTree, School, Sparkles, Target } from 'lucide-react'
+import { BookOpen, BrainCircuit, ChevronRight, Clock3, FileScan, FileText, FolderHeart, Layers3, Library, ListTree, School, Sparkles, Target } from 'lucide-react'
 import { useState } from 'react'
 import type { AddQuestionMode, LibraryInitialView, OpenAddOptions, SourceRecord } from '../prototype/types'
 
@@ -74,8 +74,7 @@ const resourceOverviews: ResourceOverview[] = [
 ]
 
 export function CompositionHub(props: CompositionHubProps) {
-  const [currentTerm, setCurrentTerm] = useState('八年级上')
-  const [resourceCardScheme, setResourceCardScheme] = useState<'two' | 'three' | 'four' | 'five' | 'six'>('two')
+  const [resourceCardScheme, setResourceCardScheme] = useState<'four' | 'five' | 'six'>('four')
   const taskEntries = [
     { id: 'upload', title: 'AI 智能录题', description: '上传文件智能录题', action: '去上传', icon: FileScan, onClick: () => props.onOpenAdd('upload') },
     { id: 'create', title: 'AI 原创出题', description: '按章节智能出题', action: '去出题', icon: Sparkles, onClick: () => props.onOpenAdd('create') },
@@ -88,55 +87,18 @@ export function CompositionHub(props: CompositionHubProps) {
       <div className="composition-hub-scroll">
         <div className="composition-overview">
           <header className="composition-overview-heading">
-            <div><strong>添加题目<label className="composition-current-term"><select aria-label="切换当前学期" value={currentTerm} onChange={(event) => setCurrentTerm(event.target.value)}><option>七年级上</option><option>七年级下</option><option>八年级上</option><option>八年级下</option><option>九年级上</option><option>九年级下</option></select><ChevronDown size={12} /></label></strong><span>从题库查找、上传或生成题目，加入右侧题单</span></div>
+            <div><strong>添加题目</strong></div>
             <nav className="composition-scheme-switch" aria-label="题库卡片方案" role="tablist">
-              <button type="button" role="tab" aria-selected={resourceCardScheme === 'two'} className={resourceCardScheme === 'two' ? 'is-active' : ''} onClick={() => setResourceCardScheme('two')}>方案一</button>
-              <button type="button" role="tab" aria-selected={resourceCardScheme === 'three'} className={resourceCardScheme === 'three' ? 'is-active' : ''} onClick={() => setResourceCardScheme('three')}>方案二</button>
-              <button type="button" role="tab" aria-selected={resourceCardScheme === 'four'} className={resourceCardScheme === 'four' ? 'is-active' : ''} onClick={() => setResourceCardScheme('four')}>方案三</button>
-              <button type="button" role="tab" aria-selected={resourceCardScheme === 'five'} className={resourceCardScheme === 'five' ? 'is-active' : ''} onClick={() => setResourceCardScheme('five')}>方案四</button>
-              <button type="button" role="tab" aria-selected={resourceCardScheme === 'six'} className={resourceCardScheme === 'six' ? 'is-active' : ''} onClick={() => setResourceCardScheme('six')}>方案五</button>
+              <button type="button" role="tab" aria-selected={resourceCardScheme === 'four'} className={resourceCardScheme === 'four' ? 'is-active' : ''} onClick={() => setResourceCardScheme('four')}>方案一</button>
+              <button type="button" role="tab" aria-selected={resourceCardScheme === 'five'} className={resourceCardScheme === 'five' ? 'is-active' : ''} onClick={() => setResourceCardScheme('five')}>方案二</button>
+              <button type="button" role="tab" aria-selected={resourceCardScheme === 'six'} className={resourceCardScheme === 'six' ? 'is-active' : ''} onClick={() => setResourceCardScheme('six')}>方案三</button>
             </nav>
           </header>
 
           <section className="composition-resource-grid" aria-label="题库资源入口">
             {resourceOverviews.map(({ id, title, total, totalUnit, metrics }) => (
               <article className={`composition-resource-card is-${id} is-scheme-${resourceCardScheme}`} key={id}>
-                {resourceCardScheme === 'two' ? <div className="composition-resource-main composition-resource-main--scheme-two">
-                  <button type="button" className="composition-resource-identity composition-resource-identity--with-total" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id)}>
-                    <span className="composition-resource-identity-icon">{id === 'resource' ? <Library size={18} /> : <School size={18} />}</span>
-                    <span><strong>{title}</strong><em>共 {total} {totalUnit}</em></span>
-                  </button>
-                  <div className="composition-resource-type-grid">
-                    <button type="button" className="composition-resource-type is-chapter" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: 'chapter' })}>
-                      <strong>章节知识点选题</strong><small>单题</small>
-                    </button>
-                    {metrics.map((metric) => (
-                      <button type="button" className="composition-resource-type" key={metric.id} disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: metric.view })} data-track="/click/aiQuestionHome/openResourceCategory | 打开题库资源分类 | resourceType#STRING">
-                        <strong>{metric.label}</strong><small>{metric.value}</small>
-                      </button>
-                    ))}
-                  </div>
-                </div> : resourceCardScheme === 'three' ? <div className="composition-resource-main composition-resource-main--scheme-three">
-                  <button type="button" className="composition-resource-identity composition-resource-identity--illustrated" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id)}>
-                    <span className="composition-resource-identity-icon">{id === 'resource' ? <Library size={20} /> : <School size={20} />}</span>
-                    <span><strong>{title}</strong><em>共 {total} {totalUnit}</em></span>
-                  </button>
-                  <div className="composition-resource-illustration" aria-hidden="true">
-                    <i className="is-back" />
-                    <i className="is-middle" />
-                    <i className="is-front">{id === 'resource' ? <Library size={22} /> : <School size={22} />}</i>
-                  </div>
-                  <div className="composition-resource-type-grid composition-resource-type-grid--illustrated">
-                    <button type="button" className="composition-resource-type is-chapter" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: 'chapter' })}>
-                      <strong>章节知识点选题</strong><small>单题</small>
-                    </button>
-                    {metrics.map((metric) => (
-                      <button type="button" className="composition-resource-type" key={metric.id} disabled={props.contentBusy} onClick={() => props.onOpenAdd(id, { libraryView: metric.view })} data-track="/click/aiQuestionHome/openResourceCategory | 打开题库资源分类 | resourceType#STRING">
-                        <strong>{metric.label}</strong><small>{metric.value}</small>
-                      </button>
-                    ))}
-                  </div>
-                </div> : resourceCardScheme === 'four' ? <div className="composition-resource-main composition-resource-main--scheme-four">
+                {resourceCardScheme === 'four' ? <div className="composition-resource-main composition-resource-main--scheme-four">
                   <button type="button" className="composition-resource-identity composition-resource-identity--minimal" disabled={props.contentBusy} onClick={() => props.onOpenAdd(id)}>
                     <span className="composition-resource-identity-icon">{id === 'resource' ? <Library size={19} /> : <School size={19} />}</span>
                     <span><strong>{title}</strong><em>共 {total} {totalUnit}</em></span>

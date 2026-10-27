@@ -3199,6 +3199,8 @@
 
 .empty-first-block.is-add-only { min-height: 18px; padding: 0; }
 .empty-first-block.is-add-only .block-add { top: -6px; }
+.empty-first-block.is-add-only .block-add-trigger { color: var(--fx-primary); background: var(--fx-primary-selected); }
+.empty-preview-inline-hint { position: absolute; top: -1px; left: -3px; color: var(--fx-text-tertiary); font-size: 10px; line-height: 18px; white-space: nowrap; }
 .editor-empty.is-linked-workspace .empty-first-block.is-add-only .block-add-control-row { opacity: 1; pointer-events: auto; }
 
 .empty-block-list {
@@ -8182,12 +8184,13 @@
 .workspace-shell.is-split-source .editor-empty-content { padding: 0 34px 32px; }
 .empty-question-preview { display: flex; margin-top: 0; flex-direction: column; color: var(--common_level5_base_color); pointer-events: none; user-select: none; }
 .empty-preview-section-title { display: flex; margin-top: 20px; align-items: center; gap: 8px; color: var(--fx-text-tertiary); font-family: var(--fx-font-accent); font-size: 14px; }
-.empty-preview-section-title:first-child { margin-top: 0; }
+.empty-preview-section-title:first-child { margin-top: 10px; }
 .empty-preview-section-title small { font-family: var(--fx-font-body); font-size: 9px; font-weight: 400; }
 .empty-preview-section-title span { width: 64px; height: 8px; border-radius: var(--aiq_radius_pill); background: var(--common_fg2_color); }
 .empty-preview-question { display: grid; margin-top: 16px; grid-template-columns: 20px minmax(0, 1fr); gap: 6px; }
 .empty-preview-question > b { color: var(--fx-text-tertiary); font-family: var(--fx-font-accent); font-size: 13px; font-weight: 500; }
 .empty-preview-question > div { display: flex; min-width: 0; flex-direction: column; gap: 7px; }
+.empty-preview-question p { margin: 0; color: var(--fx-text-secondary); font-size: 12px; line-height: 1.55; }
 .empty-preview-question .is-stem { width: 94%; height: 9px; border-radius: var(--aiq_radius_pill); background: var(--common_fg2_color); }
 .empty-preview-question .is-stem.is-short { width: 68%; }
 .empty-preview-question .is-stem.is-shorter { width: 48%; }
@@ -8197,6 +8200,7 @@
 .empty-preview-question .is-answer-line.is-long { width: 44%; }
 .empty-preview-question .is-solution-area { width: 100%; height: 22px; margin-top: 2px; border-bottom: 1px dashed var(--common_fg2_color); }
 .empty-preview-options { display: grid; margin-top: 2px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 16px; }
+.empty-preview-options span { color: var(--fx-text-tertiary); font-size: 11px; line-height: 1.4; }
 .empty-preview-options i { width: 72%; height: 8px; border-radius: var(--aiq_radius_pill); background: var(--common_fg2_color); }
 .empty-question-preview > p { margin: 20px 0 0; color: var(--fx-text-tertiary); font-size: 11px; text-align: center; }
 .editor-question.is-newly-added { animation: newly-added-question 1.8s ease-out both; }
@@ -8254,19 +8258,19 @@
 .composition-recent-resources { margin-top: 22px; }
 .composition-recent-resources > header { display: flex; margin-bottom: 9px; align-items: baseline; gap: 8px; }
 .composition-recent-resources > header strong { color: var(--fx-text-primary); font-size: 18px; font-weight: 700; }
-.composition-recent-resources > header span { color: var(--fx-text-tertiary); font-size: 10px; }
+.composition-recent-resources > header span { color: var(--fx-text-tertiary); font-size: 12px; }
 .composition-recent-resources > div { overflow: hidden; border: 1px solid var(--fx-line-subtle); border-radius: var(--fx-radius-card); background: var(--common_bg2_color); }
 .composition-recent-resources button { display: grid; width: 100%; min-height: 48px; padding: 8px 12px; grid-template-columns: 42px minmax(0, 1fr) auto 16px; align-items: center; gap: 10px; border: 0; color: var(--fx-text-primary); background: transparent; cursor: pointer; text-align: left; }
 .composition-recent-resources button + button { border-top: 1px solid var(--fx-line-subtle); }
 .composition-recent-resources button:hover:not(:disabled) { background: var(--fx-primary-selected); }
 .composition-recent-resources button:disabled { cursor: not-allowed; opacity: .55; }
-.composition-recent-resources button > em { padding: 3px 6px; border-radius: var(--fx-radius-control); color: var(--fx-primary); background: var(--fx-primary-selected); font-size: 10px; font-style: normal; text-align: center; }
+.composition-recent-resources button > em { padding: 3px 6px; border-radius: var(--fx-radius-control); color: var(--fx-primary); background: var(--fx-primary-selected); font-size: 12px; font-style: normal; text-align: center; }
 .composition-recent-resources button > span { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
 .composition-recent-resources button strong,
 .composition-recent-resources button small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.composition-recent-resources button strong { font-size: 11px; font-weight: 600; }
+.composition-recent-resources button strong { font-size: 13px; font-weight: 600; }
 .composition-recent-resources button small { color: var(--fx-text-tertiary); font-size: 10px; }
-.composition-recent-resources time { display: inline-flex; align-items: center; gap: 4px; color: var(--fx-text-tertiary); font-size: 10px; white-space: nowrap; }
+.composition-recent-resources time { display: inline-flex; align-items: center; gap: 4px; color: var(--fx-text-tertiary); font-size: 12px; white-space: nowrap; }
 .composition-recent-resources button > svg { color: var(--fx-text-tertiary); }
 
 /* 阶段一 · 迭代 153：收敛首页题库卡片视觉层级 */
@@ -8877,11 +8881,12 @@
 /* 阶段一 · 迭代 203：无分类数字的方案四与方案五 */
 .composition-resource-main--scheme-four {
   display: grid;
-  min-height: 148px;
-  padding: 14px 16px;
+  min-height: 126px;
+  padding: 11px 14px;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 42px minmax(70px, auto);
-  gap: 10px;
+  grid-template-rows: 38px minmax(48px, auto);
+  align-content: start;
+  gap: 12px;
 }
 
 .composition-resource-identity--minimal {
@@ -8893,6 +8898,12 @@
 
 .composition-resource-identity--minimal > span:last-child {
   gap: 2px;
+}
+
+.composition-resource-main--scheme-four .composition-resource-identity--minimal > span:last-child {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .composition-resource-identity--minimal em {
@@ -8917,13 +8928,13 @@
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 70px;
-  padding: 12px;
+  min-height: 44px;
+  padding: 6px 10px;
   overflow: hidden;
   align-items: flex-start;
   justify-content: space-between;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
   border: 1px solid var(--fx-line-subtle);
   border-radius: 10px;
   color: var(--fx-primary);
@@ -8949,7 +8960,9 @@
 .composition-resource-standard-grid > button i {
   position: absolute;
   right: 10px;
-  bottom: 7px;
+  bottom: 4px;
+  transform: scale(.82);
+  transform-origin: right bottom;
   width: 46px;
   height: 36px;
   color: var(--fx-primary);
