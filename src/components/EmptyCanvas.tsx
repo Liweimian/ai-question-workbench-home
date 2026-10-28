@@ -23,12 +23,14 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   const [selectionToolbar, setSelectionToolbar] = useState<{ x: number; y: number; text: string } | null>(null)
   const [aiEditOpen, setAiEditOpen] = useState(false)
   const [customAiInstruction, setCustomAiInstruction] = useState('')
+  const [showExampleContent, setShowExampleContent] = useState(true)
   const blockRefs = useRef(new Map<string, HTMLDivElement>())
   const blockIdsRef = useRef(blockIds)
   const selectedRangeRef = useRef<Range | null>(null)
   blockIdsRef.current = blockIds
 
   useEffect(() => {
+    setShowExampleContent(true)
     blockIdsRef.current = ['initial']
     setBlockIds(['initial'])
     setAddMenuRequests({})
@@ -126,12 +128,12 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         />
       </header>
 
-      <div className="editor-empty-content">
+      <div className="editor-empty-content" onPointerDown={() => setShowExampleContent(false)}>
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
             <div className={`empty-first-block${blockId === 'initial' && !props.document.intro ? ' is-add-only' : ''}`} role="group" aria-label="题单内容块" key={blockId}>
               <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenAssistant={() => props.onOpenAssistant()} />
-              {blockId === 'initial' && !props.document.intro ? <span className="empty-preview-inline-hint">以下为示意内容，请从左侧添加题目</span> : null}
+              {showExampleContent && blockId === 'initial' && !props.document.intro ? <span className="empty-preview-inline-hint">以下为示意内容，请从左侧添加题目</span> : null}
               {blockId !== 'initial' || props.document.intro ? (
                 <div
                   className="empty-block-input"
@@ -169,7 +171,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           ))}
         </div>
 
-        <div className="empty-question-preview">
+        {showExampleContent ? <div className="empty-question-preview">
           <div className="empty-preview-section-title"><strong>一、选择题</strong></div>
           <div className="empty-preview-question">
             <b>1.</b>
@@ -205,7 +207,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             <b>6.</b>
             <div><p>甲、乙两种图书共 80 本，总费用为 1400 元。若单价分别为 20 元和 15 元，求两种图书各多少本。</p><i className="is-solution-area" /></div>
           </div>
-        </div>
+        </div> : null}
 
         {selectionToolbar ? (
           <div
