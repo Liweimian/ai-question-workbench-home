@@ -74,7 +74,7 @@ const resourceOverviews: ResourceOverview[] = [
 ]
 
 export function CompositionHub(props: CompositionHubProps) {
-  const [resourceCardScheme, setResourceCardScheme] = useState<'four' | 'five' | 'six'>('four')
+  const [resourceCardScheme, setResourceCardScheme] = useState<'four' | 'five' | 'six'>('six')
   const taskEntries = [
     { id: 'upload', title: 'AI 智能录题', description: '上传文件智能录题', action: '去上传', icon: FileScan, onClick: () => props.onOpenAdd('upload') },
     { id: 'create', title: 'AI 原创出题', description: '按章节智能出题', action: '去出题', icon: Sparkles, onClick: () => props.onOpenAdd('create') },

@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react'
 import { MetisButton } from '@yuanfudao/metis-web-component'
 import {
-  CheckCircle2,
-  ClipboardPaste,
   FilePenLine,
   FileText,
   FileUp,
-  Image,
   Minus,
   Plus,
   School,
@@ -84,12 +81,40 @@ const structuredKnowledgeExamples: Record<string, string> = {
   application: '方案比较与情境建模',
 }
 
+const recognitionRecords = [
+  {
+    id: 'recognition-1',
+    title: '2025-2026学年杭州市钱塘区观澜中学七年级下册期末项目评价试卷：数学.pdf',
+    submittedAt: '2026-09-24 15:35',
+    completedAt: '2026-09-24 15:40',
+    size: '5.3MB',
+    questionCount: '28题',
+  },
+  {
+    id: 'recognition-2',
+    title: '2025-2026学年杭州市钱塘区义蓬中学九年级下册第3次适应性训练——学科试题卷：数学.pdf',
+    submittedAt: '2026-08-27 10:26',
+    completedAt: '2026-08-27 10:29',
+    size: '2.4MB',
+    questionCount: '25题',
+  },
+  {
+    id: 'recognition-3',
+    title: '2025-2026学年深圳市福田区红岭实验学校（上沙）九年级下册周测试卷：物理.pdf',
+    submittedAt: '2026-06-11 19:29',
+    completedAt: '2026-06-11 19:30',
+    size: '1.2MB',
+    questionCount: '18题',
+  },
+]
+
 export function SourceDrawer(props: SourceDrawerProps) {
   const [libraryDetailOpen, setLibraryDetailOpen] = useState(false)
-  const [uploadInputMode, setUploadInputMode] = useState<'paste' | 'file'>('paste')
-  const [uploadDraft, setUploadDraft] = useState('')
+  const [recognitionTab, setRecognitionTab] = useState<'ai' | 'manual'>('ai')
+  const [recognitionKeyword, setRecognitionKeyword] = useState('')
   const docked = props.presentation === 'docked'
   const createTotal = props.createConfig.allocations.reduce((sum, item) => sum + item.count, 0)
+  const visibleRecognitionRecords = recognitionRecords.filter((record) => record.title.includes(recognitionKeyword.trim()))
 
   const updateCreateCount = (id: string, delta: number) => {
     const nextAllocations = props.createConfig.allocations.map((item) => {
@@ -243,61 +268,53 @@ export function SourceDrawer(props: SourceDrawerProps) {
 
           {props.mode === 'upload' ? (
             <div className="add-mode-content upload-workbench">
-              <header className="upload-workbench-heading">
-                <div className="upload-workbench-title">
-                  <span><FileUp size={21} /></span>
-                  <div><h2>AI 智能录题</h2><p>粘贴题目或上传文件，AI 自动识别题干、选项、答案与解析</p></div>
+              <section className="ai-recording-hero">
+                <div className="ai-recording-intro">
+                  <div className="ai-recording-title"><span>AI</span><h2>智能录题</h2></div>
+                  <p>上传题目答案文件，AI智能一键生成专属个人题库格式</p>
+                  <div className="ai-recording-delegate">复杂资料或资料解析不佳？<button type="button" onClick={() => setRecognitionTab('manual')}>委托人工录入 →</button></div>
+                  <i className="ai-recording-paper" aria-hidden="true" />
                 </div>
-                <span className="upload-workbench-badge">识别结果待校验</span>
-              </header>
-
-              <div className="upload-method-tabs" role="tablist" aria-label="录题方式">
-                <button type="button" role="tab" aria-selected={uploadInputMode === 'paste'} className={uploadInputMode === 'paste' ? 'is-active' : ''} onClick={() => setUploadInputMode('paste')}><ClipboardPaste size={16} />粘贴录题</button>
-                <button type="button" role="tab" aria-selected={uploadInputMode === 'file'} className={uploadInputMode === 'file' ? 'is-active' : ''} onClick={() => setUploadInputMode('file')}><UploadCloud size={16} />文件录题</button>
-              </div>
-
-              <div className="upload-workbench-main">
-                <section className="upload-input-card">
-                  {uploadInputMode === 'paste' ? (
-                    <>
-                      <div className="upload-card-heading"><div><strong>粘贴题目内容</strong><span>支持一次粘贴多道题</span></div><button type="button" onClick={() => setUploadDraft('1. 已知一次函数 y = 2x - 3，当 x = 2 时，求 y 的值。\n答案：1\n解析：将 x = 2 代入函数解析式。')}>填入示例</button></div>
-                      <textarea value={uploadDraft} onChange={(event) => setUploadDraft(event.target.value)} placeholder={'请粘贴或输入题目内容\n\n支持识别题干、选项、答案、解析和图片说明'} />
-                      <div className="upload-input-hint"><span>可直接从网页、Word 或聊天内容中复制</span><span>{uploadDraft.length} 字</span></div>
-                    </>
-                  ) : (
-                    <button type="button" className="upload-file-dropzone" disabled={props.contentBusy} onClick={props.onUpload}>
-                      <span className="upload-icon"><UploadCloud size={28} /></span>
-                      <strong>点击选择或拖拽文件到这里</strong>
-                      <small>支持 Word、PDF、JPG、PNG，单文件不超过 20MB</small>
-                      <em><FileUp size={15} />选择文件</em>
-                    </button>
-                  )}
-                </section>
-
-                <aside className="upload-recognition-card">
-                  <h3>AI 可自动识别</h3>
-                  <ul>
-                    <li><span><FileText size={16} /></span><div><strong>题目结构</strong><small>题干、选项、答案与解析</small></div><CheckCircle2 size={16} /></li>
-                    <li><span><Image size={16} /></span><div><strong>图文与公式</strong><small>保留图片位置与数学公式</small></div><CheckCircle2 size={16} /></li>
-                    <li><span><Sparkles size={16} /></span><div><strong>题型判断</strong><small>自动拆分多题并识别题型</small></div><CheckCircle2 size={16} /></li>
-                  </ul>
-                  <div className="upload-flow-note"><strong>识别后</strong><p>先预览校验，再添加到右侧题单，不会直接覆盖已有内容。</p></div>
-                </aside>
-              </div>
-
-              <footer className="upload-workbench-actions">
-                <div><span>1</span>智能识别<i /> <span>2</span>校验题目<i /> <span>3</span>添加到题单</div>
-                <MetisButton
-                  type="primary"
-                  icon={<Sparkles size={17} />}
-                  loading={props.addStatus === 'loading'}
-                  disabled={props.contentBusy || (uploadInputMode === 'paste' && !uploadDraft.trim())}
+                <button
+                  type="button"
+                  className="ai-recording-dropzone"
+                  disabled={props.contentBusy}
                   onClick={props.onUpload}
                   data-track="/click/aiQuestionHome/uploadQuestion | AI智能录题 | 无"
                 >
-                  开始识别
-                </MetisButton>
-              </footer>
+                  <span className="ai-recording-file"><FileText size={42} /><UploadCloud size={22} /></span>
+                  <strong>点击上传 / 拖动文件到此处 / 快捷键粘贴</strong>
+                  <small>支持 PDF、DOCX，单文件限 20M 内</small>
+                </button>
+              </section>
+
+              <section className="ai-recording-progress">
+                <div className="ai-recording-toolbar">
+                  <div className="ai-recording-tabs" role="tablist" aria-label="录题进度">
+                    <button type="button" role="tab" aria-selected={recognitionTab === 'ai'} className={recognitionTab === 'ai' ? 'is-active' : ''} onClick={() => setRecognitionTab('ai')}>AI解析进度</button>
+                    <button type="button" role="tab" aria-selected={recognitionTab === 'manual'} className={recognitionTab === 'manual' ? 'is-active' : ''} onClick={() => setRecognitionTab('manual')}>委托录题进度</button>
+                  </div>
+                  <label className="ai-recording-search"><Search size={17} /><input value={recognitionKeyword} onChange={(event) => setRecognitionKeyword(event.target.value)} placeholder="搜索" /></label>
+                </div>
+
+                {recognitionTab === 'ai' ? (
+                  <div className="ai-recording-list">
+                    {visibleRecognitionRecords.map((record) => (
+                      <article className="ai-recording-row" key={record.id}>
+                        <span className="ai-recording-pdf"><FileText size={28} /><b>PDF</b></span>
+                        <div className="ai-recording-record">
+                          <div><span className="ai-recording-status">解析完成</span><strong>{record.title}</strong></div>
+                          <p><span>提交时间：{record.submittedAt}</span><span>完成时间：{record.completedAt}</span><i /><span>{record.size}</span><i /><span>{record.questionCount}</span></p>
+                        </div>
+                        <MetisButton type="bordered" onClick={props.onUpload}>查看</MetisButton>
+                      </article>
+                    ))}
+                    {visibleRecognitionRecords.length === 0 ? <div className="ai-recording-empty">暂无匹配的解析记录</div> : null}
+                  </div>
+                ) : (
+                  <div className="ai-recording-empty">暂无委托录题记录</div>
+                )}
+              </section>
             </div>
           ) : null}
 
