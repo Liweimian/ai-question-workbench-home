@@ -56,7 +56,7 @@ export function DocumentCenter({ embedded = false, layoutVariant = 1, contentBus
   const [aiToolsExpanded, setAiToolsExpanded] = useState(true)
 
   const recentPanel = <section className="document-center-recent" aria-label="最近编辑题单">
-    <div className="document-center-section-title"><div><h2>最近编辑的题单</h2><p>按最近修改时间排序</p></div><span>{recentDocuments.length} 份</span></div>
+    <div className="document-center-section-title"><div><h2>最近编辑的题单</h2></div><span>{recentDocuments.length} 份</span></div>
     {historyStatus === 'loading' ? <div className="document-center-state"><LoaderCircle className="is-spinning" size={18} />正在加载最近题单…</div>
       : historyStatus === 'error' ? <div className="document-center-state is-error"><span>最近题单加载失败</span><MetisButton type="bordered" onClick={onReload}>重新加载</MetisButton></div>
         : recentDocuments.length ? <div className="document-center-list">

@@ -131,7 +131,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       <div className="editor-empty-content" onPointerDown={() => setShowExampleContent(false)}>
         <div className="empty-add-guide" role="note">
           <span className="empty-add-guide-icon"><ArrowLeft size={18} /></span>
-          <span><strong>从左侧添加题目</strong><small>选择左侧题库或 AI 工具，题目会自动出现在这里</small></span>
+          <span><strong>从左侧添加题目</strong></span>
         </div>
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
@@ -207,6 +207,18 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           <div className="empty-preview-section-title is-next">二、填空题</div>
           <div className="empty-preview-question empty-preview-fill-question">
             <strong>3.</strong>
+            <div>
+              <div className="empty-preview-fill-row"><i className="empty-preview-stem" /><span /></div>
+            </div>
+          </div>
+          <div className="empty-preview-question empty-preview-fill-question">
+            <strong>4.</strong>
+            <div>
+              <div className="empty-preview-fill-row"><i className="empty-preview-stem is-medium" /><span /></div>
+            </div>
+          </div>
+          <div className="empty-preview-question empty-preview-fill-question">
+            <strong>5.</strong>
             <div>
               <div className="empty-preview-fill-row"><i className="empty-preview-stem" /><span /></div>
             </div>

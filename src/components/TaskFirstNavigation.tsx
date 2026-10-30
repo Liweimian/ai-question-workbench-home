@@ -76,9 +76,9 @@ export function TaskFirstNavigation({ disabled = false, histories, historyStatus
         </div>
       </section>
 
-      <section className="document-layout-four-group" aria-labelledby="ai-generation-title">
-        <h2 id="ai-generation-title">AI 生成</h2>
-        <div className="document-layout-four-flat-grid is-ai" aria-label="AI 生成入口">
+      <section className="document-layout-four-group" aria-labelledby="ai-tools-title">
+        <h2 id="ai-tools-title">AI 工具</h2>
+        <div className="document-layout-four-flat-grid is-ai" aria-label="AI 工具入口">
           {aiEntries.map(({ mode, view, label, description, icon: Icon }) => (
             <button
               type="button"

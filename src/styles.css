@@ -6850,7 +6850,7 @@
 .document-layout-four { display: grid; width: 100%; max-width: 1040px; margin: 0 auto; align-content: start; gap: 18px; }
 .document-layout-four-group { display: grid; width: min(100%, 750px); margin: 0 auto; gap: 10px; }
 .document-layout-four-group > h1,
-.document-layout-four-group > h2 { margin: 0; color: var(--fx-text-primary); font-size: 18px; line-height: 26px; font-weight: 700; }
+.document-layout-four-group > h2 { margin: 0; color: var(--fx-text-primary); font-size: 16px; line-height: 24px; font-weight: 600; }
 .document-layout-four button { font-family: inherit; }
 .document-layout-four button:focus-visible { outline: 2px solid var(--fx-primary); outline-offset: 2px; }
 .document-layout-four button:disabled { opacity: .55; cursor: not-allowed; }
