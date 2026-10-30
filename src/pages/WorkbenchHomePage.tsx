@@ -53,6 +53,8 @@ export function WorkbenchHomePage() {
   const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
   const [myResourcesActive, setMyResourcesActive] = useState(false)
   const [myResourcesInitialKind, setMyResourcesInitialKind] = useState<MyResourceKind | '全部'>('全部')
+  const [homeLayoutVariant, setHomeLayoutVariant] = useState<1 | 2 | 3>(1)
+  const [draftPushAnimating, setDraftPushAnimating] = useState(false)
   const [recentlyAddedQuestionId, setRecentlyAddedQuestionId] = useState<string | null>(null)
   const hasQuestions = workbench.document.questions.length > 0
   const activeLibraryDetail = libraryDetailTabs.find((tab) => tab.key === activeLibraryDetailKey) ?? null
@@ -121,6 +123,10 @@ export function WorkbenchHomePage() {
     mode: Parameters<typeof workbench.openAdd>[0] = 'menu',
     options?: Parameters<typeof workbench.openAdd>[1],
   ) => {
+    if (homeLayoutVariant === 3 && !workbench.isAddOpen && !assistantActive && !myResourcesActive) {
+      setDraftPushAnimating(true)
+      window.setTimeout(() => setDraftPushAnimating(false), 520)
+    }
     if (mode === 'compose') {
       openAssistant('从题库挑选 6 道一次函数基础题')
       return
@@ -251,6 +257,8 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(false)
   }
 
+  const isAddHome = !workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive
+  const alternateHomeLayout = sidePanelOpen && isAddHome && homeLayoutVariant !== 1 && !draftCollapsed
   const shellClassName = sidePanelOpen
     ? `workspace-shell is-split-source${draftCollapsed ? ' is-draft-collapsed' : ''}`
     : `workspace-shell is-focus-editor${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`
@@ -262,6 +270,45 @@ export function WorkbenchHomePage() {
     && !workbench.document.intro?.trim()
     && !hasCustomDocumentFormat
     && isDefaultDocumentTitle(workbench.document.title)
+
+  const renderDraftContent = () => <div className={`editor-scroll${hasQuestions ? '' : ' is-empty'}${draftPushAnimating ? ' is-pushing-right' : ''}`}>
+    {!hasQuestions ? (
+      <EmptyCanvas
+        document={workbench.document}
+        sidePanelOpen={sidePanelOpen}
+        onTitleChange={workbench.setTitle}
+        onIntroChange={workbench.setIntro}
+        onDocumentFormatChange={workbench.setDocumentFormat}
+        onOpenAssistant={openAssistant}
+        onOpenAdd={openAdd}
+      />
+    ) : (
+      <DocumentCanvas
+        document={workbench.document}
+        compactPreview={sidePanelOpen}
+        selectedQuestionId={workbench.selectedQuestionId}
+        highlightedQuestionId={recentlyAddedQuestionId}
+        onTitleChange={workbench.setTitle}
+        onSelectQuestion={workbench.selectQuestion}
+        onRewriteRequirement={(requirement) => { void workbench.rewrite('自定义要求', requirement) }}
+        rewriteStatus={workbench.rewriteStatus}
+        rewritePreview={workbench.rewritePreview}
+        onApplyRewrite={workbench.applyRewrite}
+        onMoveQuestion={workbench.moveQuestion}
+        onDeleteQuestion={workbench.deleteQuestion}
+        onQuestionChange={workbench.updateQuestion}
+        onDocumentFormatChange={workbench.setDocumentFormat}
+        onSectionTitleChange={workbench.setSectionTitle}
+        onAdd={openAdd}
+        assistantStatus={workbench.composeStatus}
+        assistantRun={workbench.assistantRun}
+        assistantPreviewText={workbench.composePreview.slice(0, 3).map((question, index) => `${index + 1}. ${question.stem}`).join('\n')}
+        assistantError={workbench.composeError}
+        onOpenAssistant={(prompt) => { void workbench.composeFromBank(prompt) }}
+        onConfirmAssistant={workbench.confirmComposePreview}
+      />
+    )}
+  </div>
 
   return (
     <div className="fx-app metis-theme-aiq">
@@ -315,7 +362,7 @@ export function WorkbenchHomePage() {
             onBackHome={activateAddHome}
           />
 
-          <section className={shellClassName} aria-label="飞象AI题库编辑器">
+          <section className={`${shellClassName}${alternateHomeLayout ? ` is-alternate-home is-home-layout-${homeLayoutVariant}` : ''}`} aria-label="飞象AI题库编辑器">
             {!sidePanelOpen && hasQuestions ? (
               <QuestionSortPanel
                 questions={workbench.document.questions}
@@ -327,51 +374,14 @@ export function WorkbenchHomePage() {
               />
             ) : null}
 
-            {!draftCollapsed ? <div className={`editor-scroll${hasQuestions ? '' : ' is-empty'}`}>
-              {!hasQuestions ? (
-                <EmptyCanvas
-                  document={workbench.document}
-                  sidePanelOpen={sidePanelOpen}
-                  onTitleChange={workbench.setTitle}
-                  onIntroChange={workbench.setIntro}
-                  onDocumentFormatChange={workbench.setDocumentFormat}
-                  onOpenAssistant={openAssistant}
-                  onOpenAdd={openAdd}
-                />
-              ) : (
-                <DocumentCanvas
-                  document={workbench.document}
-                  compactPreview={sidePanelOpen}
-                  selectedQuestionId={workbench.selectedQuestionId}
-                  highlightedQuestionId={recentlyAddedQuestionId}
-                  onTitleChange={workbench.setTitle}
-                  onSelectQuestion={workbench.selectQuestion}
-                  onRewriteRequirement={(requirement) => { void workbench.rewrite('自定义要求', requirement) }}
-                  rewriteStatus={workbench.rewriteStatus}
-                  rewritePreview={workbench.rewritePreview}
-                  onApplyRewrite={workbench.applyRewrite}
-                  onMoveQuestion={workbench.moveQuestion}
-                  onDeleteQuestion={workbench.deleteQuestion}
-                  onQuestionChange={workbench.updateQuestion}
-                  onDocumentFormatChange={workbench.setDocumentFormat}
-                  onSectionTitleChange={workbench.setSectionTitle}
-                  onAdd={openAdd}
-                  assistantStatus={workbench.composeStatus}
-                  assistantRun={workbench.assistantRun}
-                  assistantPreviewText={workbench.composePreview.slice(0, 3).map((question, index) => `${index + 1}. ${question.stem}`).join('\n')}
-                  assistantError={workbench.composeError}
-                  onOpenAssistant={(prompt) => { void workbench.composeFromBank(prompt) }}
-                  onConfirmAssistant={workbench.confirmComposePreview}
-                />
-              )}
-            </div> : (
+            {!alternateHomeLayout ? (!draftCollapsed ? renderDraftContent() : (
               <aside className="draft-collapsed-rail" aria-label="组题画布已收起">
                 <button type="button" onClick={() => setDraftCollapsed(false)} aria-label="展开组题画布" title="展开组题画布">
                   <PanelRightOpen size={17} />
                   <span>组题画布</span>
                 </button>
               </aside>
-            )}
+            )) : null}
 
             {sidePanelOpen ? (
               <div className="add-workspace" aria-label="添加题目多任务工作区">
@@ -526,11 +536,14 @@ export function WorkbenchHomePage() {
                 ) : (
                   <DocumentCenter
                     embedded
+                    layoutVariant={homeLayoutVariant}
+                    draftContent={alternateHomeLayout ? renderDraftContent() : undefined}
                     histories={workbench.historyDocuments}
                     historyStatus={workbench.historyStatus}
                     onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
                     onOpenMyResources={() => openMyResources('全部')}
                     onOpenSource={(mode, options) => openAdd(mode, options)}
+                    onLayoutVariantChange={setHomeLayoutVariant}
                     onReload={() => { void workbench.reloadHistory() }}
                   />
                 )}

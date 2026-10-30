@@ -1,5 +1,5 @@
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   Bot,
   BrainCircuit,
@@ -23,11 +23,14 @@ import { FeixiangAiLibraryLogo } from './ElephantIcon'
 
 interface DocumentCenterProps {
   embedded?: boolean
+  layoutVariant?: 1 | 2 | 3
+  draftContent?: ReactNode
   histories: HistoryDocumentSummary[]
   historyStatus: AsyncStatus
   onOpenDocument: (documentId: string) => void
   onOpenMyResources: () => void
   onOpenSource: (mode: AddQuestionMode, options?: OpenAddOptions) => void
+  onLayoutVariantChange?: (variant: 1 | 2 | 3) => void
   onReload: () => void
 }
 
@@ -39,12 +42,27 @@ const sourceEntries: Array<{ mode: AddQuestionMode; label: string; description: 
   { mode: 'compose', label: 'AI 组题', description: '说一句需求，生成一整套题', icon: BrainCircuit },
 ]
 
-export function DocumentCenter({ embedded = false, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onReload }: DocumentCenterProps) {
+export function DocumentCenter({ embedded = false, layoutVariant = 1, draftContent, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onLayoutVariantChange, onReload }: DocumentCenterProps) {
   const recentDocuments = histories.slice(0, 8)
   const [aiToolsExpanded, setAiToolsExpanded] = useState(true)
 
+  const recentPanel = <section className="document-center-recent" aria-label="最近编辑题单">
+    <div className="document-center-section-title"><div><h2>最近编辑的题单</h2><p>按最近修改时间排序</p></div><span>{recentDocuments.length} 份</span></div>
+    {historyStatus === 'loading' ? <div className="document-center-state"><LoaderCircle className="is-spinning" size={18} />正在加载最近题单…</div>
+      : historyStatus === 'error' ? <div className="document-center-state is-error"><span>最近题单加载失败</span><MetisButton type="bordered" onClick={onReload}>重新加载</MetisButton></div>
+        : recentDocuments.length ? <div className="document-center-list">
+          {recentDocuments.map((item) => (
+            <button type="button" key={item.id} onClick={() => onOpenDocument(item.id)}>
+              <span className="document-file-icon"><FileText size={22} /></span>
+              <span className="document-file-name"><strong>{item.title}</strong><small>{item.gradeSubject} · {item.origin}</small></span>
+              <span>{item.questionCount} 道题</span><span>{item.status}</span><span>{item.updatedAt}</span><ChevronRight size={17} />
+            </button>
+          ))}
+        </div> : <div className="document-center-empty"><FileText size={30} /><strong>还没有编辑过的题单</strong><p>可直接从左侧添加题目，开始编辑右侧题单。</p></div>}
+  </section>
+
   return (
-    <div className={`document-center${embedded ? ' is-embedded' : ''}`}>
+    <div className={`document-center${embedded ? ' is-embedded' : ''} is-layout-${layoutVariant}`}>
       <aside className="document-center-sidebar">
         {!embedded ? <div className="document-center-brand"><FeixiangAiLibraryLogo /><strong>AI 题单</strong></div> : null}
         <nav className="document-center-nav" aria-label="题单导航">
@@ -77,30 +95,20 @@ export function DocumentCenter({ embedded = false, histories, historyStatus, onO
       </aside>
 
       <main className="document-center-main">
+        {onLayoutVariantChange ? <div className="document-layout-switch" role="group" aria-label="首页布局方案">
+          {([1, 2, 3] as const).map((variant) => <button type="button" key={variant} className={layoutVariant === variant ? 'is-active' : ''} onClick={() => onLayoutVariantChange(variant)}>方案{variant === 1 ? '一' : variant === 2 ? '二' : '三'}</button>)}
+        </div> : null}
         <header className="document-center-heading">
           <div>{!embedded ? <span>题单工作台</span> : null}<h1>最近编辑</h1>{!embedded ? <p>继续上次的题单，或创建一份新题单。</p> : null}</div>
           {!embedded ? <MetisButton type="borderless" icon={<RefreshCw size={16} />} onClick={onReload}>刷新</MetisButton> : null}
         </header>
 
-        <section className="document-center-recent" aria-label="最近编辑题单">
-          <div className="document-center-section-title"><div><h2>最近编辑的题单</h2><p>按最近修改时间排序</p></div><span>{recentDocuments.length} 份</span></div>
-          {historyStatus === 'loading' ? <div className="document-center-state"><LoaderCircle className="is-spinning" size={18} />正在加载最近题单…</div>
-            : historyStatus === 'error' ? <div className="document-center-state is-error"><span>最近题单加载失败</span><MetisButton type="bordered" onClick={onReload}>重新加载</MetisButton></div>
-              : recentDocuments.length ? <div className="document-center-list">
-                {recentDocuments.map((item) => (
-                  <button type="button" key={item.id} onClick={() => onOpenDocument(item.id)}>
-                    <span className="document-file-icon"><FileText size={22} /></span>
-                    <span className="document-file-name"><strong>{item.title}</strong><small>{item.gradeSubject} · {item.origin}</small></span>
-                    <span>{item.questionCount} 道题</span><span>{item.status}</span><span>{item.updatedAt}</span><ChevronRight size={17} />
-                  </button>
-                ))}
-              </div> : <div className="document-center-empty"><FileText size={30} /><strong>还没有编辑过的题单</strong><p>可直接从左侧添加题目，开始编辑右侧题单。</p></div>}
-        </section>
+        {layoutVariant === 1 ? recentPanel : layoutVariant === 2 ? <div className="document-layout-two"><div className="document-center-draft">{draftContent}</div>{recentPanel}</div> : <div className="document-layout-three">{recentPanel}<div className="document-center-draft">{draftContent}</div></div>}
 
-        <section className="document-center-sources" aria-label="题单内容来源">
+        {layoutVariant === 1 ? <section className="document-center-sources" aria-label="题单内容来源">
           <div className="document-center-section-title"><div><h2>从这些来源添加题目</h2><p>点击后会打开对应选题工具。</p></div></div>
           <div className="document-center-source-grid">{sourceEntries.slice(0, 4).map(({ mode, label, description, icon: Icon }) => <button type="button" key={mode} onClick={() => onOpenSource(mode)}><Icon size={20} /><span><strong>{label}</strong><small>{description}</small></span><ChevronRight size={16} /></button>)}</div>
-        </section>
+        </section> : null}
       </main>
     </div>
   )
