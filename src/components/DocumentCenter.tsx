@@ -8,12 +8,13 @@ import {
   FileText,
   FolderOpen,
   Library,
+  ListTree,
   LoaderCircle,
   RefreshCw,
   School,
   Sparkles,
 } from 'lucide-react'
-import type { AddQuestionMode, AsyncStatus, HistoryDocumentSummary } from '../prototype/types'
+import type { AddQuestionMode, AsyncStatus, HistoryDocumentSummary, OpenAddOptions } from '../prototype/types'
 import { FeixiangAiLibraryLogo } from './ElephantIcon'
 
 interface DocumentCenterProps {
@@ -21,7 +22,7 @@ interface DocumentCenterProps {
   historyStatus: AsyncStatus
   onCreate: () => void
   onOpenDocument: (documentId: string) => void
-  onOpenSource: (mode: AddQuestionMode) => void
+  onOpenSource: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onReload: () => void
 }
 
@@ -56,6 +57,7 @@ export function DocumentCenter({ histories, historyStatus, onCreate, onOpenDocum
           {sourceEntries.map(({ mode, label, icon: Icon }) => (
             <button type="button" key={mode} onClick={() => onOpenSource(mode)}><Icon size={17} /><span>{label}</span></button>
           ))}
+          <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'chapter' })}><ListTree size={17} /><span>章节知识点选题</span></button>
           <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')}><RefreshCw size={17} /><span>最近浏览</span></button>
         </nav>
         <div className="document-center-tip"><Bot size={16} /><span>先新建或打开题单，再从左侧添加内容。</span></div>

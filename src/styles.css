@@ -9962,7 +9962,7 @@
 .question-fly-card strong { font-weight: 600; }
 
 /* 老师的主任务是编辑题单：工具区固定收窄，题单画布占据剩余空间。 */
-.workbench-page { --source-pane-width: 376px; }
+.workbench-page { --source-pane-width: 600px; }
 .workspace-shell.is-split-source { grid-template-columns: var(--source-pane-width) minmax(0, 1fr); }
 .workspace-header.is-split { width: calc(100% - var(--source-pane-width)); }
 .workspace-shell.is-split-source.is-draft-collapsed { grid-template-columns: minmax(0, 1fr) 48px; }
@@ -9970,3 +9970,36 @@
 .composition-hub.is-scheme-six .composition-resource-grid,
 .composition-hub.is-scheme-six .composition-task-grid { grid-template-columns: minmax(0, 1fr); }
 .composition-hub.is-scheme-six .composition-task-grid > button { min-height: 64px; }
+
+.add-workspace { grid-template-columns: 216px minmax(0, 1fr); }
+.editor-source-sidebar {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  padding: 14px 12px;
+  grid-column: 1;
+  grid-row: 1 / 3;
+  flex-direction: column;
+  border-right: 1px solid var(--fx-line-strong);
+  background: var(--common_bg_z1_color);
+}
+.editor-source-brand { display: flex; height: 38px; padding: 0 8px; align-items: center; gap: 9px; font-size: 14px; }
+.editor-source-brand .header-workbench-mark { width: 28px; height: 28px; }
+.editor-source-sidebar nav { display: grid; gap: 3px; margin-top: 14px; }
+.editor-source-sidebar nav p { margin: 16px 9px 5px; color: var(--fx-text-tertiary); font-size: 11px; font-weight: 600; }
+.editor-source-sidebar nav button { display: flex; width: 100%; min-height: 38px; padding: 8px 10px; align-items: center; gap: 9px; border: 0; border-radius: var(--fx-radius-control); color: var(--fx-text-secondary); background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.editor-source-sidebar nav button:hover { color: var(--fx-text-primary); background: var(--common_bg_z3_color); }
+.editor-source-sidebar nav button.is-active { color: var(--fx-primary); background: var(--fx-primary-selected); font-weight: 600; }
+.editor-source-sidebar nav button span { min-width: 0; line-height: 18px; }
+.editor-source-flow { display: flex; margin: 12px 8px 0; align-items: flex-start; gap: 8px; }
+.editor-source-flow:first-of-type { margin-top: auto; }
+.editor-source-flow > span { display: grid; width: 20px; height: 20px; flex: 0 0 auto; place-items: center; border-radius: 50%; color: var(--fx-primary); background: var(--fx-primary-selected); font-size: 11px; font-weight: 700; }
+.editor-source-flow p { display: grid; gap: 2px; margin: 0; }
+.editor-source-flow strong { font-size: 11px; }
+.editor-source-flow small { color: var(--fx-text-tertiary); font-size: 10px; line-height: 16px; }
+.add-workspace-brand { left: 232px; }
+.add-workspace-tabs { grid-column: 2; grid-row: 1; padding-left: 158px; }
+.add-workspace > .composition-hub,
+.add-workspace > .add-question-layer.is-docked,
+.add-workspace > .assistant-workspace,
+.add-workspace > .my-resources-page { grid-column: 2; grid-row: 2; }
