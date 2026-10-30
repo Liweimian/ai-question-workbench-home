@@ -1,6 +1,7 @@
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
 import {
   Bot,
+  BookOpen,
   ChevronRight,
   Clock3,
   FileInput,
@@ -9,10 +10,12 @@ import {
   FolderOpen,
   Library,
   ListTree,
+  Layers3,
   LoaderCircle,
   RefreshCw,
   School,
   Sparkles,
+  Target,
 } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, HistoryDocumentSummary, OpenAddOptions } from '../prototype/types'
 import { FeixiangAiLibraryLogo } from './ElephantIcon'
@@ -55,10 +58,17 @@ export function DocumentCenter({ embedded = false, histories, historyStatus, onC
           <button type="button" className="is-active"><Clock3 size={17} /><span>最近编辑</span></button>
           <button type="button" onClick={() => recentDocuments[0] ? onOpenDocument(recentDocuments[0].id) : MetisMessage.info('暂无已有题单')}><FileText size={17} /><span>我的题单</span></button>
           <p>添加内容</p>
-          {sourceEntries.map(({ mode, label, icon: Icon }) => (
+          <button type="button" className="document-center-parent" aria-expanded="true" onClick={() => onOpenSource('resource')}><Library size={17} /><span>飞象题库</span></button>
+          <div className="document-center-subnav" aria-label="飞象题库分类">
+            <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'chapter' })}><ListTree size={15} /><span>章节知识点选题</span></button>
+            <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'workbook' })}><BookOpen size={15} /><span>练习册</span></button>
+            <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'paper' })}><FileText size={15} /><span>试卷</span></button>
+            <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'sync' })}><Layers3 size={15} /><span>同步练习</span></button>
+            <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'special' })}><Target size={15} /><span>专题练习</span></button>
+          </div>
+          {sourceEntries.filter(({ mode }) => mode !== 'resource').map(({ mode, label, icon: Icon }) => (
             <button type="button" key={mode} onClick={() => onOpenSource(mode)}><Icon size={17} /><span>{label}</span></button>
           ))}
-          <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'chapter' })}><ListTree size={17} /><span>章节知识点选题</span></button>
           <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')}><RefreshCw size={17} /><span>最近浏览</span></button>
         </nav>
         <div className="document-center-tip"><Bot size={16} /><span>先新建或打开题单，再从左侧添加内容。</span></div>

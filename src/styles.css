@@ -6708,6 +6708,11 @@
 }
 .document-center-nav button:hover { color: var(--fx-text-primary); background: var(--common_bg_z3_color); }
 .document-center-nav button.is-active { color: var(--fx-primary); background: var(--fx-primary-selected); font-weight: 600; }
+.document-center-nav .document-center-parent { color: var(--fx-text-primary); font-weight: 600; }
+.document-center-subnav { display: grid; position: relative; gap: 2px; padding: 2px 0 4px 18px; }
+.document-center-subnav::before { position: absolute; top: 4px; bottom: 6px; left: 18px; width: 1px; background: var(--fx-line-strong); content: ''; }
+.document-center-nav .document-center-subnav button { min-height: 32px; padding: 6px 8px 6px 16px; color: var(--fx-text-secondary); font-size: 12px; }
+.document-center-nav .document-center-subnav button svg { flex: 0 0 auto; }
 .document-center-tip { display: flex; margin-top: auto; padding: 12px; align-items: flex-start; gap: 8px; border-radius: var(--fx-radius-control); color: var(--fx-text-secondary); background: var(--common_bg_z3_color); font-size: 12px; line-height: 18px; }
 .document-center-tip svg { flex: 0 0 auto; margin-top: 1px; color: var(--fx-primary); }
 
