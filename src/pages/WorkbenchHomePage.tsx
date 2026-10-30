@@ -38,7 +38,6 @@ function isLibraryTabMode(mode: AddTabMode): mode is LibraryTabMode {
 
 export function WorkbenchHomePage() {
   const workbench = useWorkbench()
-  const [pageMode, setPageMode] = useState<'home' | 'editor'>('home')
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const previousDocumentId = useRef(workbench.document.id)
   const highlightTimerRef = useRef<number | null>(null)
@@ -137,28 +136,6 @@ export function WorkbenchHomePage() {
       setOpenAddTabs((current) => current.includes(mode) ? current : [...current, mode])
     }
     workbench.openAdd(mode, options)
-  }
-
-  const enterNewDocument = () => {
-    const isUntouchedBlank = workbench.document.questions.length === 0
-      && !workbench.document.intro?.trim()
-      && isDefaultDocumentTitle(workbench.document.title)
-    if (!isUntouchedBlank) workbench.createNewDocument()
-    setPageMode('editor')
-    setSidePanelOpen(true)
-    setDraftCollapsed(false)
-  }
-
-  const enterDocument = async (documentId: string) => {
-    setPageMode('editor')
-    setSidePanelOpen(true)
-    setDraftCollapsed(false)
-    await workbench.openHistoryDocument(documentId)
-  }
-
-  const enterSource = (mode: AddQuestionMode, options?: Parameters<typeof workbench.openAdd>[1]) => {
-    enterNewDocument()
-    window.requestAnimationFrame(() => openAdd(mode, options))
   }
 
   const activateAddTab = (mode: AddTabMode) => {
@@ -281,23 +258,6 @@ export function WorkbenchHomePage() {
     ([key, value]) => documentFormat[key as keyof typeof documentFormat] !== value,
   )
 
-  if (pageMode === 'home') {
-    return (
-      <div className="fx-app metis-theme-aiq">
-        <main className="fx-content workbench-page">
-          <DocumentCenter
-            histories={workbench.historyDocuments}
-            historyStatus={workbench.historyStatus}
-            onCreate={enterNewDocument}
-            onOpenDocument={(documentId) => { void enterDocument(documentId) }}
-            onOpenSource={enterSource}
-            onReload={() => { void workbench.reloadHistory() }}
-          />
-        </main>
-      </div>
-    )
-  }
-
   return (
     <div className="fx-app metis-theme-aiq">
       <main className="fx-content workbench-page">
@@ -346,7 +306,7 @@ export function WorkbenchHomePage() {
             draftCollapsed={draftCollapsed}
             onDraftCollapse={() => setDraftCollapsed(true)}
             onDraftExpand={() => setDraftCollapsed(false)}
-            onBackHome={() => setPageMode('home')}
+            onBackHome={activateAddHome}
           />
 
           <section className={shellClassName} aria-label="飞象AI题库编辑器">

@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-30T17:00:00+08:00",
-      "iterationCount": 230,
+      "iterationCount": 232,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -136,6 +136,8 @@
         "browser persistent navigation and direct chapter-knowledge entry flow",
         "browser single-navigation default-card home and wide workbook flow",
         "browser embedded document-center beside narrow document canvas flow",
+        "browser direct-entry merged workbench without standalone document-center flow",
+        "browser compact embedded document-center header flow",
         "browser fixed right canvas and focus-editor continuity review"
       ]
     },

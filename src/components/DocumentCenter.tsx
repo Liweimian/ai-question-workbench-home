@@ -41,7 +41,7 @@ export function DocumentCenter({ embedded = false, histories, historyStatus, onC
   return (
     <div className={`document-center${embedded ? ' is-embedded' : ''}`}>
       <aside className="document-center-sidebar">
-        <div className="document-center-brand"><FeixiangAiLibraryLogo /><strong>AI 题单</strong></div>
+        {!embedded ? <div className="document-center-brand"><FeixiangAiLibraryLogo /><strong>AI 题单</strong></div> : null}
         <div className="document-center-primary-actions">
           <MetisButton type="primary" icon={<FilePlus2 size={18} />} onClick={onCreate} data-track="/click/aiQuestionHome/createFromHome | 首页新建题单 | 无">新建题单</MetisButton>
           <MetisButton type="bordered" icon={<FolderOpen size={18} />} onClick={() => {
@@ -66,8 +66,8 @@ export function DocumentCenter({ embedded = false, histories, historyStatus, onC
 
       <main className="document-center-main">
         <header className="document-center-heading">
-          <div><span>题单工作台</span><h1>最近编辑</h1><p>继续上次的题单，或创建一份新题单。</p></div>
-          <MetisButton type="borderless" icon={<RefreshCw size={16} />} onClick={onReload}>刷新</MetisButton>
+          <div>{!embedded ? <span>题单工作台</span> : null}<h1>最近编辑</h1>{!embedded ? <p>继续上次的题单，或创建一份新题单。</p> : null}</div>
+          {!embedded ? <MetisButton type="borderless" icon={<RefreshCw size={16} />} onClick={onReload}>刷新</MetisButton> : null}
         </header>
 
         <section className="document-center-quick" aria-label="开始使用">
