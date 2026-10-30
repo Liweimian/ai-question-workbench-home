@@ -7129,6 +7129,10 @@
 .add-workspace-rail button:hover { color: var(--fx-primary); background: var(--fx-primary-selected); }
 .add-workspace-rail > span { color: var(--fx-primary); background: var(--fx-primary-selected); }
 .add-workspace-rail button:last-child { margin-top: auto; }
+.add-workspace-rail > nav { display: flex; width: 100%; min-height: 0; padding-top: 4px; align-items: center; flex: 1; flex-direction: column; gap: 4px; overflow-y: auto; border-top: 1px solid var(--fx-line-subtle); scrollbar-width: none; }
+.add-workspace-rail > nav::-webkit-scrollbar { display: none; }
+.add-workspace-rail > nav button { flex: 0 0 auto; }
+.add-workspace-rail > nav button.is-active { color: var(--fx-primary); background: var(--fx-primary-selected); }
 
 .add-workspace-breadcrumb {
   display: flex;
@@ -7160,6 +7164,7 @@
 .add-workspace-breadcrumb .is-current,
 .add-workspace-breadcrumb span[aria-current='page'] { color: var(--fx-text-primary); font-weight: 600; }
 .add-workspace-breadcrumb svg { flex: 0 0 auto; color: var(--fx-text-tertiary); }
+.add-workspace.is-breadcrumb-navigation .library-resource-tabs { display: none; }
 
 .add-workspace-tabs > button,
 .add-workspace-tab {

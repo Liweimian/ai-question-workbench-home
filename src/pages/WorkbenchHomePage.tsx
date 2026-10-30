@@ -13,7 +13,7 @@ import { isDefaultDocumentTitle } from '../data/workbenchData'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { defaultDocumentFormat } from '../prototype/types'
 import type { AddQuestionMode, MyResourceKind, SourceRecord } from '../prototype/types'
-import { BrainCircuit, ChevronRight, FileInput, FileText, FolderHeart, House, Library, PanelLeftClose, PanelRightOpen, School, Sparkles, X } from 'lucide-react'
+import { BookOpen, BrainCircuit, ChevronRight, FileInput, FileText, FolderHeart, House, Layers3, Library, ListTree, PanelLeftClose, PanelRightOpen, School, Sparkles, Target, X } from 'lucide-react'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
@@ -291,6 +291,17 @@ export function WorkbenchHomePage() {
           : workbench.addMode === 'create'
             ? Sparkles
             : Library
+  const compactLibraryEntries = workbench.isAddOpen && (workbench.addMode === 'resource' || workbench.addMode === 'school')
+    ? [
+      { view: 'paper' as const, label: '试卷', icon: FileText },
+      { view: 'workbook' as const, label: '练习册', icon: BookOpen },
+      ...(workbench.addMode === 'resource' ? [
+        { view: 'sync' as const, label: '同步练习', icon: Layers3 },
+        { view: 'special' as const, label: '专题练习', icon: Target },
+      ] : []),
+      { view: 'chapter' as const, label: '章节知识点选题', icon: ListTree },
+    ]
+    : []
   const shellClassName = sidePanelOpen
     ? `workspace-shell is-split-source${draftCollapsed ? ' is-draft-collapsed' : ''}`
     : `workspace-shell is-focus-editor${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`
@@ -408,7 +419,19 @@ export function WorkbenchHomePage() {
                 {breadcrumbNavigationMode ? <aside className="add-workspace-rail" aria-label="方案四快捷导航">
                   <FeixiangAiLibraryLogo />
                   <button type="button" onClick={activateAddHome} aria-label="返回首页" title="返回首页"><House size={18} /></button>
-                  <span aria-hidden="true"><BreadcrumbIcon size={18} /></span>
+                  {compactLibraryEntries.length ? <nav aria-label="题库类型快捷导航">
+                    {compactLibraryEntries.map(({ view, label, icon: Icon }) => (
+                      <button
+                        type="button"
+                        key={view}
+                        className={workbench.libraryInitialView === view ? 'is-active' : ''}
+                        aria-current={workbench.libraryInitialView === view ? 'page' : undefined}
+                        aria-label={label}
+                        title={label}
+                        onClick={() => openAdd(workbench.addMode, { libraryView: view })}
+                      ><Icon size={18} /></button>
+                    ))}
+                  </nav> : <span aria-hidden="true"><BreadcrumbIcon size={18} /></span>}
                   <button type="button" onClick={collapseSidePanel} aria-label="收起添加题目工作区" title="专注编辑"><PanelLeftClose size={18} /></button>
                 </aside> : <div className="add-workspace-brand" aria-label="选择学段科目">
                   <FeixiangAiLibraryLogo />
