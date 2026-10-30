@@ -6915,7 +6915,7 @@
 .document-layout-four-recent-strip.is-bottom .document-layout-four-recent-meta small { color: inherit; font-size: 13px; white-space: nowrap; }
 .document-layout-four-recent-strip > header { display: flex; align-items: center; gap: 8px; color: var(--fx-text-primary); }
 .document-layout-four-recent-strip > header svg { color: var(--fx-primary); }
-.document-layout-four-recent-strip > header strong { font-size: 14px; }
+.document-layout-four-recent-strip > header strong { font-size: 16px; line-height: 24px; font-weight: 600; }
 .document-layout-four-recent-list { display: grid; min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .document-layout-four-recent-list > button {
   display: grid;
