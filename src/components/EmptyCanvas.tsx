@@ -131,7 +131,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       <div className="editor-empty-content" onPointerDown={() => setShowExampleContent(false)}>
         <div className="empty-add-guide" role="note">
           <span className="empty-add-guide-icon"><ArrowLeft size={18} /></span>
-          <span><strong>从左侧添加题目</strong></span>
+          <span><strong>以下为示意内容，请从左侧添加题目</strong></span>
         </div>
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
