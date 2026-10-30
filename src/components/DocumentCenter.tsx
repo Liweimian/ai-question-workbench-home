@@ -24,7 +24,7 @@ import { TaskFirstNavigation } from './TaskFirstNavigation'
 
 interface DocumentCenterProps {
   embedded?: boolean
-  layoutVariant?: 2 | 3 | 4 | 5
+  layoutVariant?: 2 | 3 | 4
   contentBusy?: boolean
   draftContent?: ReactNode
   histories: HistoryDocumentSummary[]
@@ -32,7 +32,7 @@ interface DocumentCenterProps {
   onOpenDocument: (documentId: string) => void
   onOpenMyResources: () => void
   onOpenSource: (mode: AddQuestionMode, options?: OpenAddOptions) => void
-  onLayoutVariantChange?: (variant: 2 | 3 | 4 | 5) => void
+  onLayoutVariantChange?: (variant: 2 | 3 | 4) => void
   onReload: () => void
 }
 
@@ -48,7 +48,6 @@ const layoutVariantOptions = [
   { value: 2, label: '方案一' },
   { value: 3, label: '方案二' },
   { value: 4, label: '方案三' },
-  { value: 5, label: '方案四' },
 ] as const
 
 export function DocumentCenter({ embedded = false, layoutVariant = 4, contentBusy = false, draftContent, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onLayoutVariantChange, onReload }: DocumentCenterProps) {
@@ -122,7 +121,7 @@ export function DocumentCenter({ embedded = false, layoutVariant = 4, contentBus
           {!embedded ? <MetisButton type="borderless" icon={<RefreshCw size={16} />} onClick={onReload}>刷新</MetisButton> : null}
         </header>
 
-        {layoutVariant === 2 || layoutVariant === 5 ? <div className="document-layout-two"><div className="document-center-draft">{draftContent}</div>{recentPanel}</div> : layoutVariant === 3 ? <div className="document-layout-three">{recentPanel}<div className="document-center-draft">{draftContent}</div></div> : navigationPanel}
+        {layoutVariant === 2 ? <div className="document-layout-two"><div className="document-center-draft">{draftContent}</div>{recentPanel}</div> : layoutVariant === 3 ? <div className="document-layout-three">{recentPanel}<div className="document-center-draft">{draftContent}</div></div> : navigationPanel}
       </main>
     </div>
   )
