@@ -62,11 +62,7 @@ export function DocumentCenter({ embedded = false, layoutVariant = 1, draftConte
   </section>
 
   const navigationPanel = <nav className="document-layout-four" aria-label="添加题目导航">
-    <div>
-      <button type="button" className="is-active"><Clock3 size={18} /><span>最近编辑</span></button>
-      <button type="button" onClick={onOpenMyResources}><FolderHeart size={18} /><span>我的资源</span></button>
-      <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')}><RefreshCw size={18} /><span>最近浏览</span></button>
-    </div>
+    <h1>添加题目</h1>
     <div>
       <button type="button" className="is-parent" onClick={() => onOpenSource('resource')}><Library size={18} /><span>飞象题库</span></button>
       <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'chapter' })}><ListTree size={17} /><span>章节知识点选题</span></button>
@@ -84,6 +80,16 @@ export function DocumentCenter({ embedded = false, layoutVariant = 1, draftConte
     <div>
       <button type="button" className="is-parent"><BrainCircuit size={18} /><span>AI 工具</span></button>
       {sourceEntries.filter(({ mode }) => mode !== 'resource' && mode !== 'school').map(({ mode, label, icon: Icon }) => <button type="button" key={mode} onClick={() => onOpenSource(mode)}><Icon size={17} /><span>{label}</span></button>)}
+    </div>
+    <div className="document-layout-four-recent">
+      <section>
+        <div><Clock3 size={18} /><strong>最近编辑</strong></div>
+        {recentDocuments.slice(0, 3).map((item) => <button type="button" key={item.id} onClick={() => onOpenDocument(item.id)}><FileText size={16} /><span>{item.title}</span><ChevronRight size={15} /></button>)}
+      </section>
+      <aside>
+        <button type="button" onClick={onOpenMyResources}><FolderHeart size={18} /><span>我的资源</span></button>
+        <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')}><RefreshCw size={18} /><span>最近浏览</span></button>
+      </aside>
     </div>
   </nav>
 
