@@ -1,8 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
 import {
-  ChevronRight,
-  Clock3,
   Download,
   FileDown,
   LoaderCircle,
@@ -18,11 +16,10 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { formatDefaultDocumentTitle } from '../data/workbenchData'
-import type { AsyncStatus, DocumentStatus, DocumentSyncState, HistoryDocumentSummary } from '../prototype/types'
+import type { DocumentStatus, DocumentSyncState } from '../prototype/types'
 import { ElephantIcon } from './ElephantIcon'
 
 interface WorkspaceHeaderProps {
-  documentId: string
   documentTitle: string
   documentUpdatedAt: string
   questionCount: number
@@ -33,16 +30,11 @@ interface WorkspaceHeaderProps {
   syncState: DocumentSyncState
   assignmentOutdated: boolean
   hasPersistedDraft: boolean
-  histories: HistoryDocumentSummary[]
-  historyStatus: AsyncStatus
   onUndo: () => void
   onCreateNew: () => void
   showCreateNew: boolean
   onSave: () => void
   onAssign: () => void
-  onOpenDocument: (documentId: string) => void
-  onReloadHistory: () => void
-  onOpenAllDocuments: () => void
   sidePanelOpen: boolean
   onSidePanelOpen: () => void
   onEnterEdit: () => void
@@ -53,7 +45,6 @@ interface WorkspaceHeaderProps {
 }
 
 export function WorkspaceHeader({
-  documentId,
   documentTitle,
   documentUpdatedAt,
   questionCount,
@@ -64,16 +55,11 @@ export function WorkspaceHeader({
   syncState,
   assignmentOutdated,
   hasPersistedDraft,
-  histories,
-  historyStatus,
   onUndo,
   onCreateNew,
   showCreateNew,
   onSave,
   onAssign,
-  onOpenDocument,
-  onReloadHistory,
-  onOpenAllDocuments,
   sidePanelOpen,
   onSidePanelOpen,
   onEnterEdit,
@@ -84,18 +70,11 @@ export function WorkspaceHeader({
 }: WorkspaceHeaderProps) {
   const hasQuestions = questionCount > 0
   const fallbackTitle = formatDefaultDocumentTitle()
-  const [recentOpen, setRecentOpen] = useState(false)
   const [assignOpen, setAssignOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
-  const recentRef = useRef<HTMLDivElement>(null)
   const assignRef = useRef<HTMLDivElement>(null)
   const moreRef = useRef<HTMLDivElement>(null)
-  const recentDocuments = useMemo(
-    () => histories.filter((item) => item.id !== documentId).slice(0, 5),
-    [documentId, histories],
-  )
-
   const syncLabel = syncState === 'saving'
     ? '正在保存…'
     : syncState === 'dirty'
@@ -128,16 +107,14 @@ export function WorkspaceHeader({
           : '未保存'
 
   useEffect(() => {
-    if (!recentOpen && !assignOpen && !moreOpen) return
+    if (!assignOpen && !moreOpen) return
     const closeOnOutside = (event: MouseEvent) => {
       const target = event.target as Node
-      if (!recentRef.current?.contains(target)) setRecentOpen(false)
       if (!assignRef.current?.contains(target)) setAssignOpen(false)
       if (!moreRef.current?.contains(target)) setMoreOpen(false)
     }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
-      setRecentOpen(false)
       setAssignOpen(false)
       setMoreOpen(false)
     }
@@ -147,11 +124,7 @@ export function WorkspaceHeader({
       document.removeEventListener('mousedown', closeOnOutside)
       document.removeEventListener('keydown', closeOnEscape)
     }
-  }, [assignOpen, moreOpen, recentOpen])
-
-  useEffect(() => {
-    if (draftCollapsed) setRecentOpen(false)
-  }, [draftCollapsed])
+  }, [assignOpen, moreOpen])
 
   const exportDocument = () => {
     if (!hasQuestions) {
@@ -216,58 +189,13 @@ export function WorkspaceHeader({
             data-track="/click/aiQuestionHome/openCompositionHub | 打开添加题目工作区 | 无"
           >展开题库选题</MetisButton>
         ) : null}
-        <div className="header-recent header-icon-action" data-tooltip="最近编辑" ref={recentRef}>
-          <MetisButton
-            type="borderless"
-            icon={<Clock3 size={17} />}
-            aria-label="最近编辑"
-            title="最近编辑"
-            aria-expanded={recentOpen}
-            onClick={() => {
-              setRecentOpen((open) => !open)
-              setAssignOpen(false)
-              setMoreOpen(false)
-            }}
-            data-track="/click/aiQuestionHome/recentDocuments | 打开最近编辑 | 无"
-          />
-          {recentOpen ? (
-            <div className="header-recent-menu" role="dialog" aria-label="最近编辑">
-              <div className="header-recent-title"><strong>最近编辑</strong><span>快速切换题单</span></div>
-              <div className="header-recent-list">
-                <button type="button" className="is-current" disabled>
-                  <span><strong>{documentTitle?.trim() || fallbackTitle}</strong><small>{questionCount} 道题 · {syncLabel}</small></span>
-                  <em>正在编辑</em>
-                </button>
-                {historyStatus === 'loading' ? (
-                  <div className="header-recent-state"><LoaderCircle size={15} />正在加载最近题单…</div>
-                ) : historyStatus === 'error' ? (
-                  <div className="header-recent-state is-error"><span>最近题单加载失败</span><button type="button" onClick={onReloadHistory}>重新加载</button></div>
-                ) : recentDocuments.length ? recentDocuments.map((item) => (
-                  <button
-                    type="button"
-                    key={item.id}
-                    disabled={contentBusy || syncState === 'saving' || syncState === 'dirty'}
-                    onClick={() => {
-                      onOpenDocument(item.id)
-                      setRecentOpen(false)
-                    }}
-                  >
-                    <span><strong>{item.title}</strong><small>{item.questionCount} 道题 · {item.status} · {item.updatedAt}</small></span>
-                    <ChevronRight size={15} />
-                  </button>
-                )) : <div className="header-recent-state">暂无最近编辑</div>}
-              </div>
-              <button type="button" className="header-recent-all" disabled={contentBusy || syncState === 'saving' || syncState === 'dirty'} onClick={() => { onOpenAllDocuments(); setRecentOpen(false) }}>查看全部题单<ChevronRight size={14} /></button>
-            </div>
-          ) : null}
-        </div>
         {showCreateNew ? <span className="header-icon-action" data-tooltip="新建另一份题单">
           <MetisButton
             type="borderless"
             icon={<Plus size={18} />}
             aria-label="新建另一份题单"
             disabled={contentBusy || syncState === 'saving' || syncState === 'dirty'}
-            onClick={() => { setRecentOpen(false); onCreateNew() }}
+            onClick={onCreateNew}
             data-track="/click/aiQuestionHome/createBlank | 新建空白题单 | 无"
           />
         </span> : null}
@@ -291,7 +219,6 @@ export function WorkspaceHeader({
             aria-expanded={assignOpen}
             onClick={() => {
               setAssignOpen((open) => !open)
-              setRecentOpen(false)
               setMoreOpen(false)
             }}
             data-track="/click/aiQuestionHome/assign | 布置当前内容 | 无"
@@ -310,7 +237,6 @@ export function WorkspaceHeader({
             icon={<Maximize2 size={17} />}
             aria-label="展开编辑"
             onClick={() => {
-              setRecentOpen(false)
               setAssignOpen(false)
               setMoreOpen(false)
               onEnterEdit()
@@ -327,7 +253,6 @@ export function WorkspaceHeader({
             aria-expanded={moreOpen}
             onClick={() => {
               setMoreOpen((open) => !open)
-              setRecentOpen(false)
               setAssignOpen(false)
             }}
           />
@@ -346,7 +271,7 @@ export function WorkspaceHeader({
             icon={<PanelRightClose size={17} />}
             aria-label="收起组题画布"
             title="收起组题画布，扩大左侧浏览区"
-            onClick={() => { setRecentOpen(false); onDraftCollapse() }}
+            onClick={onDraftCollapse}
           />
         ) : null}
       </div>

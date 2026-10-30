@@ -315,7 +315,6 @@ export function WorkbenchHomePage() {
       <main className="fx-content workbench-page">
         <div className={`fx-zoom-area workbench-zoom-area${alternateHomeLayout ? ' is-alternate-home' : ''}`}>
           <WorkspaceHeader
-            documentId={workbench.document.id}
             documentTitle={workbench.document.title}
             documentUpdatedAt={workbench.document.updatedAt}
             questionCount={workbench.document.questions.length}
@@ -326,8 +325,6 @@ export function WorkbenchHomePage() {
             syncState={workbench.documentSyncState}
             assignmentOutdated={workbench.assignmentOutdated}
             hasPersistedDraft={workbench.historyDocuments.some((item) => item.id === workbench.document.id)}
-            histories={workbench.historyDocuments}
-            historyStatus={workbench.historyStatus}
             onUndo={() => {
               setAssistantTabOpen(false)
               setAssistantActive(false)
@@ -344,9 +341,6 @@ export function WorkbenchHomePage() {
             showCreateNew={!isUntouchedBlankDocument}
             onSave={() => { void workbench.saveDocument() }}
             onAssign={() => { void workbench.assignDocument() }}
-            onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
-            onReloadHistory={() => { void workbench.reloadHistory() }}
-            onOpenAllDocuments={() => openMyResources('题单')}
             sidePanelOpen={sidePanelOpen}
             onSidePanelOpen={() => {
               setSidePanelOpen(true)
