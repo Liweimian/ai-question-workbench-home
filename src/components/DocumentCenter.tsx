@@ -23,14 +23,14 @@ import { FeixiangAiLibraryLogo } from './ElephantIcon'
 
 interface DocumentCenterProps {
   embedded?: boolean
-  layoutVariant?: 1 | 2 | 3
+  layoutVariant?: 1 | 2 | 3 | 4
   draftContent?: ReactNode
   histories: HistoryDocumentSummary[]
   historyStatus: AsyncStatus
   onOpenDocument: (documentId: string) => void
   onOpenMyResources: () => void
   onOpenSource: (mode: AddQuestionMode, options?: OpenAddOptions) => void
-  onLayoutVariantChange?: (variant: 1 | 2 | 3) => void
+  onLayoutVariantChange?: (variant: 1 | 2 | 3 | 4) => void
   onReload: () => void
 }
 
@@ -60,6 +60,32 @@ export function DocumentCenter({ embedded = false, layoutVariant = 1, draftConte
           ))}
         </div> : <div className="document-center-empty"><FileText size={30} /><strong>还没有编辑过的题单</strong><p>可直接从左侧添加题目，开始编辑右侧题单。</p></div>}
   </section>
+
+  const navigationPanel = <nav className="document-layout-four" aria-label="添加题目导航">
+    <div>
+      <button type="button" className="is-active"><Clock3 size={18} /><span>最近编辑</span></button>
+      <button type="button" onClick={onOpenMyResources}><FolderHeart size={18} /><span>我的资源</span></button>
+      <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')}><RefreshCw size={18} /><span>最近浏览</span></button>
+    </div>
+    <div>
+      <button type="button" className="is-parent" onClick={() => onOpenSource('resource')}><Library size={18} /><span>飞象题库</span></button>
+      <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'chapter' })}><ListTree size={17} /><span>章节知识点选题</span></button>
+      <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'workbook' })}><BookOpen size={17} /><span>练习册</span></button>
+      <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'paper' })}><FileText size={17} /><span>试卷</span></button>
+      <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'sync' })}><Layers3 size={17} /><span>同步练习</span></button>
+      <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'special' })}><Target size={17} /><span>专题练习</span></button>
+    </div>
+    <div>
+      <button type="button" className="is-parent" onClick={() => onOpenSource('school')}><School size={18} /><span>校本题库</span></button>
+      <button type="button" onClick={() => onOpenSource('school', { libraryView: 'chapter' })}><ListTree size={17} /><span>章节知识点选题</span></button>
+      <button type="button" onClick={() => onOpenSource('school', { libraryView: 'workbook' })}><BookOpen size={17} /><span>练习册</span></button>
+      <button type="button" onClick={() => onOpenSource('school', { libraryView: 'paper' })}><FileText size={17} /><span>试卷</span></button>
+    </div>
+    <div>
+      <button type="button" className="is-parent"><BrainCircuit size={18} /><span>AI 工具</span></button>
+      {sourceEntries.filter(({ mode }) => mode !== 'resource' && mode !== 'school').map(({ mode, label, icon: Icon }) => <button type="button" key={mode} onClick={() => onOpenSource(mode)}><Icon size={17} /><span>{label}</span></button>)}
+    </div>
+  </nav>
 
   return (
     <div className={`document-center${embedded ? ' is-embedded' : ''} is-layout-${layoutVariant}`}>
@@ -96,14 +122,14 @@ export function DocumentCenter({ embedded = false, layoutVariant = 1, draftConte
 
       <main className="document-center-main">
         {onLayoutVariantChange ? <div className="document-layout-switch" role="group" aria-label="首页布局方案">
-          {([1, 2, 3] as const).map((variant) => <button type="button" key={variant} className={layoutVariant === variant ? 'is-active' : ''} onClick={() => onLayoutVariantChange(variant)}>方案{variant === 1 ? '一' : variant === 2 ? '二' : '三'}</button>)}
+          {([1, 2, 3, 4] as const).map((variant) => <button type="button" key={variant} className={layoutVariant === variant ? 'is-active' : ''} onClick={() => onLayoutVariantChange(variant)}>方案{variant === 1 ? '一' : variant === 2 ? '二' : variant === 3 ? '三' : '四'}</button>)}
         </div> : null}
         <header className="document-center-heading">
           <div>{!embedded ? <span>题单工作台</span> : null}<h1>最近编辑</h1>{!embedded ? <p>继续上次的题单，或创建一份新题单。</p> : null}</div>
           {!embedded ? <MetisButton type="borderless" icon={<RefreshCw size={16} />} onClick={onReload}>刷新</MetisButton> : null}
         </header>
 
-        {layoutVariant === 1 ? recentPanel : layoutVariant === 2 ? <div className="document-layout-two"><div className="document-center-draft">{draftContent}</div>{recentPanel}</div> : <div className="document-layout-three">{recentPanel}<div className="document-center-draft">{draftContent}</div></div>}
+        {layoutVariant === 1 ? recentPanel : layoutVariant === 2 ? <div className="document-layout-two"><div className="document-center-draft">{draftContent}</div>{recentPanel}</div> : layoutVariant === 3 ? <div className="document-layout-three">{recentPanel}<div className="document-center-draft">{draftContent}</div></div> : navigationPanel}
 
         {layoutVariant === 1 ? <section className="document-center-sources" aria-label="题单内容来源">
           <div className="document-center-section-title"><div><h2>从这些来源添加题目</h2><p>点击后会打开对应选题工具。</p></div></div>

@@ -53,7 +53,7 @@ export function WorkbenchHomePage() {
   const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
   const [myResourcesActive, setMyResourcesActive] = useState(false)
   const [myResourcesInitialKind, setMyResourcesInitialKind] = useState<MyResourceKind | '全部'>('全部')
-  const [homeLayoutVariant, setHomeLayoutVariant] = useState<1 | 2 | 3>(1)
+  const [homeLayoutVariant, setHomeLayoutVariant] = useState<1 | 2 | 3 | 4>(1)
   const [draftPushAnimating, setDraftPushAnimating] = useState(false)
   const [recentlyAddedQuestionId, setRecentlyAddedQuestionId] = useState<string | null>(null)
   const hasQuestions = workbench.document.questions.length > 0
@@ -258,7 +258,7 @@ export function WorkbenchHomePage() {
   }
 
   const isAddHome = !workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive
-  const alternateHomeLayout = sidePanelOpen && isAddHome && homeLayoutVariant !== 1 && !draftCollapsed
+  const alternateHomeLayout = sidePanelOpen && isAddHome && (homeLayoutVariant === 2 || homeLayoutVariant === 3) && !draftCollapsed
   const shellClassName = sidePanelOpen
     ? `workspace-shell is-split-source${draftCollapsed ? ' is-draft-collapsed' : ''}`
     : `workspace-shell is-focus-editor${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`

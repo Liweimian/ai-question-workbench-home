@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-30T17:00:00+08:00",
-      "iterationCount": 245,
+      "iterationCount": 246,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -151,7 +151,8 @@
         "browser three home-layout variants and draft-push transition review",
         "browser alternate-home full-width without duplicate draft rail review",
         "browser alternate-home no-top-gap review",
-        "browser fixed bottom-right layout switch review"
+        "browser fixed bottom-right layout switch review",
+        "browser fourth navigation-only home layout review"
       ]
     },
     "2": {
