@@ -313,7 +313,7 @@ export function WorkbenchHomePage() {
   return (
     <div className="fx-app metis-theme-aiq">
       <main className="fx-content workbench-page">
-        <div className="fx-zoom-area workbench-zoom-area">
+        <div className={`fx-zoom-area workbench-zoom-area${alternateHomeLayout ? ' is-alternate-home' : ''}`}>
           <WorkspaceHeader
             documentId={workbench.document.id}
             documentTitle={workbench.document.title}

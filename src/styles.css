@@ -6810,8 +6810,9 @@
 .document-layout-switch button.is-active { color: var(--fx-primary); background: var(--fx-primary-selected); font-weight: 600; }
 .document-center-main { position: relative; }
 
-.workspace-shell.is-alternate-home { grid-template-columns: minmax(0, 1fr); }
+.workspace-shell.is-split-source.is-alternate-home { grid-template-columns: minmax(0, 1fr); }
 .workspace-shell.is-alternate-home .add-workspace { grid-column: 1; }
+.workbench-zoom-area.is-alternate-home .workspace-header { display: none; }
 .document-center.is-embedded.is-layout-2,
 .document-center.is-embedded.is-layout-3 { grid-template-columns: 220px minmax(0, 1fr); }
 .document-center.is-embedded.is-layout-2 .document-center-main,
