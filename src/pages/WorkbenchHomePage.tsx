@@ -266,11 +266,6 @@ export function WorkbenchHomePage() {
   const hasCustomDocumentFormat = Object.entries(defaultDocumentFormat).some(
     ([key, value]) => documentFormat[key as keyof typeof documentFormat] !== value,
   )
-  const isUntouchedBlankDocument = workbench.document.questions.length === 0
-    && !workbench.document.intro?.trim()
-    && !hasCustomDocumentFormat
-    && isDefaultDocumentTitle(workbench.document.title)
-
   const renderDraftContent = () => <div className={`editor-scroll${hasQuestions ? '' : ' is-empty'}${draftPushAnimating ? ' is-pushing-right' : ''}`}>
     {!hasQuestions ? (
       <EmptyCanvas
@@ -338,7 +333,6 @@ export function WorkbenchHomePage() {
               setSidePanelOpen(true)
               setDraftCollapsed(false)
             }}
-            showCreateNew={!isUntouchedBlankDocument}
             onSave={() => { void workbench.saveDocument() }}
             onAssign={() => { void workbench.assignDocument() }}
             sidePanelOpen={sidePanelOpen}

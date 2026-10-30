@@ -32,7 +32,6 @@ interface WorkspaceHeaderProps {
   hasPersistedDraft: boolean
   onUndo: () => void
   onCreateNew: () => void
-  showCreateNew: boolean
   onSave: () => void
   onAssign: () => void
   sidePanelOpen: boolean
@@ -57,7 +56,6 @@ export function WorkspaceHeader({
   hasPersistedDraft,
   onUndo,
   onCreateNew,
-  showCreateNew,
   onSave,
   onAssign,
   sidePanelOpen,
@@ -189,16 +187,17 @@ export function WorkspaceHeader({
             data-track="/click/aiQuestionHome/openCompositionHub | 打开添加题目工作区 | 无"
           >展开题库选题</MetisButton>
         ) : null}
-        {showCreateNew ? <span className="header-icon-action" data-tooltip="新建另一份题单">
+        <span className="header-icon-action" data-tooltip="新建题单">
           <MetisButton
             type="borderless"
             icon={<Plus size={18} />}
-            aria-label="新建另一份题单"
+            aria-label="新建题单"
+            title="新建题单"
             disabled={contentBusy || syncState === 'saving' || syncState === 'dirty'}
             onClick={onCreateNew}
             data-track="/click/aiQuestionHome/createBlank | 新建空白题单 | 无"
           />
-        </span> : null}
+        </span>
         <span className="header-icon-action" data-tooltip={syncState === 'saving' ? '保存中' : '保存题单'}>
           <MetisButton
             type="borderless"
