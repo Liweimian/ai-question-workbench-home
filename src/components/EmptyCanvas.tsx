@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Bold, ChevronDown, Heading2, Italic, Send, Sparkles, Strikethrough, Underline } from 'lucide-react'
+import { ArrowLeft, Bold, ChevronDown, Heading2, Italic, Send, Sparkles, Strikethrough, Underline } from 'lucide-react'
 import { defaultDocumentFormat } from '../prototype/types'
 import type { AddQuestionMode, DocumentFormat, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
@@ -129,11 +129,14 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       </header>
 
       <div className="editor-empty-content" onPointerDown={() => setShowExampleContent(false)}>
+        <div className="empty-add-guide" role="note">
+          <span className="empty-add-guide-icon"><ArrowLeft size={18} /></span>
+          <span><strong>从左侧添加题目</strong><small>选择左侧题库或 AI 工具，题目会自动出现在这里</small></span>
+        </div>
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
             <div className={`empty-first-block${blockId === 'initial' && !props.document.intro ? ' is-add-only' : ''}`} role="group" aria-label="题单内容块" key={blockId}>
               <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenAssistant={() => props.onOpenAssistant()} />
-              {showExampleContent && blockId === 'initial' && !props.document.intro ? <span className="empty-preview-inline-hint">以下为示意内容，请从左侧添加题目</span> : null}
               {blockId !== 'initial' || props.document.intro ? (
                 <div
                   className="empty-block-input"
@@ -171,41 +174,17 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           ))}
         </div>
 
-        {showExampleContent ? <div className="empty-question-preview">
-          <div className="empty-preview-section-title"><strong>一、选择题</strong></div>
-          <div className="empty-preview-question">
-            <b>1.</b>
-            <div>
-              <p>若一次函数 y = 2x - 3，当 x = 2 时，y 的值是（　）</p>
-              <div className="empty-preview-options"><span>A. -1</span><span>B. 0</span><span>C. 1</span><span>D. 2</span></div>
-            </div>
+        {showExampleContent ? <div className="empty-question-preview" aria-hidden="true">
+          <header className="empty-preview-label"><strong>题单示例</strong><small>添加题目后自动替换</small></header>
+          <div className="empty-preview-row">
+            <strong>题目 1</strong>
+            <span>题目内容</span>
+            <i />
           </div>
-          <div className="empty-preview-question is-secondary">
-            <b>2.</b>
-            <div>
-              <p>下列各式中，是一元二次方程的是（　）</p>
-              <div className="empty-preview-options"><span>A. x + 2 = 0</span><span>B. x² - 3x + 2 = 0</span><span>C. 1/x = 2</span><span>D. x + y = 3</span></div>
-            </div>
-          </div>
-
-          <div className="empty-preview-section-title"><strong>二、填空题</strong></div>
-          <div className="empty-preview-question is-compact">
-            <b>3.</b>
-            <div><p>分解因式：x² - 4 = ______。</p></div>
-          </div>
-          <div className="empty-preview-question is-compact is-secondary">
-            <b>4.</b>
-            <div><p>直角三角形两直角边长为 3 和 4，则斜边长为 ______。</p></div>
-          </div>
-
-          <div className="empty-preview-section-title"><strong>三、解答题</strong></div>
-          <div className="empty-preview-question is-compact">
-            <b>5.</b>
-            <div><p>解方程：x² - 5x + 6 = 0。</p><i className="is-solution-area" /></div>
-          </div>
-          <div className="empty-preview-question is-compact is-secondary">
-            <b>6.</b>
-            <div><p>甲、乙两种图书共 80 本，总费用为 1400 元。若单价分别为 20 元和 15 元，求两种图书各多少本。</p><i className="is-solution-area" /></div>
+          <div className="empty-preview-row">
+            <strong>题目 2</strong>
+            <span>题目内容</span>
+            <i className="is-short" />
           </div>
         </div> : null}
 
