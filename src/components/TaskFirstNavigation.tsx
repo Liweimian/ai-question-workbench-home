@@ -2,6 +2,7 @@ import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
 import {
   BookOpen,
   BrainCircuit,
+  ChevronRight,
   Clock3,
   FileInput,
   FileText,
@@ -91,8 +92,8 @@ export function TaskFirstNavigation({ disabled = false, histories, historyStatus
                 onClick={() => onOpenDocument(item.id)}
                 data-track="/click/aiQuestionHome/openRecentDocument | 打开最近编辑题单 | documentId#STRING"
               >
-                <FileText size={17} />
-                <span><strong>{item.title}</strong><small>{item.updatedAt}</small></span>
+                <strong>{item.title}</strong>
+                <span className="document-layout-four-recent-meta"><Clock3 size={15} /><small>{item.updatedAt}</small><ChevronRight size={16} /></span>
               </button>
             )) : <div className="document-layout-four-recent-state">暂无最近题单</div>}
         </div>
