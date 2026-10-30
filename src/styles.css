@@ -6847,7 +6847,9 @@
 .document-layout-four > h1 { grid-column: 1 / -1; margin: 2px 0 2px; font-size: 22px; line-height: 30px; }
 .document-layout-four > div { display: grid; position: relative; align-content: start; align-self: stretch; min-width: 0; border: 1px solid var(--fx-line-subtle); border-radius: 14px; background: var(--common_bg2_color); box-shadow: 0 5px 16px var(--common_shadow3_color); }
 .document-layout-four > div:not(.document-layout-four-recent) { height: 232px; padding: 12px; box-sizing: border-box; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.document-layout-four > div:not(.document-layout-four-recent) > button:last-child { grid-column: 1 / -1; }
+.document-layout-four > div:nth-of-type(1) > button:nth-child(2),
+.document-layout-four > div:nth-of-type(2) > button:nth-child(2),
+.document-layout-four > div:nth-of-type(3) > button:last-child { grid-column: 1 / -1; }
 .document-layout-four button { display: flex; width: 100%; min-width: 0; min-height: 44px; padding: 0 12px; align-items: center; gap: 9px; border: 0; border-radius: 9px; color: var(--fx-text-primary); background: var(--fx-surface-muted); cursor: pointer; font-size: 13px; font-weight: 500; text-align: left; }
 .document-layout-four button:hover { color: var(--fx-primary); background: var(--fx-primary-selected); }
 .document-layout-four button.is-parent { min-height: 48px; padding: 0 4px; grid-column: 1 / -1; color: var(--fx-text-primary); background: transparent; font-size: 15px; font-weight: 600; }
