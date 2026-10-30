@@ -3301,7 +3301,7 @@
 .empty-add-guide { display: flex; margin: 2px 0 14px; padding: 10px 12px; align-items: center; gap: 10px; border: 1px solid var(--theme_primary1_selected2_color); border-radius: var(--fx-radius-control); color: var(--fx-primary); background: var(--fx-primary-selected); }
 .empty-add-guide-icon { display: grid; width: 30px; height: 30px; flex: 0 0 auto; place-items: center; border-radius: var(--fx-radius-control); background: var(--common_bg2_color); box-shadow: 0 2px 8px var(--common_shadow3_color); }
 .empty-add-guide > span:last-child { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
-.empty-add-guide strong { font-size: 14px; line-height: 20px; }
+.empty-add-guide strong { color: var(--fx-text-secondary); font-size: 14px; line-height: 20px; }
 .empty-add-guide small { color: var(--fx-text-secondary); font-size: 11px; line-height: 16px; }
 .editor-empty.is-linked-workspace .empty-first-block.is-add-only .block-add-control-row { opacity: 1; pointer-events: auto; }
 
