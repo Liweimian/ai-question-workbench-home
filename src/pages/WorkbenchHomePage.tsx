@@ -1,8 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { QuestionInspector } from '../components/AiInspector'
 import { AiAssistantWorkspace } from '../components/AiAssistantWorkspace'
-import { CompositionHub } from '../components/CompositionHub'
-import type { RecentOpenedResource } from '../components/CompositionHub'
 import { QuestionSortPanel } from '../components/QuestionSortPanel'
 import { DocumentCanvas } from '../components/DocumentCanvas'
 import { EmptyCanvas } from '../components/EmptyCanvas'
@@ -11,7 +9,7 @@ import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { DocumentCenter } from '../components/DocumentCenter'
 import { ElephantIcon, FeixiangAiLibraryLogo } from '../components/ElephantIcon'
-import { isDefaultDocumentTitle, sourceRecords } from '../data/workbenchData'
+import { isDefaultDocumentTitle } from '../data/workbenchData'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { defaultDocumentFormat } from '../prototype/types'
 import type { AddQuestionMode, MyResourceKind, SourceRecord } from '../prototype/types'
@@ -38,19 +36,12 @@ function isLibraryTabMode(mode: AddTabMode): mode is LibraryTabMode {
   return mode === 'resource' || mode === 'school'
 }
 
-const recentOpenedResources: RecentOpenedResource[] = [
-  { id: 'recent-paper-1', type: '试卷', title: sourceRecords.find((item) => item.id === 'paper-1')!.title, progress: '看到第 12 题 · 已选 5 题', updatedAt: '今天 15:20', libraryMode: 'resource', record: sourceRecords.find((item) => item.id === 'paper-1')!, scrollTop: 520 },
-  { id: 'recent-workbook-1', type: '练习册', title: sourceRecords.find((item) => item.id === 'workbook-1')!.title, progress: '看到综合练习 · 已选 2 题', updatedAt: '今天 11:08', libraryMode: 'resource', record: sourceRecords.find((item) => item.id === 'workbook-1')!, scrollTop: 310 },
-  { id: 'recent-special-1', type: '章节', title: sourceRecords.find((item) => item.id === 'special-1')!.title, progress: '看到图象与性质 · 已选 3 题', updatedAt: '昨天 18:42', libraryMode: 'resource', record: sourceRecords.find((item) => item.id === 'special-1')!, scrollTop: 420 },
-]
-
 export function WorkbenchHomePage() {
   const workbench = useWorkbench()
   const [pageMode, setPageMode] = useState<'home' | 'editor'>('home')
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const previousDocumentId = useRef(workbench.document.id)
   const highlightTimerRef = useRef<number | null>(null)
-  const recentResourceResumeRef = useRef<{ key: string; scrollTop: number } | null>(null)
   const assistantTabRef = useRef<HTMLButtonElement>(null)
   const [sortCollapsed, setSortCollapsed] = useState(false)
   const [sidePanelOpen, setSidePanelOpen] = useState(true)
@@ -196,19 +187,6 @@ export function WorkbenchHomePage() {
     })
   }
 
-  const openRecentResource = (resource: RecentOpenedResource) => {
-    recentResourceResumeRef.current = { key: `${resource.libraryMode}:${resource.record.id}`, scrollTop: resource.scrollTop }
-    openLibraryDetail(resource.libraryMode, resource.record)
-    window.setTimeout(() => {
-      const pending = recentResourceResumeRef.current
-      if (!pending) return
-      const scrollHost = document.querySelector<HTMLElement>('.legacy-detail-scroll')
-      if (!scrollHost) return
-      scrollHost.scrollTop = pending.scrollTop
-      recentResourceResumeRef.current = null
-    }, 120)
-  }
-
   const activateLibraryDetail = (tab: LibraryDetailTab) => {
     setSidePanelOpen(true)
     setAssistantActive(false)
@@ -238,15 +216,6 @@ export function WorkbenchHomePage() {
     setAssistantTabOpen(true)
     setAssistantActive(true)
     void workbench.composeFromBank()
-  }
-
-  const openAssistantWorkspace = () => {
-    setSidePanelOpen(true)
-    setActiveLibraryDetailKey(null)
-    setMyResourcesActive(false)
-    workbench.closeAdd()
-    setAssistantTabOpen(true)
-    setAssistantActive(true)
   }
 
   const activateAssistantTab = () => {
@@ -589,13 +558,16 @@ export function WorkbenchHomePage() {
                     onClose={activeLibraryDetail ? () => closeLibraryDetailTab(activeLibraryDetail) : activateAddHome}
                   />
                 ) : (
-                  <CompositionHub
-                    contentBusy={workbench.isContentBusy}
-                    onOpenAdd={openAdd}
-                    onOpenMyResources={() => openMyResources('全部')}
-                    onOpenAssistant={openAssistantWorkspace}
-                    recentResources={recentOpenedResources}
-                    onOpenRecentResource={openRecentResource}
+                  <DocumentCenter
+                    embedded
+                    histories={workbench.historyDocuments}
+                    historyStatus={workbench.historyStatus}
+                    onCreate={() => {
+                      if (workbench.document.questions.length || workbench.document.intro?.trim()) workbench.createNewDocument()
+                    }}
+                    onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
+                    onOpenSource={(mode, options) => openAdd(mode, options)}
+                    onReload={() => { void workbench.reloadHistory() }}
                   />
                 )}
               </div>

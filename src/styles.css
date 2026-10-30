@@ -6781,6 +6781,22 @@
 .document-center-source-grid strong { color: var(--fx-text-primary); }
 .document-center-source-grid small { color: var(--fx-text-secondary); }
 
+.document-center.is-embedded {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  grid-template-columns: 220px minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--fx-surface-muted);
+}
+.document-center.is-embedded .document-center-sidebar { position: relative; height: 100%; padding: 16px 14px; }
+.document-center.is-embedded .document-center-main { width: auto; min-width: 0; padding: 32px 32px 56px; overflow: auto; justify-self: stretch; }
+.document-center.is-embedded .document-center-heading h1 { font-size: 26px; line-height: 36px; }
+.document-center.is-embedded .document-center-quick { margin: 22px 0 24px; }
+.document-center.is-embedded .document-center-recent { padding: 20px; }
+.document-center.is-embedded .document-center-sources { display: none; }
+.document-center.is-embedded .document-center-list button { grid-template-columns: 40px minmax(180px, 1fr) 72px 72px 88px 20px; gap: 8px; }
+
 .composition-overview-heading > div { display: grid; gap: 4px; }
 .composition-overview-heading small { color: var(--fx-text-secondary); font-size: 12px; font-weight: 400; }
 

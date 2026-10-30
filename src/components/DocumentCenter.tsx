@@ -18,6 +18,7 @@ import type { AddQuestionMode, AsyncStatus, HistoryDocumentSummary, OpenAddOptio
 import { FeixiangAiLibraryLogo } from './ElephantIcon'
 
 interface DocumentCenterProps {
+  embedded?: boolean
   histories: HistoryDocumentSummary[]
   historyStatus: AsyncStatus
   onCreate: () => void
@@ -34,11 +35,11 @@ const sourceEntries: Array<{ mode: AddQuestionMode; label: string; description: 
   { mode: 'manual', label: '手工录入', description: '手动编辑一道题并加入题单', icon: FileText },
 ]
 
-export function DocumentCenter({ histories, historyStatus, onCreate, onOpenDocument, onOpenSource, onReload }: DocumentCenterProps) {
+export function DocumentCenter({ embedded = false, histories, historyStatus, onCreate, onOpenDocument, onOpenSource, onReload }: DocumentCenterProps) {
   const recentDocuments = histories.slice(0, 8)
 
   return (
-    <div className="document-center">
+    <div className={`document-center${embedded ? ' is-embedded' : ''}`}>
       <aside className="document-center-sidebar">
         <div className="document-center-brand"><FeixiangAiLibraryLogo /><strong>AI 题单</strong></div>
         <div className="document-center-primary-actions">
