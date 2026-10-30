@@ -8,7 +8,6 @@ import {
   Clock3,
   FileInput,
   FileText,
-  FolderOpen,
   Library,
   ListTree,
   Layers3,
@@ -46,18 +45,11 @@ export function DocumentCenter({ embedded = false, histories, historyStatus, onO
     <div className={`document-center${embedded ? ' is-embedded' : ''}`}>
       <aside className="document-center-sidebar">
         {!embedded ? <div className="document-center-brand"><FeixiangAiLibraryLogo /><strong>AI 题单</strong></div> : null}
-        <div className="document-center-primary-actions">
-          <MetisButton type="bordered" icon={<FolderOpen size={18} />} onClick={() => {
-            if (recentDocuments[0]) onOpenDocument(recentDocuments[0].id)
-            else MetisMessage.info('暂无已有题单')
-          }}>打开题单</MetisButton>
-        </div>
-
         <nav className="document-center-nav" aria-label="题单导航">
           <p>题单</p>
           <button type="button" className="is-active"><Clock3 size={17} /><span>最近编辑</span></button>
           <button type="button" onClick={() => recentDocuments[0] ? onOpenDocument(recentDocuments[0].id) : MetisMessage.info('暂无已有题单')}><FileText size={17} /><span>我的题单</span></button>
-          <p>添加内容</p>
+          <p>添加题目</p>
           <button type="button" className="document-center-parent" aria-expanded="true" onClick={() => onOpenSource('resource')}><Library size={17} /><span>飞象题库</span></button>
           <div className="document-center-subnav" aria-label="飞象题库分类">
             <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'chapter' })}><ListTree size={15} /><span>章节知识点选题</span></button>
@@ -80,7 +72,7 @@ export function DocumentCenter({ embedded = false, histories, historyStatus, onO
           </div> : null}
           <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')}><RefreshCw size={17} /><span>最近浏览</span></button>
         </nav>
-        <div className="document-center-tip"><Bot size={16} /><span>右侧新题单已准备好，可直接从左侧添加内容。</span></div>
+        <div className="document-center-tip"><Bot size={16} /><span>右侧新题单已准备好，可直接从左侧添加题目。</span></div>
       </aside>
 
       <main className="document-center-main">
@@ -101,11 +93,11 @@ export function DocumentCenter({ embedded = false, histories, historyStatus, onO
                     <span>{item.questionCount} 道题</span><span>{item.status}</span><span>{item.updatedAt}</span><ChevronRight size={17} />
                   </button>
                 ))}
-              </div> : <div className="document-center-empty"><FileText size={30} /><strong>还没有编辑过的题单</strong><p>可直接从左侧添加内容，开始编辑右侧题单。</p></div>}
+              </div> : <div className="document-center-empty"><FileText size={30} /><strong>还没有编辑过的题单</strong><p>可直接从左侧添加题目，开始编辑右侧题单。</p></div>}
         </section>
 
         <section className="document-center-sources" aria-label="题单内容来源">
-          <div className="document-center-section-title"><div><h2>打开题单后，从这些来源添加内容</h2><p>点击后会进入题单编辑区，并打开对应工具。</p></div></div>
+          <div className="document-center-section-title"><div><h2>从这些来源添加题目</h2><p>点击后会打开对应选题工具。</p></div></div>
           <div className="document-center-source-grid">{sourceEntries.slice(0, 4).map(({ mode, label, description, icon: Icon }) => <button type="button" key={mode} onClick={() => onOpenSource(mode)}><Icon size={20} /><span><strong>{label}</strong><small>{description}</small></span><ChevronRight size={16} /></button>)}</div>
         </section>
       </main>
