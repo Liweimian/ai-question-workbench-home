@@ -65,6 +65,7 @@ export function DocumentCenter({ embedded = false, layoutVariant = 1, draftConte
     <h1>添加题目</h1>
     <div>
       <button type="button" className="is-parent" onClick={() => onOpenSource('resource')}><Library size={18} /><span>飞象题库</span></button>
+      <span className="document-layout-four-art" aria-hidden="true"><Library size={24} /></span>
       <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'chapter' })}><ListTree size={17} /><span>章节知识点选题</span></button>
       <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'workbook' })}><BookOpen size={17} /><span>练习册</span></button>
       <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'paper' })}><FileText size={17} /><span>试卷</span></button>
@@ -73,12 +74,14 @@ export function DocumentCenter({ embedded = false, layoutVariant = 1, draftConte
     </div>
     <div>
       <button type="button" className="is-parent" onClick={() => onOpenSource('school')}><School size={18} /><span>校本题库</span></button>
+      <span className="document-layout-four-art" aria-hidden="true"><School size={24} /></span>
       <button type="button" onClick={() => onOpenSource('school', { libraryView: 'chapter' })}><ListTree size={17} /><span>章节知识点选题</span></button>
       <button type="button" onClick={() => onOpenSource('school', { libraryView: 'workbook' })}><BookOpen size={17} /><span>练习册</span></button>
       <button type="button" onClick={() => onOpenSource('school', { libraryView: 'paper' })}><FileText size={17} /><span>试卷</span></button>
     </div>
     <div>
       <button type="button" className="is-parent"><BrainCircuit size={18} /><span>AI 工具</span></button>
+      <span className="document-layout-four-art" aria-hidden="true"><Sparkles size={24} /></span>
       {sourceEntries.filter(({ mode }) => mode !== 'resource' && mode !== 'school').map(({ mode, label, icon: Icon }) => <button type="button" key={mode} onClick={() => onOpenSource(mode)}><Icon size={17} /><span>{label}</span></button>)}
     </div>
     <div className="document-layout-four-recent">

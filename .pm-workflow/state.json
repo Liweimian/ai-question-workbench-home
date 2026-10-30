@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-30T17:00:00+08:00",
-      "iterationCount": 250,
+      "iterationCount": 251,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -156,7 +156,8 @@
         "browser fourth-layout navigation hierarchy review",
         "browser fourth-layout frameless navigation and recent-document review",
         "browser fourth-layout visual hierarchy cleanup review",
-        "browser full-width chapter-navigation row review"
+        "browser full-width chapter-navigation row review",
+        "browser integrated card-illustration review"
       ]
     },
     "2": {
