@@ -27,7 +27,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
   const steps = getThinkingSteps(run?.prompt ?? '')
 
   return (
-    <aside className="ai-assistant-workspace" aria-label="AI 助手任务">
+    <aside className="ai-assistant-workspace" aria-label="AI 组题任务">
       <div className="ai-assistant-conversation" aria-live="polite">
         {run ? (
           <>
@@ -36,7 +36,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
               <p>{run.prompt}</p>
             </div>
 
-            <section className="ai-assistant-response" aria-label="AI 助手处理过程">
+            <section className="ai-assistant-response" aria-label="AI 组题处理过程">
               <span className="ai-assistant-avatar"><BrainCircuit size={19} /></span>
               <div className="ai-assistant-response-body">
                 <div className="ai-assistant-response-heading">

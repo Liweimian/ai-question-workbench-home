@@ -1,6 +1,7 @@
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
 import {
   Bot,
+  BrainCircuit,
   BookOpen,
   ChevronRight,
   Clock3,
@@ -33,9 +34,9 @@ interface DocumentCenterProps {
 const sourceEntries: Array<{ mode: AddQuestionMode; label: string; description: string; icon: typeof Library }> = [
   { mode: 'resource', label: '飞象题库', description: '从平台试卷、习题和章节中选题', icon: Library },
   { mode: 'school', label: '校本题库', description: '从本校沉淀的题目和试卷中选题', icon: School },
-  { mode: 'upload', label: 'Word / PDF 转题单', description: '导入手头文档，识别后加入题单', icon: FileInput },
-  { mode: 'create', label: 'AI 生成题目', description: '按知识点、难度和题量生成新题', icon: Sparkles },
-  { mode: 'manual', label: '手工录入', description: '手动编辑一道题并加入题单', icon: FileText },
+  { mode: 'upload', label: '上传文件 AI 录题', description: '上传 Word、PDF 或图片，AI 识别原题', icon: FileInput },
+  { mode: 'create', label: 'AI 生成题目', description: '设置教材、知识点、题型、难度和题量后生成', icon: Sparkles },
+  { mode: 'compose', label: 'AI 组题', description: '说一句组题需求，AI 自动从题库组题', icon: BrainCircuit },
 ]
 
 export function DocumentCenter({ embedded = false, histories, historyStatus, onCreate, onOpenDocument, onOpenSource, onReload }: DocumentCenterProps) {

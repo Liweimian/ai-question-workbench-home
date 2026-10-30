@@ -27,8 +27,8 @@ interface LibraryDetailTab {
 const addTabLabels: Record<AddTabMode, string> = {
   resource: '飞象题库',
   school: '校本题库',
-  upload: 'AI 智能录题',
-  create: 'AI 原创出题',
+  upload: '上传文件 AI 录题',
+  create: 'AI 生成题目',
   manual: '手工录入',
 }
 
@@ -108,11 +108,12 @@ export function WorkbenchHomePage() {
       setAssistantActive(true)
       return
     }
-    setAssistantActive(false)
+    setAssistantTabOpen(true)
+    setAssistantActive(true)
     workbench.closeAdd()
     if (prompt !== undefined) workbench.setComposePrompt(prompt)
     window.requestAnimationFrame(() => {
-      document.querySelector<HTMLInputElement>('[aria-label="AI 助手要求"]')?.focus()
+      document.querySelector<HTMLInputElement>('[aria-label="AI 组题要求"]')?.focus()
     })
   }
 
@@ -430,11 +431,11 @@ export function WorkbenchHomePage() {
                         aria-selected={assistantActive}
                         onClick={activateAssistantTab}
                         data-track="/click/aiQuestionHome/switchAssistantTab | 切换AI助手任务 | 无"
-                      ><BrainCircuit size={14} /><span>AI 助手</span></button>
+                      ><BrainCircuit size={14} /><span>AI 组题</span></button>
                       <button
                         type="button"
                         className="add-workspace-tab-close"
-                        aria-label={workbench.composeStatus === 'loading' ? 'AI 助手正在处理，暂不可关闭' : '关闭 AI 助手'}
+                        aria-label={workbench.composeStatus === 'loading' ? 'AI 组题正在处理，暂不可关闭' : '关闭 AI 组题'}
                         disabled={workbench.composeStatus === 'loading'}
                         onClick={closeAssistantTab}
                       >

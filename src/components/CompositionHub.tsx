@@ -76,7 +76,7 @@ const resourceOverviews: ResourceOverview[] = [
 export function CompositionHub(props: CompositionHubProps) {
   const [resourceCardScheme] = useState<'four' | 'five' | 'six'>('six')
   const taskEntries = [
-    { id: 'upload', title: 'Word / PDF 转题单', description: '导入文档，识别题目后加入题单', action: '去导入', icon: FileInput, onClick: () => props.onOpenAdd('upload') },
+    { id: 'upload', title: '上传文件 AI 录题', description: '上传 Word、PDF 或图片识别题目', action: '去上传', icon: FileInput, onClick: () => props.onOpenAdd('upload') },
     { id: 'create', title: 'AI 生成题目', description: '按知识点、难度和题量生成', action: '去生成', icon: Sparkles, onClick: () => props.onOpenAdd('create') },
     { id: 'resources', title: '我的资源', description: '管理个人资源', action: '去查看', icon: FolderHeart, onClick: props.onOpenMyResources },
     { id: 'assistant', title: 'AI 助手', description: '描述需求智能组题', action: '去对话', icon: BrainCircuit, onClick: props.onOpenAssistant },
