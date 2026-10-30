@@ -7190,7 +7190,7 @@
 .compact-navigation-scrim {
   position: absolute;
   z-index: 36;
-  inset: 42px 0 0 52px;
+  inset: 0 0 0 220px;
   border: 0;
   background: color-mix(in srgb, var(--common_level1_base_color) 8%, transparent);
   cursor: default;
@@ -7199,9 +7199,9 @@
 .compact-navigation-overlay {
   position: absolute;
   z-index: 37;
-  top: 42px;
+  top: 0;
   bottom: 0;
-  left: 52px;
+  left: 0;
   display: flex;
   width: 220px;
   padding: 14px 12px 18px;
@@ -7212,6 +7212,11 @@
   background: var(--common_bg2_color);
   box-shadow: 8px 0 24px var(--common_shadow3_color);
 }
+.compact-navigation-overlay > header { display: grid; height: 42px; margin: -7px -4px 6px; padding: 0 4px; grid-template-columns: 30px minmax(0, 1fr) 32px; align-items: center; gap: 8px; border-bottom: 1px solid var(--fx-line-subtle); }
+.compact-navigation-overlay > header .feixiang-ai-library-logo { width: 28px; height: 28px; }
+.compact-navigation-overlay > header > span { color: var(--fx-text-primary); font-size: 13px; font-weight: 600; }
+.compact-navigation-overlay > header > button { display: grid; width: 30px; height: 30px; padding: 0; place-items: center; border: 0; border-radius: var(--fx-radius-control); color: var(--fx-text-secondary); background: transparent; cursor: pointer; }
+.compact-navigation-overlay > header > button:hover { color: var(--fx-primary); background: var(--fx-primary-selected); }
 .compact-navigation-overlay > button,
 .compact-navigation-overlay > strong,
 .compact-navigation-overlay > div > button {

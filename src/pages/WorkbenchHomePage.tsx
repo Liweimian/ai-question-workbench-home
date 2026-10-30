@@ -289,7 +289,7 @@ export function WorkbenchHomePage() {
       { view: 'workbook' as const, label: '练习册', shortLabel: '练习' },
       ...(workbench.addMode === 'resource' ? [
         { view: 'sync' as const, label: '同步练习', shortLabel: '同步' },
-        { view: 'special' as const, label: '专题练习', shortLabel: '专' },
+        { view: 'special' as const, label: '专题练习', shortLabel: '专题' },
       ] : []),
       { view: 'chapter' as const, label: '章节知识点选题', shortLabel: '章节' },
     ]
@@ -453,6 +453,7 @@ export function WorkbenchHomePage() {
                   </span>
                 </div>}
                 {breadcrumbNavigationMode && compactNavigationExpanded ? <><button type="button" className="compact-navigation-scrim" aria-label="关闭完整导航" onClick={() => setCompactNavigationExpanded(false)} /><aside className="compact-navigation-overlay" aria-label="完整添加题目导航">
+                  <header><FeixiangAiLibraryLogo /><span>题库导航</span><button type="button" aria-label="收起完整导航" title="收起导航" onClick={() => setCompactNavigationExpanded(false)}><PanelLeftClose size={17} /></button></header>
                   <button type="button" className="is-primary" onClick={activateAddHome}><House size={17} /><span>新建组题</span></button>
                   <button type="button" onClick={() => openMyResources('全部')}><FolderHeart size={17} /><span>我的资源</span></button>
                   <p>添加题目</p>
