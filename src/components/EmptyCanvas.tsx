@@ -175,16 +175,33 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         </div>
 
         {showExampleContent ? <div className="empty-question-preview" aria-hidden="true">
-          <header className="empty-preview-label"><strong>题单示例</strong><small>添加题目后自动替换</small></header>
-          <div className="empty-preview-row">
-            <strong>题目 1</strong>
-            <span>题目内容</span>
-            <i />
+          <header className="empty-preview-label"><strong>题单结构示例</strong><small>题目内容已隐藏</small></header>
+          <div className="empty-preview-section-title">一、选择题</div>
+
+          <div className="empty-preview-question">
+            <strong>1.</strong>
+            <div>
+              <div className="empty-preview-stem-row"><i className="empty-preview-stem" /><span>（　）</span></div>
+              <div className="empty-preview-options">
+                <span className="empty-preview-option"><em>A.</em><i className="is-medium" /></span>
+                <span className="empty-preview-option"><em>B.</em><i className="is-short" /></span>
+                <span className="empty-preview-option"><em>C.</em><i className="is-short" /></span>
+                <span className="empty-preview-option"><em>D.</em><i className="is-medium" /></span>
+              </div>
+            </div>
           </div>
-          <div className="empty-preview-row">
-            <strong>题目 2</strong>
-            <span>题目内容</span>
-            <i className="is-short" />
+
+          <div className="empty-preview-question">
+            <strong>2.</strong>
+            <div>
+              <div className="empty-preview-stem-row"><i className="empty-preview-stem is-medium" /><span>（　）</span></div>
+              <div className="empty-preview-options">
+                <span className="empty-preview-option"><em>A.</em><i className="is-short" /></span>
+                <span className="empty-preview-option"><em>B.</em><i /></span>
+                <span className="empty-preview-option"><em>C.</em><i className="is-medium" /></span>
+                <span className="empty-preview-option"><em>D.</em><i className="is-short" /></span>
+              </div>
+            </div>
           </div>
         </div> : null}
 
