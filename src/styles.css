@@ -6850,7 +6850,7 @@
 .document-layout-four { display: grid; width: 100%; max-width: 1040px; margin: 0 auto; align-content: start; gap: 18px; }
 .document-layout-four-group { display: grid; width: min(100%, 750px); margin: 0 auto; gap: 10px; }
 .document-layout-four-group > h1,
-.document-layout-four-group > h2 { margin: 0; color: var(--fx-text-primary); font-size: 16px; line-height: 24px; font-weight: 600; }
+.document-layout-four-group > h2 { margin: 0; color: var(--fx-text-primary); font-size: 14px; line-height: 22px; font-weight: 600; }
 .document-layout-four button { font-family: inherit; }
 .document-layout-four button:focus-visible { outline: 2px solid var(--fx-primary); outline-offset: 2px; }
 .document-layout-four button:disabled { opacity: .55; cursor: not-allowed; }
@@ -6915,7 +6915,7 @@
 .document-layout-four-recent-strip.is-bottom .document-layout-four-recent-meta small { color: inherit; font-size: 13px; white-space: nowrap; }
 .document-layout-four-recent-strip > header { display: flex; align-items: center; gap: 8px; color: var(--fx-text-primary); }
 .document-layout-four-recent-strip > header svg { color: var(--fx-primary); }
-.document-layout-four-recent-strip > header strong { font-size: 16px; line-height: 24px; font-weight: 600; }
+.document-layout-four-recent-strip > header strong { font-size: 14px; line-height: 22px; font-weight: 600; }
 .document-layout-four-recent-list { display: grid; min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .document-layout-four-recent-list > button {
   display: grid;
