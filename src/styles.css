@@ -6707,6 +6707,7 @@
   cursor: pointer;
 }
 .document-center-nav button:hover { color: var(--fx-text-primary); background: var(--common_bg_z3_color); }
+.document-center-nav > button:not(.document-center-parent) { color: var(--fx-text-primary); font-weight: 500; }
 .document-center-nav button.is-active { color: var(--fx-primary); background: var(--fx-primary-selected); font-weight: 600; }
 .document-center-nav .document-center-parent { color: var(--fx-text-primary); font-weight: 600; }
 .document-center-subnav { display: grid; position: relative; gap: 2px; padding: 2px 0 4px 18px; }

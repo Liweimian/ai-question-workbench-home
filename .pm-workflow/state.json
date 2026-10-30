@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-30T17:00:00+08:00",
-      "iterationCount": 240,
+      "iterationCount": 241,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -146,7 +146,8 @@
         "browser fixed right canvas and focus-editor continuity review",
         "browser simplified add-question navigation wording review",
         "browser my-resources entry and simplified document navigation review",
-        "browser primary child-navigation contrast review"
+        "browser primary child-navigation contrast review",
+        "browser primary utility-navigation contrast review"
       ]
     },
     "2": {
