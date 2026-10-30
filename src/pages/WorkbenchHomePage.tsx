@@ -53,7 +53,7 @@ export function WorkbenchHomePage() {
   const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
   const [myResourcesActive, setMyResourcesActive] = useState(false)
   const [myResourcesInitialKind, setMyResourcesInitialKind] = useState<MyResourceKind | '全部'>('全部')
-  const [homeLayoutVariant, setHomeLayoutVariant] = useState<1 | 2 | 3 | 4>(1)
+  const [homeLayoutVariant, setHomeLayoutVariant] = useState<1 | 2 | 3 | 4>(4)
   const [draftPushAnimating, setDraftPushAnimating] = useState(false)
   const [recentlyAddedQuestionId, setRecentlyAddedQuestionId] = useState<string | null>(null)
   const hasQuestions = workbench.document.questions.length > 0
@@ -537,6 +537,7 @@ export function WorkbenchHomePage() {
                   <DocumentCenter
                     embedded
                     layoutVariant={homeLayoutVariant}
+                    contentBusy={workbench.isContentBusy || workbench.documentSyncState === 'saving'}
                     draftContent={alternateHomeLayout ? renderDraftContent() : undefined}
                     histories={workbench.historyDocuments}
                     historyStatus={workbench.historyStatus}

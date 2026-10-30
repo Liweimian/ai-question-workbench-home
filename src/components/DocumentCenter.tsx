@@ -20,10 +20,12 @@ import {
 } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, HistoryDocumentSummary, OpenAddOptions } from '../prototype/types'
 import { FeixiangAiLibraryLogo } from './ElephantIcon'
+import { TaskFirstNavigation } from './TaskFirstNavigation'
 
 interface DocumentCenterProps {
   embedded?: boolean
   layoutVariant?: 1 | 2 | 3 | 4
+  contentBusy?: boolean
   draftContent?: ReactNode
   histories: HistoryDocumentSummary[]
   historyStatus: AsyncStatus
@@ -42,7 +44,7 @@ const sourceEntries: Array<{ mode: AddQuestionMode; label: string; description: 
   { mode: 'compose', label: 'AI 组题', description: '说一句需求，生成一整套题', icon: BrainCircuit },
 ]
 
-export function DocumentCenter({ embedded = false, layoutVariant = 1, draftContent, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onLayoutVariantChange, onReload }: DocumentCenterProps) {
+export function DocumentCenter({ embedded = false, layoutVariant = 1, contentBusy = false, draftContent, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onLayoutVariantChange, onReload }: DocumentCenterProps) {
   const recentDocuments = histories.slice(0, 8)
   const [aiToolsExpanded, setAiToolsExpanded] = useState(true)
 
@@ -61,40 +63,15 @@ export function DocumentCenter({ embedded = false, layoutVariant = 1, draftConte
         </div> : <div className="document-center-empty"><FileText size={30} /><strong>还没有编辑过的题单</strong><p>可直接从左侧添加题目，开始编辑右侧题单。</p></div>}
   </section>
 
-  const navigationPanel = <nav className="document-layout-four" aria-label="添加题目导航">
-    <h1>添加题目</h1>
-    <div>
-      <button type="button" className="is-parent" onClick={() => onOpenSource('resource')}><Library size={18} /><span>飞象题库</span></button>
-      <span className="document-layout-four-art" aria-hidden="true"><Library size={24} /></span>
-      <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'chapter' })}><ListTree size={17} /><span>章节知识点选题</span></button>
-      <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'workbook' })}><BookOpen size={17} /><span>练习册</span></button>
-      <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'paper' })}><FileText size={17} /><span>试卷</span></button>
-      <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'sync' })}><Layers3 size={17} /><span>同步练习</span></button>
-      <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'special' })}><Target size={17} /><span>专题练习</span></button>
-    </div>
-    <div>
-      <button type="button" className="is-parent" onClick={() => onOpenSource('school')}><School size={18} /><span>校本题库</span></button>
-      <span className="document-layout-four-art" aria-hidden="true"><School size={24} /></span>
-      <button type="button" onClick={() => onOpenSource('school', { libraryView: 'chapter' })}><ListTree size={17} /><span>章节知识点选题</span></button>
-      <button type="button" onClick={() => onOpenSource('school', { libraryView: 'workbook' })}><BookOpen size={17} /><span>练习册</span></button>
-      <button type="button" onClick={() => onOpenSource('school', { libraryView: 'paper' })}><FileText size={17} /><span>试卷</span></button>
-    </div>
-    <div>
-      <button type="button" className="is-parent"><BrainCircuit size={18} /><span>AI 工具</span></button>
-      <span className="document-layout-four-art" aria-hidden="true"><Sparkles size={24} /></span>
-      {sourceEntries.filter(({ mode }) => mode !== 'resource' && mode !== 'school').map(({ mode, label, icon: Icon }) => <button type="button" key={mode} onClick={() => onOpenSource(mode)}><Icon size={17} /><span>{label}</span></button>)}
-    </div>
-    <div className="document-layout-four-recent">
-      <section>
-        <div><Clock3 size={18} /><strong>最近编辑</strong></div>
-        {recentDocuments.slice(0, 3).map((item) => <button type="button" key={item.id} onClick={() => onOpenDocument(item.id)}><FileText size={16} /><span>{item.title}</span><ChevronRight size={15} /></button>)}
-      </section>
-      <aside>
-        <button type="button" onClick={onOpenMyResources}><FolderHeart size={18} /><span>我的资源</span></button>
-        <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')}><RefreshCw size={18} /><span>最近浏览</span></button>
-      </aside>
-    </div>
-  </nav>
+  const navigationPanel = <TaskFirstNavigation
+    disabled={contentBusy}
+    histories={histories}
+    historyStatus={historyStatus}
+    onOpenDocument={onOpenDocument}
+    onOpenMyResources={onOpenMyResources}
+    onOpenSource={onOpenSource}
+    onReload={onReload}
+  />
 
   return (
     <div className={`document-center${embedded ? ' is-embedded' : ''} is-layout-${layoutVariant}`}>
