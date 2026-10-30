@@ -175,7 +175,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         </div>
 
         {showExampleContent ? <div className="empty-question-preview" aria-hidden="true">
-          <header className="empty-preview-label"><strong>题单结构示例</strong><small>题目内容已隐藏</small></header>
+          <header className="empty-preview-label"><strong>题目结构示意 · 内容已隐藏</strong></header>
           <div className="empty-preview-section-title">一、选择题</div>
 
           <div className="empty-preview-question">
@@ -201,6 +201,14 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
                 <span className="empty-preview-option"><em>C.</em><i className="is-medium" /></span>
                 <span className="empty-preview-option"><em>D.</em><i className="is-short" /></span>
               </div>
+            </div>
+          </div>
+
+          <div className="empty-preview-section-title is-next">二、填空题</div>
+          <div className="empty-preview-question empty-preview-fill-question">
+            <strong>3.</strong>
+            <div>
+              <div className="empty-preview-fill-row"><i className="empty-preview-stem" /><span /></div>
             </div>
           </div>
         </div> : null}
