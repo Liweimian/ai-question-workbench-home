@@ -15,7 +15,7 @@ import { isDefaultDocumentTitle, sourceRecords } from '../data/workbenchData'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { defaultDocumentFormat } from '../prototype/types'
 import type { AddQuestionMode, MyResourceKind, SourceRecord } from '../prototype/types'
-import { BrainCircuit, Clock3, FileInput, FileText, FolderOpen, House, Library, ListTree, PanelLeftClose, PanelRightOpen, School, Sparkles, X } from 'lucide-react'
+import { BrainCircuit, FileText, House, PanelLeftClose, PanelRightOpen, X } from 'lucide-react'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
@@ -440,22 +440,6 @@ export function WorkbenchHomePage() {
 
             {sidePanelOpen ? (
               <div className="add-workspace" aria-label="添加题目多任务工作区">
-                <aside className="editor-source-sidebar" aria-label="题单与内容来源导航">
-                  <div className="editor-source-brand"><FeixiangAiLibraryLogo /><strong>AI 题单</strong></div>
-                  <nav>
-                    <p>题单</p>
-                    <button type="button" onClick={() => setPageMode('home')}><Clock3 size={17} /><span>最近编辑</span></button>
-                    <button type="button" onClick={() => setPageMode('home')}><FolderOpen size={17} /><span>我的题单</span></button>
-                    <p>添加内容</p>
-                    <button type="button" className={workbench.addMode === 'resource' && workbench.isAddOpen && workbench.libraryInitialView !== 'chapter' ? 'is-active' : ''} onClick={() => openAdd('resource')}><Library size={17} /><span>飞象题库</span></button>
-                    <button type="button" className={workbench.addMode === 'school' && workbench.isAddOpen ? 'is-active' : ''} onClick={() => openAdd('school')}><School size={17} /><span>校本题库</span></button>
-                    <button type="button" className={workbench.isAddOpen && workbench.libraryInitialView === 'chapter' ? 'is-active' : ''} onClick={() => openAdd('resource', { libraryView: 'chapter' })}><ListTree size={17} /><span>章节知识点选题</span></button>
-                    <button type="button" className={workbench.addMode === 'upload' && workbench.isAddOpen ? 'is-active' : ''} onClick={() => openAdd('upload')}><FileInput size={17} /><span>Word / PDF 转题单</span></button>
-                    <button type="button" className={workbench.addMode === 'create' && workbench.isAddOpen ? 'is-active' : ''} onClick={() => openAdd('create')}><Sparkles size={17} /><span>AI 生成题目</span></button>
-                  </nav>
-                  <div className="editor-source-flow"><span>1</span><p><strong>从这里添加</strong><small>选择题目或导入内容</small></p></div>
-                  <div className="editor-source-flow"><span>2</span><p><strong>出现在右侧题单</strong><small>可继续编辑、保存和布置</small></p></div>
-                </aside>
                 <div className="add-workspace-brand" aria-label="选择学段科目">
                   <FeixiangAiLibraryLogo />
                   <span className="add-workspace-subject">

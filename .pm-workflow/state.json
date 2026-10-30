@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-30T17:00:00+08:00",
-      "iterationCount": 228,
+      "iterationCount": 229,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -134,6 +134,7 @@
         "static removal of web-search entry and centered title review",
         "browser document-center recent-edit, create, source-entry and return-home flow",
         "browser persistent navigation and direct chapter-knowledge entry flow",
+        "browser single-navigation default-card home and wide workbook flow",
         "browser fixed right canvas and focus-editor continuity review"
       ]
     },
