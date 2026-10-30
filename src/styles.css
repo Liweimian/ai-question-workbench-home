@@ -6842,7 +6842,7 @@
 .document-center.is-embedded.is-layout-4 { grid-template-columns: minmax(0, 1fr); }
 .document-center.is-layout-4 .document-center-sidebar,
 .document-center.is-layout-4 .document-center-heading { display: none; }
-.document-center.is-embedded.is-layout-4 .document-center-main { padding: 18px 24px 54px; }
+.document-center.is-embedded.is-layout-4 .document-center-main { padding: 36px 24px 54px; }
 .document-layout-four { display: grid; width: 100%; max-width: 1040px; margin: 0 auto; align-content: start; gap: 14px; }
 .document-layout-four > h1 { width: min(100%, 750px); margin: 0 auto; font-size: 22px; line-height: 30px; }
 .document-layout-four button { font-family: inherit; }
