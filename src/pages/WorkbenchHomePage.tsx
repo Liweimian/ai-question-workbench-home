@@ -529,6 +529,7 @@ export function WorkbenchHomePage() {
                     histories={workbench.historyDocuments}
                     historyStatus={workbench.historyStatus}
                     onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
+                    onOpenMyResources={() => openMyResources('全部')}
                     onOpenSource={(mode, options) => openAdd(mode, options)}
                     onReload={() => { void workbench.reloadHistory() }}
                   />
