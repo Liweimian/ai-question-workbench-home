@@ -24,7 +24,7 @@ import { TaskFirstNavigation } from './TaskFirstNavigation'
 
 interface DocumentCenterProps {
   embedded?: boolean
-  layoutVariant?: 1 | 2 | 3 | 4
+  layoutVariant?: 2 | 3 | 4
   contentBusy?: boolean
   draftContent?: ReactNode
   histories: HistoryDocumentSummary[]
@@ -32,7 +32,7 @@ interface DocumentCenterProps {
   onOpenDocument: (documentId: string) => void
   onOpenMyResources: () => void
   onOpenSource: (mode: AddQuestionMode, options?: OpenAddOptions) => void
-  onLayoutVariantChange?: (variant: 1 | 2 | 3 | 4) => void
+  onLayoutVariantChange?: (variant: 2 | 3 | 4) => void
   onReload: () => void
 }
 
@@ -48,10 +48,9 @@ const layoutVariantOptions = [
   { value: 2, label: '方案一' },
   { value: 3, label: '方案二' },
   { value: 4, label: '方案三' },
-  { value: 1, label: '方案四' },
 ] as const
 
-export function DocumentCenter({ embedded = false, layoutVariant = 1, contentBusy = false, draftContent, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onLayoutVariantChange, onReload }: DocumentCenterProps) {
+export function DocumentCenter({ embedded = false, layoutVariant = 4, contentBusy = false, draftContent, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onLayoutVariantChange, onReload }: DocumentCenterProps) {
   const recentDocuments = histories.slice(0, 8)
   const [aiToolsExpanded, setAiToolsExpanded] = useState(true)
 
@@ -122,12 +121,7 @@ export function DocumentCenter({ embedded = false, layoutVariant = 1, contentBus
           {!embedded ? <MetisButton type="borderless" icon={<RefreshCw size={16} />} onClick={onReload}>刷新</MetisButton> : null}
         </header>
 
-        {layoutVariant === 1 ? recentPanel : layoutVariant === 2 ? <div className="document-layout-two"><div className="document-center-draft">{draftContent}</div>{recentPanel}</div> : layoutVariant === 3 ? <div className="document-layout-three">{recentPanel}<div className="document-center-draft">{draftContent}</div></div> : navigationPanel}
-
-        {layoutVariant === 1 ? <section className="document-center-sources" aria-label="题单内容来源">
-          <div className="document-center-section-title"><div><h2>从这些来源添加题目</h2><p>点击后会打开对应选题工具。</p></div></div>
-          <div className="document-center-source-grid">{sourceEntries.slice(0, 4).map(({ mode, label, description, icon: Icon }) => <button type="button" key={mode} onClick={() => onOpenSource(mode)}><Icon size={20} /><span><strong>{label}</strong><small>{description}</small></span><ChevronRight size={16} /></button>)}</div>
-        </section> : null}
+        {layoutVariant === 2 ? <div className="document-layout-two"><div className="document-center-draft">{draftContent}</div>{recentPanel}</div> : layoutVariant === 3 ? <div className="document-layout-three">{recentPanel}<div className="document-center-draft">{draftContent}</div></div> : navigationPanel}
       </main>
     </div>
   )
