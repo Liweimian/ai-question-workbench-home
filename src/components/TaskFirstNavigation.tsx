@@ -51,32 +51,58 @@ const flatEntries: FlatEntry[] = [
 export function TaskFirstNavigation({ disabled = false, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onReload }: TaskFirstNavigationProps) {
   const recentDocuments = histories.slice(0, 3)
   const historyPending = historyStatus === 'idle' || historyStatus === 'loading'
+  const libraryEntries = flatEntries.slice(0, 6)
+  const aiEntries = flatEntries.slice(6)
 
   return (
-    <nav className="document-layout-four" aria-label="添加题目导航">
-      <h1 data-sec="1">添加题目</h1>
-
-      <section className="document-layout-four-flat-grid" aria-label="添加题目入口">
-        {flatEntries.map(({ mode, view, label, source, description, icon: Icon }) => (
-          <button
-            type="button"
-            key={`${mode}-${view ?? label}`}
-            disabled={disabled}
-            title={description ?? label}
-            aria-label={description ? `${label}：${description}` : `${source}：${label}`}
-            onClick={() => onOpenSource(mode, view ? { libraryView: view } : undefined)}
-            data-track="/click/aiQuestionHome/openFlatEntry | 打开平铺添加入口 | source#STRING,resourceType#STRING"
-          >
-            <span className="document-layout-four-entry-icon"><Icon size={21} /></span>
-            <span className="document-layout-four-entry-copy"><strong>{label}</strong></span>
-          </button>
-        ))}
+    <nav className="document-layout-four" aria-label="题目来源导航">
+      <section className="document-layout-four-group" aria-labelledby="library-selection-title" data-sec="1">
+        <h1 id="library-selection-title">题库选题</h1>
+        <div className="document-layout-four-flat-grid" aria-label="题库选题入口">
+          {libraryEntries.map(({ mode, view, label, source, description, icon: Icon }) => (
+            <button
+              type="button"
+              key={`${mode}-${view ?? label}`}
+              disabled={disabled}
+              title={description ?? label}
+              aria-label={`${source}：${label}`}
+              onClick={() => onOpenSource(mode, view ? { libraryView: view } : undefined)}
+              data-track="/click/aiQuestionHome/openFlatEntry | 打开平铺添加入口 | source#STRING,resourceType#STRING"
+            >
+              <span className="document-layout-four-entry-icon"><Icon size={21} /></span>
+              <span className="document-layout-four-entry-copy"><strong>{label}</strong></span>
+            </button>
+          ))}
+        </div>
       </section>
 
-      <div className="document-layout-four-quick-links">
-        <button type="button" disabled={disabled} onClick={onOpenMyResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><span className="document-layout-four-entry-icon"><FolderHeart size={21} /></span><span className="document-layout-four-entry-copy"><strong>我的资源</strong></span></button>
-        <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><span className="document-layout-four-entry-icon"><RefreshCw size={21} /></span><span className="document-layout-four-entry-copy"><strong>最近浏览</strong></span></button>
-      </div>
+      <section className="document-layout-four-group" aria-labelledby="ai-generation-title">
+        <h2 id="ai-generation-title">AI 生成</h2>
+        <div className="document-layout-four-flat-grid is-ai" aria-label="AI 生成入口">
+          {aiEntries.map(({ mode, view, label, description, icon: Icon }) => (
+            <button
+              type="button"
+              key={`${mode}-${view ?? label}`}
+              disabled={disabled}
+              title={description ?? label}
+              aria-label={description ? `${label}：${description}` : label}
+              onClick={() => onOpenSource(mode, view ? { libraryView: view } : undefined)}
+              data-track="/click/aiQuestionHome/openFlatEntry | 打开平铺添加入口 | source#STRING,resourceType#STRING"
+            >
+              <span className="document-layout-four-entry-icon"><Icon size={21} /></span>
+              <span className="document-layout-four-entry-copy"><strong>{label}</strong></span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="document-layout-four-group" aria-labelledby="personal-resource-title">
+        <h2 id="personal-resource-title">个人资源</h2>
+        <div className="document-layout-four-quick-links" aria-label="个人资源入口">
+          <button type="button" disabled={disabled} onClick={onOpenMyResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><span className="document-layout-four-entry-icon"><FolderHeart size={21} /></span><span className="document-layout-four-entry-copy"><strong>我的资源</strong></span></button>
+          <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><span className="document-layout-four-entry-icon"><RefreshCw size={21} /></span><span className="document-layout-four-entry-copy"><strong>最近浏览</strong></span></button>
+        </div>
+      </section>
 
       <section className="document-layout-four-recent-strip is-bottom" aria-label="最近编辑题单" data-sec="2">
         <header><Clock3 size={18} /><strong>最近编辑</strong></header>
