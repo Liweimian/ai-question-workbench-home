@@ -8640,27 +8640,18 @@
 .workspace-shell.is-split-source .editor-empty-heading { padding: 0 0 12px; }
 .workspace-shell.is-split-source .empty-title-input { width: calc(100% - 60px); }
 .workspace-shell.is-split-source .editor-empty-content { padding: 0 34px 32px; }
-.empty-question-preview { display: flex; margin-top: 4px; padding: 14px 16px 18px; flex-direction: column; color: var(--common_level5_base_color); border: 1px dashed var(--fx-line-subtle); border-radius: var(--fx-radius-control); background: var(--fx-surface-muted); pointer-events: none; user-select: none; }
-.empty-preview-label { display: flex; align-items: center; gap: 8px; }
-.empty-preview-label strong { color: var(--fx-text-secondary); font-size: 12px; }
-.empty-preview-section-title { margin-top: 15px; color: var(--fx-text-secondary); font-family: var(--fx-font-accent); font-size: 13px; font-weight: 600; line-height: 20px; }
-.empty-preview-section-title.is-next { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--fx-line-subtle); }
-.empty-preview-question { display: grid; margin-top: 16px; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; }
-.empty-preview-question > strong { color: var(--fx-text-tertiary); font-size: 12px; font-weight: 500; line-height: 12px; }
-.empty-preview-question > div { display: flex; min-width: 0; flex-direction: column; gap: 11px; }
-.empty-preview-stem-row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
-.empty-preview-stem-row > span { color: var(--fx-text-tertiary); font-size: 11px; line-height: 12px; }
-.empty-preview-stem { display: block; width: 92%; height: 5px; border-radius: 2px; background: var(--common_level5_base_color); }
-.empty-preview-stem.is-medium { width: 76%; }
-.empty-preview-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px 22px; }
-.empty-preview-option { display: flex; min-width: 0; align-items: center; gap: 7px; }
-.empty-preview-option em { flex: 0 0 auto; color: var(--fx-text-tertiary); font-size: 10px; font-style: normal; line-height: 12px; }
-.empty-preview-option i { display: block; width: 72%; height: 5px; border-radius: 2px; background: var(--common_level5_base_color); }
-.empty-preview-option i.is-medium { width: 58%; }
-.empty-preview-option i.is-short { width: 44%; }
-.empty-preview-fill-question { margin-top: 14px; }
-.empty-preview-fill-row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) 64px; align-items: center; gap: 10px; }
-.empty-preview-fill-row > span { display: block; height: 12px; border-bottom: 1px solid var(--fx-text-tertiary); }
+.empty-question-preview { display: flex; margin-top: 0; flex-direction: column; color: var(--common_level5_base_color); opacity: .56; pointer-events: none; user-select: none; }
+.empty-preview-section-title { display: flex; margin-top: 20px; align-items: center; gap: 8px; color: var(--fx-text-tertiary); font-family: var(--fx-font-accent); font-size: 14px; }
+.empty-preview-section-title:first-child { margin-top: 10px; }
+.empty-preview-question { display: grid; margin-top: 16px; grid-template-columns: 20px minmax(0, 1fr); gap: 6px; }
+.empty-preview-question > b { color: var(--fx-text-tertiary); font-family: var(--fx-font-accent); font-size: 13px; font-weight: 500; }
+.empty-preview-question > div { display: flex; min-width: 0; flex-direction: column; gap: 7px; }
+.empty-preview-question p { margin: 0; color: var(--fx-text-secondary); font-size: 12px; line-height: 1.55; }
+.empty-preview-question.is-secondary { opacity: .72; }
+.empty-preview-question.is-compact { margin-top: 12px; }
+.empty-preview-question .is-solution-area { width: 100%; height: 22px; margin-top: 2px; border-bottom: 1px dashed var(--common_fg2_color); }
+.empty-preview-options { display: grid; margin-top: 2px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 16px; }
+.empty-preview-options span { color: var(--fx-text-tertiary); font-size: 11px; line-height: 1.4; }
 .editor-question.is-newly-added { animation: newly-added-question 1.8s ease-out both; }
 
 @keyframes newly-added-question {

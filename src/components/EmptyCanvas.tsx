@@ -175,53 +175,40 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         </div>
 
         {showExampleContent ? <div className="empty-question-preview" aria-hidden="true">
-          <header className="empty-preview-label"><strong>题目结构示意 · 内容已隐藏</strong></header>
-          <div className="empty-preview-section-title">一、选择题</div>
-
+          <div className="empty-preview-section-title"><strong>一、选择题</strong></div>
           <div className="empty-preview-question">
-            <strong>1.</strong>
+            <b>1.</b>
             <div>
-              <div className="empty-preview-stem-row"><i className="empty-preview-stem" /><span>（　）</span></div>
-              <div className="empty-preview-options">
-                <span className="empty-preview-option"><em>A.</em><i className="is-medium" /></span>
-                <span className="empty-preview-option"><em>B.</em><i className="is-short" /></span>
-                <span className="empty-preview-option"><em>C.</em><i className="is-short" /></span>
-                <span className="empty-preview-option"><em>D.</em><i className="is-medium" /></span>
-              </div>
+              <p>若一次函数 y = 2x - 3，当 x = 2 时，y 的值是（　）</p>
+              <div className="empty-preview-options"><span>A. -1</span><span>B. 0</span><span>C. 1</span><span>D. 2</span></div>
+            </div>
+          </div>
+          <div className="empty-preview-question is-secondary">
+            <b>2.</b>
+            <div>
+              <p>下列各式中，是一元二次方程的是（　）</p>
+              <div className="empty-preview-options"><span>A. x + 2 = 0</span><span>B. x² - 3x + 2 = 0</span><span>C. 1/x = 2</span><span>D. x + y = 3</span></div>
             </div>
           </div>
 
-          <div className="empty-preview-question">
-            <strong>2.</strong>
-            <div>
-              <div className="empty-preview-stem-row"><i className="empty-preview-stem is-medium" /><span>（　）</span></div>
-              <div className="empty-preview-options">
-                <span className="empty-preview-option"><em>A.</em><i className="is-short" /></span>
-                <span className="empty-preview-option"><em>B.</em><i /></span>
-                <span className="empty-preview-option"><em>C.</em><i className="is-medium" /></span>
-                <span className="empty-preview-option"><em>D.</em><i className="is-short" /></span>
-              </div>
-            </div>
+          <div className="empty-preview-section-title"><strong>二、填空题</strong></div>
+          <div className="empty-preview-question is-compact">
+            <b>3.</b>
+            <div><p>分解因式：x² - 4 = ______。</p></div>
+          </div>
+          <div className="empty-preview-question is-compact is-secondary">
+            <b>4.</b>
+            <div><p>直角三角形两直角边长为 3 和 4，则斜边长为 ______。</p></div>
           </div>
 
-          <div className="empty-preview-section-title is-next">二、填空题</div>
-          <div className="empty-preview-question empty-preview-fill-question">
-            <strong>3.</strong>
-            <div>
-              <div className="empty-preview-fill-row"><i className="empty-preview-stem" /><span /></div>
-            </div>
+          <div className="empty-preview-section-title"><strong>三、解答题</strong></div>
+          <div className="empty-preview-question is-compact">
+            <b>5.</b>
+            <div><p>解方程：x² - 5x + 6 = 0。</p><i className="is-solution-area" /></div>
           </div>
-          <div className="empty-preview-question empty-preview-fill-question">
-            <strong>4.</strong>
-            <div>
-              <div className="empty-preview-fill-row"><i className="empty-preview-stem is-medium" /><span /></div>
-            </div>
-          </div>
-          <div className="empty-preview-question empty-preview-fill-question">
-            <strong>5.</strong>
-            <div>
-              <div className="empty-preview-fill-row"><i className="empty-preview-stem" /><span /></div>
-            </div>
+          <div className="empty-preview-question is-compact is-secondary">
+            <b>6.</b>
+            <div><p>甲、乙两种图书共 80 本，总费用为 1400 元。若单价分别为 20 元和 15 元，求两种图书各多少本。</p><i className="is-solution-area" /></div>
           </div>
         </div> : null}
 
