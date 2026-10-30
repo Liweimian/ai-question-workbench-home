@@ -44,6 +44,13 @@ const sourceEntries: Array<{ mode: AddQuestionMode; label: string; description: 
   { mode: 'compose', label: 'AI 组题', description: '说一句需求，生成一整套题', icon: BrainCircuit },
 ]
 
+const layoutVariantOptions = [
+  { value: 2, label: '方案一' },
+  { value: 3, label: '方案二' },
+  { value: 4, label: '方案三' },
+  { value: 1, label: '方案四' },
+] as const
+
 export function DocumentCenter({ embedded = false, layoutVariant = 1, contentBusy = false, draftContent, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onLayoutVariantChange, onReload }: DocumentCenterProps) {
   const recentDocuments = histories.slice(0, 8)
   const [aiToolsExpanded, setAiToolsExpanded] = useState(true)
@@ -108,7 +115,7 @@ export function DocumentCenter({ embedded = false, layoutVariant = 1, contentBus
 
       <main className="document-center-main">
         {onLayoutVariantChange ? <div className="document-layout-switch" role="group" aria-label="首页布局方案">
-          {([1, 2, 3, 4] as const).map((variant) => <button type="button" key={variant} className={layoutVariant === variant ? 'is-active' : ''} onClick={() => onLayoutVariantChange(variant)}>方案{variant === 1 ? '一' : variant === 2 ? '二' : variant === 3 ? '三' : '四'}</button>)}
+          {layoutVariantOptions.map(({ value, label }) => <button type="button" key={value} className={layoutVariant === value ? 'is-active' : ''} onClick={() => onLayoutVariantChange(value)}>{label}</button>)}
         </div> : null}
         <header className="document-center-heading">
           <div>{!embedded ? <span>题单工作台</span> : null}<h1>最近编辑</h1>{!embedded ? <p>继续上次的题单，或创建一份新题单。</p> : null}</div>
