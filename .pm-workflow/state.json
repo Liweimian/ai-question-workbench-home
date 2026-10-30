@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-30T17:00:00+08:00",
-      "iterationCount": 243,
+      "iterationCount": 244,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -149,7 +149,8 @@
         "browser primary child-navigation contrast review",
         "browser primary utility-navigation contrast review",
         "browser three home-layout variants and draft-push transition review",
-        "browser alternate-home full-width without duplicate draft rail review"
+        "browser alternate-home full-width without duplicate draft rail review",
+        "browser alternate-home no-top-gap review"
       ]
     },
     "2": {
