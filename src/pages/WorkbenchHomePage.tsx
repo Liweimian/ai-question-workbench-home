@@ -53,7 +53,8 @@ export function WorkbenchHomePage() {
   const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
   const [myResourcesActive, setMyResourcesActive] = useState(false)
   const [myResourcesInitialKind, setMyResourcesInitialKind] = useState<MyResourceKind | '全部'>('全部')
-  const [homeLayoutVariant, setHomeLayoutVariant] = useState<2 | 3 | 4 | 5>(2)
+  const [homeLayoutVariant, setHomeLayoutVariant] = useState<2 | 3 | 4 | 5>(5)
+  const [compactNavigationExpanded, setCompactNavigationExpanded] = useState(false)
   const [draftPushAnimating, setDraftPushAnimating] = useState(false)
   const [recentlyAddedQuestionId, setRecentlyAddedQuestionId] = useState<string | null>(null)
   const hasQuestions = workbench.document.questions.length > 0
@@ -123,6 +124,7 @@ export function WorkbenchHomePage() {
     mode: Parameters<typeof workbench.openAdd>[0] = 'menu',
     options?: Parameters<typeof workbench.openAdd>[1],
   ) => {
+    setCompactNavigationExpanded(false)
     if (homeLayoutVariant === 3 && !workbench.isAddOpen && !assistantActive && !myResourcesActive) {
       setDraftPushAnimating(true)
       window.setTimeout(() => setDraftPushAnimating(false), 520)
@@ -217,6 +219,7 @@ export function WorkbenchHomePage() {
   }
 
   const openMyResources = (initialKind: MyResourceKind | '全部' = '全部') => {
+    setCompactNavigationExpanded(false)
     setMyResourcesInitialKind(initialKind)
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
@@ -280,28 +283,30 @@ export function WorkbenchHomePage() {
     ?? (workbench.isAddOpen && (workbench.addMode === 'resource' || workbench.addMode === 'school')
       ? libraryViewLabels[workbench.libraryInitialView ?? 'paper']
       : null)
-  const BreadcrumbIcon = myResourcesActive
-    ? FolderHeart
-    : assistantActive
-      ? BrainCircuit
-      : workbench.addMode === 'school'
-        ? School
-        : workbench.addMode === 'upload'
-          ? FileInput
-          : workbench.addMode === 'create'
-            ? Sparkles
-            : Library
   const compactLibraryEntries = workbench.isAddOpen && (workbench.addMode === 'resource' || workbench.addMode === 'school')
     ? [
-      { view: 'paper' as const, label: '试卷', icon: FileText },
-      { view: 'workbook' as const, label: '练习册', icon: BookOpen },
+      { view: 'paper' as const, label: '试卷', shortLabel: '试卷' },
+      { view: 'workbook' as const, label: '练习册', shortLabel: '练习' },
       ...(workbench.addMode === 'resource' ? [
-        { view: 'sync' as const, label: '同步练习', icon: Layers3 },
-        { view: 'special' as const, label: '专题练习', icon: Target },
+        { view: 'sync' as const, label: '同步练习', shortLabel: '同步' },
+        { view: 'special' as const, label: '专题练习', shortLabel: '专' },
       ] : []),
-      { view: 'chapter' as const, label: '章节知识点选题', icon: ListTree },
+      { view: 'chapter' as const, label: '章节知识点选题', shortLabel: '章节' },
     ]
     : []
+  const compactCurrentLabel = myResourcesActive
+    ? '资源'
+    : assistantActive
+      ? '组题'
+      : workbench.addMode === 'upload'
+        ? '录题'
+        : workbench.addMode === 'create'
+          ? '生题'
+          : '导航'
+  const openFromCompactNavigation = (mode: AddQuestionMode, options?: Parameters<typeof workbench.openAdd>[1]) => {
+    setCompactNavigationExpanded(false)
+    openAdd(mode, options)
+  }
   const shellClassName = sidePanelOpen
     ? `workspace-shell is-split-source${draftCollapsed ? ' is-draft-collapsed' : ''}`
     : `workspace-shell is-focus-editor${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`
@@ -418,20 +423,24 @@ export function WorkbenchHomePage() {
               <div className={`add-workspace${breadcrumbNavigationMode ? ' is-breadcrumb-navigation' : ''}`} aria-label="添加题目多任务工作区">
                 {breadcrumbNavigationMode ? <aside className="add-workspace-rail" aria-label="方案四快捷导航">
                   <FeixiangAiLibraryLogo />
-                  <button type="button" onClick={activateAddHome} aria-label="返回首页" title="返回首页"><House size={18} /></button>
+                  <button type="button" className="is-text" onClick={activateAddHome} aria-label="返回首页" title="返回首页">首页</button>
                   {compactLibraryEntries.length ? <nav aria-label="题库类型快捷导航">
-                    {compactLibraryEntries.map(({ view, label, icon: Icon }) => (
+                    {compactLibraryEntries.map(({ view, label, shortLabel }) => (
                       <button
                         type="button"
                         key={view}
-                        className={workbench.libraryInitialView === view ? 'is-active' : ''}
+                        className={`is-text${workbench.libraryInitialView === view ? ' is-active' : ''}`}
                         aria-current={workbench.libraryInitialView === view ? 'page' : undefined}
                         aria-label={label}
                         title={label}
-                        onClick={() => openAdd(workbench.addMode, { libraryView: view })}
-                      ><Icon size={18} /></button>
+                        onClick={() => {
+                          if (workbench.libraryInitialView === view) setCompactNavigationExpanded((expanded) => !expanded)
+                          else openAdd(workbench.addMode, { libraryView: view })
+                        }}
+                      >{shortLabel}</button>
                     ))}
-                  </nav> : <span aria-hidden="true"><BreadcrumbIcon size={18} /></span>}
+                  </nav> : <button type="button" className="is-text is-active" onClick={() => setCompactNavigationExpanded((expanded) => !expanded)} aria-label="展开完整导航" title="展开完整导航">{compactCurrentLabel}</button>}
+                  <button type="button" className="is-text" onClick={() => setCompactNavigationExpanded((expanded) => !expanded)} aria-label="展开完整导航" title="展开完整导航">导航</button>
                   <button type="button" onClick={collapseSidePanel} aria-label="收起添加题目工作区" title="专注编辑"><PanelLeftClose size={18} /></button>
                 </aside> : <div className="add-workspace-brand" aria-label="选择学段科目">
                   <FeixiangAiLibraryLogo />
@@ -443,6 +452,31 @@ export function WorkbenchHomePage() {
                     </select>
                   </span>
                 </div>}
+                {breadcrumbNavigationMode && compactNavigationExpanded ? <><button type="button" className="compact-navigation-scrim" aria-label="关闭完整导航" onClick={() => setCompactNavigationExpanded(false)} /><aside className="compact-navigation-overlay" aria-label="完整添加题目导航">
+                  <button type="button" className="is-primary" onClick={activateAddHome}><House size={17} /><span>新建组题</span></button>
+                  <button type="button" onClick={() => openMyResources('全部')}><FolderHeart size={17} /><span>我的资源</span></button>
+                  <p>添加题目</p>
+                  <strong><Library size={17} /><span>飞象题库</span></strong>
+                  <div>
+                    <button type="button" onClick={() => openFromCompactNavigation('resource', { libraryView: 'chapter' })}><ListTree size={15} />章节知识点选题</button>
+                    <button type="button" onClick={() => openFromCompactNavigation('resource', { libraryView: 'workbook' })}><BookOpen size={15} />练习册</button>
+                    <button type="button" onClick={() => openFromCompactNavigation('resource', { libraryView: 'paper' })}><FileText size={15} />试卷</button>
+                    <button type="button" onClick={() => openFromCompactNavigation('resource', { libraryView: 'sync' })}><Layers3 size={15} />同步练习</button>
+                    <button type="button" onClick={() => openFromCompactNavigation('resource', { libraryView: 'special' })}><Target size={15} />专题练习</button>
+                  </div>
+                  <strong><School size={17} /><span>校本题库</span></strong>
+                  <div>
+                    <button type="button" onClick={() => openFromCompactNavigation('school', { libraryView: 'chapter' })}><ListTree size={15} />章节知识点选题</button>
+                    <button type="button" onClick={() => openFromCompactNavigation('school', { libraryView: 'workbook' })}><BookOpen size={15} />练习册</button>
+                    <button type="button" onClick={() => openFromCompactNavigation('school', { libraryView: 'paper' })}><FileText size={15} />试卷</button>
+                  </div>
+                  <strong><BrainCircuit size={17} /><span>AI 工具</span></strong>
+                  <div>
+                    <button type="button" onClick={() => openFromCompactNavigation('upload')}><FileInput size={15} />AI 录题</button>
+                    <button type="button" onClick={() => openFromCompactNavigation('create')}><Sparkles size={15} />AI 生题</button>
+                    <button type="button" onClick={() => openFromCompactNavigation('compose')}><BrainCircuit size={15} />AI 组题</button>
+                  </div>
+                </aside></> : null}
                 {breadcrumbNavigationMode ? <nav className="add-workspace-breadcrumb" aria-label="当前位置">
                   <button type="button" onClick={activateAddHome}>首页</button>
                   <ChevronRight size={14} aria-hidden="true" />

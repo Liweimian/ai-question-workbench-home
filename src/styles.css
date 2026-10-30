@@ -7090,7 +7090,7 @@
   grid-template-rows: 42px minmax(0, 1fr);
 }
 
-.add-workspace.is-breadcrumb-navigation > :not(.add-workspace-rail):not(.add-workspace-breadcrumb) {
+.add-workspace.is-breadcrumb-navigation > :not(.add-workspace-rail):not(.add-workspace-breadcrumb):not(.compact-navigation-overlay):not(.compact-navigation-scrim) {
   min-width: 0;
   min-height: 0;
   grid-column: 2;
@@ -7108,8 +7108,8 @@
   align-items: center;
   flex-direction: column;
   gap: 8px;
-  border-right: 1px solid var(--fx-line-strong);
-  background: var(--common_bg1_color);
+  border-right: 1px solid #31394b;
+  background: #3d465a;
 }
 
 .add-workspace-rail .feixiang-ai-library-logo { width: 28px; height: 28px; margin-bottom: 3px; }
@@ -7122,17 +7122,24 @@
   place-items: center;
   border: 0;
   border-radius: var(--fx-radius-control);
-  color: var(--fx-text-secondary);
+  color: rgba(255, 255, 255, .76);
   background: transparent;
 }
 .add-workspace-rail button { cursor: pointer; }
-.add-workspace-rail button:hover { color: var(--fx-primary); background: var(--fx-primary-selected); }
-.add-workspace-rail > span { color: var(--fx-primary); background: var(--fx-primary-selected); }
-.add-workspace-rail button:last-child { margin-top: auto; }
-.add-workspace-rail > nav { display: flex; width: 100%; min-height: 0; padding-top: 4px; align-items: center; flex: 1; flex-direction: column; gap: 4px; overflow-y: auto; border-top: 1px solid var(--fx-line-subtle); scrollbar-width: none; }
+.add-workspace-rail button:hover { color: #fff; background: rgba(255, 255, 255, .1); }
+.add-workspace-rail > span { color: #fff; background: rgba(255, 255, 255, .14); }
+.add-workspace-rail > button:last-child { margin-top: auto; }
+.add-workspace-rail > nav { display: flex; width: 100%; min-height: 0; padding-top: 4px; align-items: center; flex: 1; flex-direction: column; gap: 4px; overflow-y: auto; border-top: 1px solid rgba(255, 255, 255, .12); scrollbar-width: none; }
 .add-workspace-rail > nav::-webkit-scrollbar { display: none; }
 .add-workspace-rail > nav button { flex: 0 0 auto; }
-.add-workspace-rail > nav button.is-active { color: var(--fx-primary); background: var(--fx-primary-selected); }
+.add-workspace-rail > nav button.is-active { color: #fff; background: rgba(255, 255, 255, .16); }
+.add-workspace-rail button.is-text {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.add-workspace-rail button.is-text.is-active { color: #fff; background: rgba(255, 255, 255, .16); font-weight: 600; }
 
 .add-workspace-breadcrumb {
   display: flex;
@@ -7165,6 +7172,58 @@
 .add-workspace-breadcrumb span[aria-current='page'] { color: var(--fx-text-primary); font-weight: 600; }
 .add-workspace-breadcrumb svg { flex: 0 0 auto; color: var(--fx-text-tertiary); }
 .add-workspace.is-breadcrumb-navigation .library-resource-tabs { display: none; }
+
+.compact-navigation-scrim {
+  position: absolute;
+  z-index: 36;
+  inset: 42px 0 0 52px;
+  border: 0;
+  background: color-mix(in srgb, var(--common_level1_base_color) 8%, transparent);
+  cursor: default;
+}
+
+.compact-navigation-overlay {
+  position: absolute;
+  z-index: 37;
+  top: 42px;
+  bottom: 0;
+  left: 52px;
+  display: flex;
+  width: 220px;
+  padding: 14px 12px 18px;
+  overflow-y: auto;
+  flex-direction: column;
+  gap: 4px;
+  border-right: 1px solid var(--fx-line-strong);
+  background: var(--common_bg2_color);
+  box-shadow: 8px 0 24px var(--common_shadow3_color);
+}
+.compact-navigation-overlay > button,
+.compact-navigation-overlay > strong,
+.compact-navigation-overlay > div > button {
+  display: flex;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 10px;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: var(--fx-radius-control);
+  color: var(--fx-text-primary);
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+}
+.compact-navigation-overlay > button,
+.compact-navigation-overlay > div > button { cursor: pointer; }
+.compact-navigation-overlay > button:hover,
+.compact-navigation-overlay > div > button:hover { color: var(--fx-primary); background: var(--fx-primary-selected); }
+.compact-navigation-overlay > button.is-primary { color: var(--fx-primary); background: var(--fx-primary-selected); font-weight: 600; }
+.compact-navigation-overlay > p { margin: 14px 10px 5px; color: var(--fx-text-tertiary); font-size: 11px; }
+.compact-navigation-overlay > strong { min-height: 38px; margin-top: 3px; font-weight: 600; }
+.compact-navigation-overlay > div { display: grid; margin-left: 17px; padding-left: 5px; gap: 2px; border-left: 1px solid var(--fx-line-subtle); }
+.compact-navigation-overlay > div > button { min-height: 34px; padding-left: 10px; }
+.compact-navigation-overlay svg { flex: 0 0 auto; }
 
 .add-workspace-tabs > button,
 .add-workspace-tab {
