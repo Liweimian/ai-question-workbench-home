@@ -53,7 +53,7 @@ const searchItems = [
 ] as const
 
 const aiItems = [
-  { id: 'create', title: 'AI 生成题目', description: '设置出题条件后生成', icon: WandSparkles },
+  { id: 'create', title: 'AI 生题', description: '设置条件，生成几道新题', icon: WandSparkles },
 ] as const
 
 export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInsertUtility, assistantStatus = 'idle', assistantRun, assistantPreviewText, assistantError, onOpenAssistant, onConfirmAssistant }: BlockAddMenuProps) {

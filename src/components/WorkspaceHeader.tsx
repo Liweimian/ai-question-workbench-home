@@ -37,6 +37,7 @@ interface WorkspaceHeaderProps {
   historyStatus: AsyncStatus
   onUndo: () => void
   onCreateNew: () => void
+  showCreateNew: boolean
   onSave: () => void
   onAssign: () => void
   onOpenDocument: (documentId: string) => void
@@ -67,6 +68,7 @@ export function WorkspaceHeader({
   historyStatus,
   onUndo,
   onCreateNew,
+  showCreateNew,
   onSave,
   onAssign,
   onOpenDocument,
@@ -259,16 +261,16 @@ export function WorkspaceHeader({
             </div>
           ) : null}
         </div>
-        <span className="header-icon-action" data-tooltip="新建题单">
+        {showCreateNew ? <span className="header-icon-action" data-tooltip="新建另一份题单">
           <MetisButton
             type="borderless"
             icon={<Plus size={18} />}
-            aria-label="新建题单"
+            aria-label="新建另一份题单"
             disabled={contentBusy || syncState === 'saving' || syncState === 'dirty'}
             onClick={() => { setRecentOpen(false); onCreateNew() }}
             data-track="/click/aiQuestionHome/createBlank | 新建空白题单 | 无"
           />
-        </span>
+        </span> : null}
         <span className="header-icon-action" data-tooltip={syncState === 'saving' ? '保存中' : '保存题单'}>
           <MetisButton
             type="borderless"

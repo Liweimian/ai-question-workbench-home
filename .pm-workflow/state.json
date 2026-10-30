@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-30T17:00:00+08:00",
-      "iterationCount": 235,
+      "iterationCount": 237,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -141,6 +141,8 @@
         "browser expanded Feixiang library child navigation flow",
         "browser expanded school library child navigation flow",
         "browser upload-record, conditional-generate and one-line-compose entry flow",
+        "browser AI tools parent hierarchy and hover-description flow",
+        "browser default ephemeral draft without duplicate create action flow",
         "browser fixed right canvas and focus-editor continuity review"
       ]
     },

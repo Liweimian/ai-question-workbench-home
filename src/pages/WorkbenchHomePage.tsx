@@ -27,8 +27,8 @@ interface LibraryDetailTab {
 const addTabLabels: Record<AddTabMode, string> = {
   resource: '飞象题库',
   school: '校本题库',
-  upload: '上传文件 AI 录题',
-  create: 'AI 生成题目',
+  upload: 'AI 录题',
+  create: 'AI 生题',
   manual: '手工录入',
 }
 
@@ -258,6 +258,10 @@ export function WorkbenchHomePage() {
   const hasCustomDocumentFormat = Object.entries(defaultDocumentFormat).some(
     ([key, value]) => documentFormat[key as keyof typeof documentFormat] !== value,
   )
+  const isUntouchedBlankDocument = workbench.document.questions.length === 0
+    && !workbench.document.intro?.trim()
+    && !hasCustomDocumentFormat
+    && isDefaultDocumentTitle(workbench.document.title)
 
   return (
     <div className="fx-app metis-theme-aiq">
@@ -290,6 +294,7 @@ export function WorkbenchHomePage() {
               setSidePanelOpen(true)
               setDraftCollapsed(false)
             }}
+            showCreateNew={!isUntouchedBlankDocument}
             onSave={() => { void workbench.saveDocument() }}
             onAssign={() => { void workbench.assignDocument() }}
             onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
@@ -523,9 +528,6 @@ export function WorkbenchHomePage() {
                     embedded
                     histories={workbench.historyDocuments}
                     historyStatus={workbench.historyStatus}
-                    onCreate={() => {
-                      if (workbench.document.questions.length || workbench.document.intro?.trim()) workbench.createNewDocument()
-                    }}
                     onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
                     onOpenSource={(mode, options) => openAdd(mode, options)}
                     onReload={() => { void workbench.reloadHistory() }}
