@@ -5,7 +5,7 @@ import {
   BrainCircuit,
   BookOpen,
   ChevronRight,
-  Clock3,
+  FilePlus2,
   FileInput,
   FileText,
   FolderHeart,
@@ -78,7 +78,7 @@ export function DocumentCenter({ embedded = false, layoutVariant = 1, contentBus
       <aside className="document-center-sidebar">
         {!embedded ? <div className="document-center-brand"><FeixiangAiLibraryLogo /><strong>AI 题单</strong></div> : null}
         <nav className="document-center-nav" aria-label="题单导航">
-          <button type="button" className="is-active"><Clock3 size={17} /><span>最近编辑</span></button>
+          <button type="button" className="is-active" aria-current="page"><FilePlus2 size={17} /><span>开始组题</span></button>
           <button type="button" onClick={onOpenMyResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><FolderHeart size={17} /><span>我的资源</span></button>
           <p>添加题目</p>
           <button type="button" className="document-center-parent" aria-expanded="true" onClick={() => onOpenSource('resource')}><Library size={17} /><span>飞象题库</span></button>
