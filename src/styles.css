@@ -6804,7 +6804,7 @@
 .document-center.is-embedded .document-center-list button { grid-template-columns: 40px minmax(180px, 1fr) 72px 72px 88px 20px; gap: 8px; }
 
 /* 首页布局评审：方案一保持现状；方案二中间题单、右侧最近；方案三上方最近、下方大题单。 */
-.document-layout-switch { position: absolute; z-index: 3; top: 14px; right: 24px; display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--fx-line-strong); border-radius: 9px; background: var(--common_bg2_color); box-shadow: 0 4px 14px var(--common_shadow3_color); }
+.document-layout-switch { position: fixed; z-index: 30; right: 24px; bottom: 20px; display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--fx-line-strong); border-radius: 9px; background: var(--common_bg2_color); box-shadow: 0 4px 14px var(--common_shadow3_color); }
 .document-layout-switch button { height: 28px; padding: 0 12px; border: 0; border-radius: 7px; color: var(--fx-text-secondary); background: transparent; cursor: pointer; font-size: 12px; }
 .document-layout-switch button:hover { color: var(--fx-text-primary); background: var(--fx-surface-muted); }
 .document-layout-switch button.is-active { color: var(--fx-primary); background: var(--fx-primary-selected); font-weight: 600; }
@@ -6817,8 +6817,6 @@
 .document-center.is-embedded.is-layout-3 { grid-template-columns: 220px minmax(0, 1fr); }
 .document-center.is-embedded.is-layout-2 .document-center-main,
 .document-center.is-embedded.is-layout-3 .document-center-main { padding: 10px 26px 24px; overflow: hidden; }
-.document-center.is-layout-2 .document-layout-switch,
-.document-center.is-layout-3 .document-layout-switch { position: fixed; top: auto; right: 24px; bottom: 20px; }
 .document-center.is-layout-2 .document-center-heading,
 .document-center.is-layout-3 .document-center-heading { display: none; }
 .document-layout-two { display: grid; height: 100%; min-height: 0; grid-template-columns: minmax(480px, 1.25fr) minmax(360px, .75fr); gap: 20px; }
