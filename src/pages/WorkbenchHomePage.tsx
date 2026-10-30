@@ -53,7 +53,7 @@ export function WorkbenchHomePage() {
   const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
   const [myResourcesActive, setMyResourcesActive] = useState(false)
   const [myResourcesInitialKind, setMyResourcesInitialKind] = useState<MyResourceKind | '全部'>('全部')
-  const [homeLayoutVariant, setHomeLayoutVariant] = useState<2 | 3 | 4>(4)
+  const [homeLayoutVariant, setHomeLayoutVariant] = useState<2 | 3 | 4>(2)
   const [draftPushAnimating, setDraftPushAnimating] = useState(false)
   const [recentlyAddedQuestionId, setRecentlyAddedQuestionId] = useState<string | null>(null)
   const hasQuestions = workbench.document.questions.length > 0
