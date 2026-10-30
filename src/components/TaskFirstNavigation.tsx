@@ -74,8 +74,8 @@ export function TaskFirstNavigation({ disabled = false, histories, historyStatus
       </section>
 
       <div className="document-layout-four-quick-links">
-        <button type="button" disabled={disabled} onClick={onOpenMyResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><FolderHeart size={18} /><span>我的资源</span></button>
-        <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><RefreshCw size={18} /><span>最近浏览</span></button>
+        <button type="button" disabled={disabled} onClick={onOpenMyResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><span className="document-layout-four-entry-icon"><FolderHeart size={21} /></span><span className="document-layout-four-entry-copy"><strong>我的资源</strong></span></button>
+        <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><span className="document-layout-four-entry-icon"><RefreshCw size={21} /></span><span className="document-layout-four-entry-copy"><strong>最近浏览</strong></span></button>
       </div>
 
       <section className="document-layout-four-recent-strip is-bottom" aria-label="最近编辑题单" data-sec="2">
