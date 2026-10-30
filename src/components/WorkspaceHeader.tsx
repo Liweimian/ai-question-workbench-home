@@ -15,6 +15,7 @@ import {
   Send,
   Share2,
   Undo2,
+  ArrowLeft,
 } from 'lucide-react'
 import { formatDefaultDocumentTitle } from '../data/workbenchData'
 import type { AsyncStatus, DocumentStatus, DocumentSyncState, HistoryDocumentSummary } from '../prototype/types'
@@ -47,6 +48,7 @@ interface WorkspaceHeaderProps {
   draftCollapsed: boolean
   onDraftCollapse: () => void
   onDraftExpand: () => void
+  onBackHome: () => void
 }
 
 export function WorkspaceHeader({
@@ -76,6 +78,7 @@ export function WorkspaceHeader({
   draftCollapsed,
   onDraftCollapse,
   onDraftExpand,
+  onBackHome,
 }: WorkspaceHeaderProps) {
   const hasQuestions = questionCount > 0
   const fallbackTitle = formatDefaultDocumentTitle()
@@ -193,6 +196,7 @@ export function WorkspaceHeader({
       ) : (
       <>
       <div className="header-workbench-brand" aria-label="当前题单">
+        <MetisButton type="borderless" icon={<ArrowLeft size={18} />} aria-label="返回题单首页" title="返回题单首页" onClick={onBackHome} />
         <span className="header-workbench-mark"><ElephantIcon /></span>
         <div className="header-title-summary" title={`${documentTitle || fallbackTitle} · ${syncLabel}`}>
           <strong>{documentTitle?.trim() || fallbackTitle}</strong>

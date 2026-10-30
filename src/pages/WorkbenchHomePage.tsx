@@ -9,6 +9,7 @@ import { EmptyCanvas } from '../components/EmptyCanvas'
 import { MyResourcesPanel } from '../components/MyResourcesPanel'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
+import { DocumentCenter } from '../components/DocumentCenter'
 import { ElephantIcon, FeixiangAiLibraryLogo } from '../components/ElephantIcon'
 import { isDefaultDocumentTitle, sourceRecords } from '../data/workbenchData'
 import { useWorkbench } from '../hooks/useWorkbench'
@@ -45,6 +46,7 @@ const recentOpenedResources: RecentOpenedResource[] = [
 
 export function WorkbenchHomePage() {
   const workbench = useWorkbench()
+  const [pageMode, setPageMode] = useState<'home' | 'editor'>('home')
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const previousDocumentId = useRef(workbench.document.id)
   const highlightTimerRef = useRef<number | null>(null)
@@ -144,6 +146,28 @@ export function WorkbenchHomePage() {
       setOpenAddTabs((current) => current.includes(mode) ? current : [...current, mode])
     }
     workbench.openAdd(mode, options)
+  }
+
+  const enterNewDocument = () => {
+    const isUntouchedBlank = workbench.document.questions.length === 0
+      && !workbench.document.intro?.trim()
+      && isDefaultDocumentTitle(workbench.document.title)
+    if (!isUntouchedBlank) workbench.createNewDocument()
+    setPageMode('editor')
+    setSidePanelOpen(true)
+    setDraftCollapsed(false)
+  }
+
+  const enterDocument = async (documentId: string) => {
+    setPageMode('editor')
+    setSidePanelOpen(true)
+    setDraftCollapsed(false)
+    await workbench.openHistoryDocument(documentId)
+  }
+
+  const enterSource = (mode: AddQuestionMode) => {
+    enterNewDocument()
+    window.requestAnimationFrame(() => openAdd(mode))
   }
 
   const activateAddTab = (mode: AddTabMode) => {
@@ -288,6 +312,23 @@ export function WorkbenchHomePage() {
     ([key, value]) => documentFormat[key as keyof typeof documentFormat] !== value,
   )
 
+  if (pageMode === 'home') {
+    return (
+      <div className="fx-app metis-theme-aiq">
+        <main className="fx-content workbench-page">
+          <DocumentCenter
+            histories={workbench.historyDocuments}
+            historyStatus={workbench.historyStatus}
+            onCreate={enterNewDocument}
+            onOpenDocument={(documentId) => { void enterDocument(documentId) }}
+            onOpenSource={enterSource}
+            onReload={() => { void workbench.reloadHistory() }}
+          />
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="fx-app metis-theme-aiq">
       <main className="fx-content workbench-page">
@@ -336,6 +377,7 @@ export function WorkbenchHomePage() {
             draftCollapsed={draftCollapsed}
             onDraftCollapse={() => setDraftCollapsed(true)}
             onDraftExpand={() => setDraftCollapsed(false)}
+            onBackHome={() => setPageMode('home')}
           />
 
           <section className={shellClassName} aria-label="飞象AI题库编辑器">

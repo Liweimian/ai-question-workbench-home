@@ -1,4 +1,4 @@
-import { BookOpen, BrainCircuit, ChevronRight, Clock3, FileScan, FileText, FolderHeart, Layers3, Library, ListTree, School, Sparkles, Target } from 'lucide-react'
+import { BookOpen, BrainCircuit, ChevronRight, FileInput, FileText, FolderHeart, Layers3, Library, ListTree, School, Sparkles, Target } from 'lucide-react'
 import { useState } from 'react'
 import type { AddQuestionMode, LibraryInitialView, OpenAddOptions, SourceRecord } from '../prototype/types'
 
@@ -74,10 +74,10 @@ const resourceOverviews: ResourceOverview[] = [
 ]
 
 export function CompositionHub(props: CompositionHubProps) {
-  const [resourceCardScheme, setResourceCardScheme] = useState<'four' | 'five' | 'six'>('six')
+  const [resourceCardScheme] = useState<'four' | 'five' | 'six'>('six')
   const taskEntries = [
-    { id: 'upload', title: 'AI 智能录题', description: '上传文件智能录题', action: '去上传', icon: FileScan, onClick: () => props.onOpenAdd('upload') },
-    { id: 'create', title: 'AI 原创出题', description: '按章节智能出题', action: '去出题', icon: Sparkles, onClick: () => props.onOpenAdd('create') },
+    { id: 'upload', title: 'Word / PDF 转题单', description: '导入文档，识别题目后加入题单', action: '去导入', icon: FileInput, onClick: () => props.onOpenAdd('upload') },
+    { id: 'create', title: 'AI 生成题目', description: '按知识点、难度和题量生成', action: '去生成', icon: Sparkles, onClick: () => props.onOpenAdd('create') },
     { id: 'resources', title: '我的资源', description: '管理个人资源', action: '去查看', icon: FolderHeart, onClick: props.onOpenMyResources },
     { id: 'assistant', title: 'AI 助手', description: '描述需求智能组题', action: '去对话', icon: BrainCircuit, onClick: props.onOpenAssistant },
   ]
@@ -87,12 +87,7 @@ export function CompositionHub(props: CompositionHubProps) {
       <div className="composition-hub-scroll">
         <div className="composition-overview">
           <header className="composition-overview-heading">
-            <div><strong>添加题目</strong></div>
-            <nav className="composition-scheme-switch" aria-label="题库卡片方案" role="tablist">
-              <button type="button" role="tab" aria-selected={resourceCardScheme === 'six'} className={resourceCardScheme === 'six' ? 'is-active' : ''} onClick={() => setResourceCardScheme('six')}>方案一</button>
-              <button type="button" role="tab" aria-selected={resourceCardScheme === 'five'} className={resourceCardScheme === 'five' ? 'is-active' : ''} onClick={() => setResourceCardScheme('five')}>方案二</button>
-              <button type="button" role="tab" aria-selected={resourceCardScheme === 'four'} className={resourceCardScheme === 'four' ? 'is-active' : ''} onClick={() => setResourceCardScheme('four')}>方案三</button>
-            </nav>
+            <div><strong>从左侧添加内容</strong><small>选中的题目会加入右侧当前题单</small></div>
           </header>
 
           <section className="composition-resource-grid" aria-label="题库资源入口">
@@ -143,21 +138,6 @@ export function CompositionHub(props: CompositionHubProps) {
               </button>
             ))}
           </section>
-          {props.recentResources?.length ? (
-            <section className="composition-recent-resources" aria-label="最近浏览的资源">
-              <header><strong>最近浏览</strong><span>继续上次浏览</span></header>
-              <div>
-                {props.recentResources.slice(0, 5).map((resource) => (
-                  <button type="button" key={resource.id} disabled={props.contentBusy} onClick={() => props.onOpenRecentResource(resource)}>
-                    <em>{resource.type}</em>
-                    <span><strong>{resource.title}</strong></span>
-                    <time><Clock3 size={12} />{resource.updatedAt}</time>
-                    <ChevronRight size={15} />
-                  </button>
-                ))}
-              </div>
-            </section>
-          ) : null}
         </div>
       </div>
     </aside>

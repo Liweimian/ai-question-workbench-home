@@ -6603,7 +6603,7 @@
 }
 
 .workspace-shell.is-split-source {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 376px minmax(0, 1fr);
 }
 
 .workspace-shell.is-split-source.is-draft-collapsed {
@@ -6661,8 +6661,128 @@
   grid-column: 1;
   grid-row: 1;
   border-right: 1px solid var(--fx-line-strong);
-  box-shadow: 8px 0 24px var(--common_shadow3_color);
+  box-shadow: 4px 0 16px var(--common_shadow3_color);
 }
+
+/* 题单首页：先新建 / 打开，再进入添加内容的编辑流程。 */
+.document-center {
+  display: grid;
+  min-width: var(--fx-page-min-width);
+  min-height: 100vh;
+  grid-template-columns: 248px minmax(0, 1fr);
+  color: var(--fx-text-primary);
+  background: var(--fx-surface-muted);
+}
+
+.document-center-sidebar {
+  display: flex;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 20px 16px;
+  flex-direction: column;
+  border-right: 1px solid var(--fx-line-strong);
+  background: var(--common_bg2_color);
+}
+
+.document-center-brand { display: flex; height: 40px; align-items: center; gap: 10px; padding: 0 8px; font-size: 16px; }
+.document-center-brand .header-workbench-mark { width: 30px; height: 30px; }
+.document-center-primary-actions { display: grid; gap: 10px; margin: 22px 0 18px; }
+.document-center-primary-actions .metis-btn { width: 100%; justify-content: center; }
+.document-center-nav { display: grid; gap: 3px; }
+.document-center-nav p { margin: 18px 10px 6px; color: var(--fx-text-tertiary); font-size: 12px; font-weight: 600; }
+.document-center-nav button {
+  display: flex;
+  width: 100%;
+  height: 38px;
+  padding: 0 11px;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: var(--fx-radius-control);
+  color: var(--fx-text-secondary);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.document-center-nav button:hover { color: var(--fx-text-primary); background: var(--common_bg_z3_color); }
+.document-center-nav button.is-active { color: var(--fx-primary); background: var(--fx-primary-selected); font-weight: 600; }
+.document-center-tip { display: flex; margin-top: auto; padding: 12px; align-items: flex-start; gap: 8px; border-radius: var(--fx-radius-control); color: var(--fx-text-secondary); background: var(--common_bg_z3_color); font-size: 12px; line-height: 18px; }
+.document-center-tip svg { flex: 0 0 auto; margin-top: 1px; color: var(--fx-primary); }
+
+.document-center-main { width: min(1180px, calc(100vw - 248px)); padding: 44px 52px 72px; justify-self: center; }
+.document-center-heading { display: flex; align-items: flex-start; justify-content: space-between; }
+.document-center-heading > div > span { color: var(--fx-primary); font-size: 13px; font-weight: 600; }
+.document-center-heading h1 { margin: 8px 0 6px; font-size: 30px; line-height: 42px; }
+.document-center-heading p, .document-center-section-title p { margin: 0; color: var(--fx-text-secondary); font-size: 13px; }
+
+.document-center-quick { display: grid; margin: 28px 0 34px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.document-center-quick button {
+  display: grid;
+  min-height: 102px;
+  padding: 20px;
+  grid-template-columns: 48px minmax(0, 1fr) 20px;
+  grid-template-rows: 24px 22px;
+  align-items: center;
+  column-gap: 14px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: var(--fx-radius-card);
+  color: var(--fx-text-primary);
+  background: var(--common_bg2_color);
+  text-align: left;
+  cursor: pointer;
+}
+.document-center-quick button:hover { border-color: var(--theme_primary1_selected2_color); box-shadow: var(--fx-shadow-card); }
+.document-center-quick button > span { display: grid; width: 46px; height: 46px; grid-row: 1 / 3; place-items: center; border-radius: 12px; color: var(--fx-text-secondary); background: var(--common_bg_z3_color); }
+.document-center-quick button > span.is-primary { color: var(--fx-primary); background: var(--fx-primary-selected); }
+.document-center-quick strong { font-size: 16px; }
+.document-center-quick small { color: var(--fx-text-secondary); }
+.document-center-quick button > svg { grid-column: 3; grid-row: 1 / 3; color: var(--fx-text-tertiary); }
+
+.document-center-recent, .document-center-sources { padding: 24px; border: 1px solid var(--fx-line-strong); border-radius: var(--fx-radius-card); background: var(--common_bg2_color); }
+.document-center-sources { margin-top: 20px; }
+.document-center-section-title { display: flex; margin-bottom: 16px; align-items: center; justify-content: space-between; }
+.document-center-section-title h2 { margin: 0 0 5px; font-size: 17px; }
+.document-center-section-title > span { color: var(--fx-text-tertiary); font-size: 12px; }
+.document-center-list { border-top: 1px solid var(--fx-line-strong); }
+.document-center-list button {
+  display: grid;
+  width: 100%;
+  min-height: 66px;
+  padding: 10px 8px;
+  grid-template-columns: 40px minmax(260px, 1fr) 84px 84px 100px 24px;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-bottom: 1px solid var(--fx-line-strong);
+  color: var(--fx-text-secondary);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.document-center-list button:hover { background: var(--common_bg_z3_color); }
+.document-center-list button:last-child { border-bottom: 0; }
+.document-file-icon { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 9px; color: var(--fx-primary); background: var(--fx-primary-selected); }
+.document-file-name { display: grid; gap: 4px; min-width: 0; }
+.document-file-name strong { overflow: hidden; color: var(--fx-text-primary); text-overflow: ellipsis; white-space: nowrap; }
+.document-file-name small { color: var(--fx-text-tertiary); }
+.document-center-state, .document-center-empty { display: flex; min-height: 180px; align-items: center; justify-content: center; gap: 8px; color: var(--fx-text-secondary); }
+.document-center-state.is-error { flex-direction: column; }
+.document-center-empty { flex-direction: column; text-align: center; }
+.document-center-empty p { margin: -2px 0 8px; }
+.document-center-source-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.document-center-source-grid button { display: flex; min-height: 74px; padding: 14px; align-items: center; gap: 12px; border: 1px solid var(--fx-line-strong); border-radius: var(--fx-radius-control); color: var(--fx-text-secondary); background: var(--common_bg2_color); text-align: left; cursor: pointer; }
+.document-center-source-grid button:hover { border-color: var(--theme_primary1_selected2_color); background: var(--fx-primary-selected); }
+.document-center-source-grid button > svg:first-child { color: var(--fx-primary); }
+.document-center-source-grid button > svg:last-child { margin-left: auto; color: var(--fx-text-tertiary); }
+.document-center-source-grid button span { display: grid; gap: 4px; }
+.document-center-source-grid strong { color: var(--fx-text-primary); }
+.document-center-source-grid small { color: var(--fx-text-secondary); }
+
+.composition-overview-heading > div { display: grid; gap: 4px; }
+.composition-overview-heading small { color: var(--fx-text-secondary); font-size: 12px; font-weight: 400; }
 
 .add-workspace-tabs {
   display: flex;
@@ -9840,3 +9960,13 @@
 .question-fly-card { position: fixed; z-index: 999; display: flex; width: 92px; height: 34px; box-sizing: border-box; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--fx-primary-selected-strong); border-radius: var(--fx-radius-control); color: var(--fx-primary); background: var(--common_bg2_color); box-shadow: var(--fx-shadow-card); font-size: 11px; pointer-events: none; will-change: transform, opacity; }
 .question-fly-card span { display: grid; width: 18px; height: 18px; place-items: center; border-radius: 50%; color: var(--common_fg_color); background: var(--fx-primary); font-size: 13px; }
 .question-fly-card strong { font-weight: 600; }
+
+/* 老师的主任务是编辑题单：工具区固定收窄，题单画布占据剩余空间。 */
+.workbench-page { --source-pane-width: 376px; }
+.workspace-shell.is-split-source { grid-template-columns: var(--source-pane-width) minmax(0, 1fr); }
+.workspace-header.is-split { width: calc(100% - var(--source-pane-width)); }
+.workspace-shell.is-split-source.is-draft-collapsed { grid-template-columns: minmax(0, 1fr) 48px; }
+.composition-hub--resource-first .composition-hub-scroll { padding: 48px 20px 28px; }
+.composition-hub.is-scheme-six .composition-resource-grid,
+.composition-hub.is-scheme-six .composition-task-grid { grid-template-columns: minmax(0, 1fr); }
+.composition-hub.is-scheme-six .composition-task-grid > button { min-height: 64px; }

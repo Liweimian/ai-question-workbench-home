@@ -12,8 +12,8 @@
       "name": "Demo 创作",
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
-      "completedAt": "2026-10-29T19:00:00+08:00",
-      "iterationCount": 226,
+      "completedAt": "2026-10-30T17:00:00+08:00",
+      "iterationCount": 227,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -22,6 +22,7 @@
         "src/components/LibraryPicker.tsx",
         "src/components/BlockAddMenu.tsx",
         "src/components/CompositionHub.tsx",
+        "src/components/DocumentCenter.tsx",
         "src/components/AiAssistantWorkspace.tsx",
         "src/components/WorkbenchLandingPage.tsx",
         "src/components/MyResourcesPanel.tsx",
@@ -131,6 +132,7 @@
         "static singleton AI assistant task-tab lifecycle review",
         "static empty-canvas intro persistence and layout review",
         "static removal of web-search entry and centered title review",
+        "browser document-center recent-edit, create, source-entry and return-home flow",
         "browser fixed right canvas and focus-editor continuity review"
       ]
     },
