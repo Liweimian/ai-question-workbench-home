@@ -6855,10 +6855,10 @@
   display: grid;
   position: relative;
   min-width: 0;
-  min-height: 112px;
-  padding: 16px 68px 16px 16px;
+  min-height: 76px;
+  padding: 12px 14px;
   overflow: hidden;
-  grid-template-columns: 38px minmax(0, 1fr) 16px;
+  grid-template-columns: 34px minmax(0, 1fr);
   align-items: center;
   gap: 10px;
   border: 1px solid var(--fx-line-subtle);
@@ -6870,17 +6870,11 @@
   cursor: pointer;
 }
 .document-layout-four-flat-grid > button:hover:not(:disabled) { color: var(--fx-primary); border-color: var(--theme_primary1_selected2_color); background: color-mix(in srgb, var(--fx-primary-selected) 38%, var(--common_bg2_color)); box-shadow: var(--fx-shadow-card); }
-.document-layout-four-entry-icon { display: grid; z-index: 2; width: 38px; height: 38px; place-items: center; border-radius: 11px; color: var(--fx-primary); background: var(--fx-primary-selected); }
-.document-layout-four-entry-copy { display: grid; z-index: 2; min-width: 0; gap: 4px; }
-.document-layout-four-entry-copy strong,
-.document-layout-four-entry-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.document-layout-four-entry-icon { display: grid; z-index: 2; width: 34px; height: 34px; place-items: center; border-radius: 10px; color: var(--fx-primary); background: var(--fx-primary-selected); }
+.document-layout-four-entry-copy { display: grid; z-index: 2; min-width: 0; }
+.document-layout-four-entry-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .document-layout-four-entry-copy strong { font-size: 15px; }
-.document-layout-four-entry-copy small { color: var(--fx-text-tertiary); font-size: 12px; }
-.document-layout-four-entry-arrow { z-index: 2; color: var(--fx-text-tertiary); }
 .document-layout-four-flat-grid > button:nth-child(n+7) .document-layout-four-entry-icon { color: var(--common_purple1_color); background: var(--common_purple6_color); }
-.document-layout-four-flat-grid > button:nth-child(n+7) .document-layout-four-card-art { color: var(--common_purple1_color); border-color: color-mix(in srgb, var(--common_purple1_color) 20%, transparent); background: color-mix(in srgb, var(--common_purple6_color) 82%, var(--common_bg2_color)); }
-.document-layout-four-flat-grid > button:nth-child(n+7) .document-layout-four-card-art::before,
-.document-layout-four-flat-grid > button:nth-child(n+7) .document-layout-four-card-art::after { border-color: color-mix(in srgb, var(--common_purple1_color) 10%, transparent); background: color-mix(in srgb, var(--common_purple6_color) 52%, var(--common_bg2_color)); }
 
 .document-layout-four-recent-strip {
   display: grid;
@@ -6905,7 +6899,7 @@
   min-width: 0;
   min-height: 54px;
   padding: 8px 9px;
-  grid-template-columns: 18px minmax(0, 1fr) 14px;
+  grid-template-columns: 18px minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   border: 0;

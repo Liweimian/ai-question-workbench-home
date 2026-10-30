@@ -2,7 +2,6 @@ import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
 import {
   BookOpen,
   BrainCircuit,
-  ChevronRight,
   Clock3,
   FileInput,
   FileText,
@@ -62,22 +61,20 @@ export function TaskFirstNavigation({ disabled = false, histories, historyStatus
             type="button"
             key={`${mode}-${view ?? label}`}
             disabled={disabled}
-            title={description ?? `${source} · ${label}`}
+            title={description ?? label}
             aria-label={description ? `${label}：${description}` : `${source}：${label}`}
             onClick={() => onOpenSource(mode, view ? { libraryView: view } : undefined)}
             data-track="/click/aiQuestionHome/openFlatEntry | 打开平铺添加入口 | source#STRING,resourceType#STRING"
           >
             <span className="document-layout-four-entry-icon"><Icon size={21} /></span>
-            <span className="document-layout-four-entry-copy"><strong>{label}</strong><small>{source}</small></span>
-            <ChevronRight className="document-layout-four-entry-arrow" size={16} />
-            <span className="document-layout-four-card-art" aria-hidden="true"><Icon size={21} /></span>
+            <span className="document-layout-four-entry-copy"><strong>{label}</strong></span>
           </button>
         ))}
       </section>
 
       <div className="document-layout-four-quick-links">
-        <button type="button" disabled={disabled} onClick={onOpenMyResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><FolderHeart size={18} /><span>我的资源</span><ChevronRight size={15} /></button>
-        <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><RefreshCw size={18} /><span>最近浏览</span><ChevronRight size={15} /></button>
+        <button type="button" disabled={disabled} onClick={onOpenMyResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><FolderHeart size={18} /><span>我的资源</span></button>
+        <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><RefreshCw size={18} /><span>最近浏览</span></button>
       </div>
 
       <section className="document-layout-four-recent-strip is-bottom" aria-label="最近编辑题单" data-sec="2">
@@ -96,7 +93,6 @@ export function TaskFirstNavigation({ disabled = false, histories, historyStatus
               >
                 <FileText size={17} />
                 <span><strong>{item.title}</strong><small>{item.updatedAt}</small></span>
-                <ChevronRight size={15} />
               </button>
             )) : <div className="document-layout-four-recent-state">暂无最近题单</div>}
         </div>
