@@ -66,7 +66,13 @@ export function DocumentCenter({ embedded = false, histories, historyStatus, onC
             <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'sync' })}><Layers3 size={15} /><span>同步练习</span></button>
             <button type="button" onClick={() => onOpenSource('resource', { libraryView: 'special' })}><Target size={15} /><span>专题练习</span></button>
           </div>
-          {sourceEntries.filter(({ mode }) => mode !== 'resource').map(({ mode, label, icon: Icon }) => (
+          <button type="button" className="document-center-parent" aria-expanded="true" onClick={() => onOpenSource('school')}><School size={17} /><span>校本题库</span></button>
+          <div className="document-center-subnav" aria-label="校本题库分类">
+            <button type="button" onClick={() => onOpenSource('school', { libraryView: 'chapter' })}><ListTree size={15} /><span>章节知识点选题</span></button>
+            <button type="button" onClick={() => onOpenSource('school', { libraryView: 'workbook' })}><BookOpen size={15} /><span>练习册</span></button>
+            <button type="button" onClick={() => onOpenSource('school', { libraryView: 'paper' })}><FileText size={15} /><span>试卷</span></button>
+          </div>
+          {sourceEntries.filter(({ mode }) => mode !== 'resource' && mode !== 'school').map(({ mode, label, icon: Icon }) => (
             <button type="button" key={mode} onClick={() => onOpenSource(mode)}><Icon size={17} /><span>{label}</span></button>
           ))}
           <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')}><RefreshCw size={17} /><span>最近浏览</span></button>

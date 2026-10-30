@@ -6689,7 +6689,7 @@
 .document-center-brand .header-workbench-mark { width: 30px; height: 30px; }
 .document-center-primary-actions { display: grid; gap: 10px; margin: 22px 0 18px; }
 .document-center-primary-actions .metis-btn { width: 100%; justify-content: center; }
-.document-center-nav { display: grid; gap: 3px; }
+.document-center-nav { display: grid; min-height: 0; flex: 1; align-content: start; gap: 3px; overflow-y: auto; }
 .document-center-nav p { margin: 18px 10px 6px; color: var(--fx-text-tertiary); font-size: 12px; font-weight: 600; }
 .document-center-nav button {
   display: flex;
