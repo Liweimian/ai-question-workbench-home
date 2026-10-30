@@ -13,7 +13,7 @@ import { isDefaultDocumentTitle } from '../data/workbenchData'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { defaultDocumentFormat } from '../prototype/types'
 import type { AddQuestionMode, MyResourceKind, SourceRecord } from '../prototype/types'
-import { BrainCircuit, FileText, House, PanelLeftClose, PanelRightOpen, X } from 'lucide-react'
+import { BrainCircuit, ChevronRight, FileInput, FileText, FolderHeart, House, Library, PanelLeftClose, PanelRightOpen, School, Sparkles, X } from 'lucide-react'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
@@ -53,7 +53,7 @@ export function WorkbenchHomePage() {
   const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
   const [myResourcesActive, setMyResourcesActive] = useState(false)
   const [myResourcesInitialKind, setMyResourcesInitialKind] = useState<MyResourceKind | '全部'>('全部')
-  const [homeLayoutVariant, setHomeLayoutVariant] = useState<2 | 3 | 4>(2)
+  const [homeLayoutVariant, setHomeLayoutVariant] = useState<2 | 3 | 4 | 5>(2)
   const [draftPushAnimating, setDraftPushAnimating] = useState(false)
   const [recentlyAddedQuestionId, setRecentlyAddedQuestionId] = useState<string | null>(null)
   const hasQuestions = workbench.document.questions.length > 0
@@ -258,7 +258,39 @@ export function WorkbenchHomePage() {
   }
 
   const isAddHome = !workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive
-  const alternateHomeLayout = sidePanelOpen && isAddHome && (homeLayoutVariant === 2 || homeLayoutVariant === 3) && !draftCollapsed
+  const alternateHomeLayout = sidePanelOpen && isAddHome && (homeLayoutVariant === 2 || homeLayoutVariant === 3 || homeLayoutVariant === 5) && !draftCollapsed
+  const breadcrumbNavigationMode = homeLayoutVariant === 5 && sidePanelOpen && !isAddHome
+  const libraryViewLabels = {
+    chapter: '章节知识点选题',
+    workbook: '练习册',
+    paper: '试卷',
+    sync: '同步练习',
+    special: '专题练习',
+  } as const
+  const breadcrumbRootLabel = myResourcesActive
+    ? '我的资源'
+    : assistantActive
+      ? 'AI 组题'
+      : activeLibraryDetail?.libraryMode
+        ? addTabLabels[activeLibraryDetail.libraryMode]
+        : workbench.isAddOpen && workbench.addMode !== 'menu' && workbench.addMode !== 'compose' && workbench.addMode !== 'personalized'
+          ? addTabLabels[workbench.addMode]
+          : '添加题目'
+  const breadcrumbLeafLabel = activeLibraryDetail?.record.title
+    ?? (workbench.isAddOpen && (workbench.addMode === 'resource' || workbench.addMode === 'school')
+      ? libraryViewLabels[workbench.libraryInitialView ?? 'paper']
+      : null)
+  const BreadcrumbIcon = myResourcesActive
+    ? FolderHeart
+    : assistantActive
+      ? BrainCircuit
+      : workbench.addMode === 'school'
+        ? School
+        : workbench.addMode === 'upload'
+          ? FileInput
+          : workbench.addMode === 'create'
+            ? Sparkles
+            : Library
   const shellClassName = sidePanelOpen
     ? `workspace-shell is-split-source${draftCollapsed ? ' is-draft-collapsed' : ''}`
     : `workspace-shell is-focus-editor${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`
@@ -372,8 +404,13 @@ export function WorkbenchHomePage() {
             )) : null}
 
             {sidePanelOpen ? (
-              <div className="add-workspace" aria-label="添加题目多任务工作区">
-                <div className="add-workspace-brand" aria-label="选择学段科目">
+              <div className={`add-workspace${breadcrumbNavigationMode ? ' is-breadcrumb-navigation' : ''}`} aria-label="添加题目多任务工作区">
+                {breadcrumbNavigationMode ? <aside className="add-workspace-rail" aria-label="方案四快捷导航">
+                  <FeixiangAiLibraryLogo />
+                  <button type="button" onClick={activateAddHome} aria-label="返回首页" title="返回首页"><House size={18} /></button>
+                  <span aria-hidden="true"><BreadcrumbIcon size={18} /></span>
+                  <button type="button" onClick={collapseSidePanel} aria-label="收起添加题目工作区" title="专注编辑"><PanelLeftClose size={18} /></button>
+                </aside> : <div className="add-workspace-brand" aria-label="选择学段科目">
                   <FeixiangAiLibraryLogo />
                   <span className="add-workspace-subject">
                     <select aria-label="学段科目" defaultValue="初中数学">
@@ -382,8 +419,22 @@ export function WorkbenchHomePage() {
                       <option>高中数学</option>
                     </select>
                   </span>
-                </div>
-                <nav className="add-workspace-tabs" aria-label="已打开的添加方式" role="tablist">
+                </div>}
+                {breadcrumbNavigationMode ? <nav className="add-workspace-breadcrumb" aria-label="当前位置">
+                  <button type="button" onClick={activateAddHome}>首页</button>
+                  <ChevronRight size={14} aria-hidden="true" />
+                  <button
+                    type="button"
+                    className={breadcrumbLeafLabel ? '' : 'is-current'}
+                    aria-current={breadcrumbLeafLabel ? undefined : 'page'}
+                    onClick={() => {
+                      if (myResourcesActive) openMyResources(myResourcesInitialKind)
+                      else if (assistantActive) activateAssistantTab()
+                      else if (workbench.isAddOpen && workbench.addMode !== 'menu' && workbench.addMode !== 'compose' && workbench.addMode !== 'personalized') activateAddTab(workbench.addMode)
+                    }}
+                  >{breadcrumbRootLabel}</button>
+                  {breadcrumbLeafLabel ? <><ChevronRight size={14} aria-hidden="true" /><span aria-current="page">{breadcrumbLeafLabel}</span></> : null}
+                </nav> : <nav className="add-workspace-tabs" aria-label="已打开的添加方式" role="tablist">
                   <button
                     type="button"
                     role="tab"
@@ -467,7 +518,7 @@ export function WorkbenchHomePage() {
                     title="专注编辑"
                     onClick={collapseSidePanel}
                   ><PanelLeftClose size={17} /></button>
-                </nav>
+                </nav>}
                 {myResourcesActive && myResourcesTabOpen ? (
                   <MyResourcesPanel
                     initialKind={myResourcesInitialKind}

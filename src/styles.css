@@ -6818,11 +6818,14 @@
 .workspace-shell.is-alternate-home .add-workspace { grid-column: 1; }
 .workbench-zoom-area.is-alternate-home .workspace-header { display: none; }
 .document-center.is-embedded.is-layout-2,
-.document-center.is-embedded.is-layout-3 { grid-template-columns: 220px minmax(0, 1fr); }
+.document-center.is-embedded.is-layout-3,
+.document-center.is-embedded.is-layout-5 { grid-template-columns: 220px minmax(0, 1fr); }
 .document-center.is-embedded.is-layout-2 .document-center-main,
-.document-center.is-embedded.is-layout-3 .document-center-main { padding: 10px 26px 24px; overflow: hidden; }
+.document-center.is-embedded.is-layout-3 .document-center-main,
+.document-center.is-embedded.is-layout-5 .document-center-main { padding: 10px 26px 24px; overflow: hidden; }
 .document-center.is-layout-2 .document-center-heading,
-.document-center.is-layout-3 .document-center-heading { display: none; }
+.document-center.is-layout-3 .document-center-heading,
+.document-center.is-layout-5 .document-center-heading { display: none; }
 .document-layout-two { display: grid; height: 100%; min-height: 0; grid-template-columns: minmax(480px, 1.25fr) minmax(360px, .75fr); gap: 20px; }
 .document-layout-three { display: grid; height: 100%; min-height: 0; grid-template-rows: auto minmax(0, 1fr); gap: 16px; }
 .document-center-draft { min-width: 0; min-height: 0; overflow: hidden; border: 1px solid var(--fx-line-strong); border-radius: var(--fx-radius-card); background: var(--common_bg2_color); box-shadow: 0 8px 24px var(--common_shadow3_color); }
@@ -7080,6 +7083,83 @@
 }
 
 .add-workspace-tabs::-webkit-scrollbar { display: none; }
+
+/* 方案四：首页复用方案一，进入任务后将完整导航压缩为窄栏，并以面包屑承接路径。 */
+.add-workspace.is-breadcrumb-navigation {
+  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-rows: 42px minmax(0, 1fr);
+}
+
+.add-workspace.is-breadcrumb-navigation > :not(.add-workspace-rail):not(.add-workspace-breadcrumb) {
+  min-width: 0;
+  min-height: 0;
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.add-workspace-rail {
+  display: flex;
+  z-index: 3;
+  min-width: 0;
+  min-height: 0;
+  padding: 7px 6px 10px;
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+  border-right: 1px solid var(--fx-line-strong);
+  background: var(--common_bg1_color);
+}
+
+.add-workspace-rail .feixiang-ai-library-logo { width: 28px; height: 28px; margin-bottom: 3px; }
+.add-workspace-rail button,
+.add-workspace-rail > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: var(--fx-radius-control);
+  color: var(--fx-text-secondary);
+  background: transparent;
+}
+.add-workspace-rail button { cursor: pointer; }
+.add-workspace-rail button:hover { color: var(--fx-primary); background: var(--fx-primary-selected); }
+.add-workspace-rail > span { color: var(--fx-primary); background: var(--fx-primary-selected); }
+.add-workspace-rail button:last-child { margin-top: auto; }
+
+.add-workspace-breadcrumb {
+  display: flex;
+  min-width: 0;
+  height: 42px;
+  padding: 0 16px;
+  grid-column: 2;
+  grid-row: 1;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--fx-line-strong);
+  background: var(--common_bg1_color);
+  color: var(--fx-text-tertiary);
+}
+.add-workspace-breadcrumb button,
+.add-workspace-breadcrumb span {
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  color: var(--fx-text-secondary);
+  background: transparent;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.add-workspace-breadcrumb button { padding: 5px 3px; cursor: pointer; }
+.add-workspace-breadcrumb button:hover { color: var(--fx-primary); }
+.add-workspace-breadcrumb .is-current,
+.add-workspace-breadcrumb span[aria-current='page'] { color: var(--fx-text-primary); font-weight: 600; }
+.add-workspace-breadcrumb svg { flex: 0 0 auto; color: var(--fx-text-tertiary); }
 
 .add-workspace-tabs > button,
 .add-workspace-tab {
