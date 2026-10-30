@@ -6844,29 +6844,24 @@
 .document-center.is-layout-4 .document-center-heading { display: none; }
 .document-center.is-embedded.is-layout-4 .document-center-main { padding: 24px; }
 .document-layout-four { display: grid; width: 100%; align-content: start; align-items: start; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.document-layout-four > h1 { grid-column: 1 / -1; margin: 2px 0 0; font-size: 22px; line-height: 30px; }
-.document-layout-four > div { display: grid; position: relative; align-content: start; align-self: start; overflow: hidden; border: 0; border-radius: var(--fx-radius-card); background: transparent; }
-.document-layout-four > .document-layout-four-recent { grid-column: 1 / -1; min-height: 128px; overflow: visible; grid-template-columns: minmax(0, 2fr) minmax(190px, 1fr); gap: 12px; }
-.document-layout-four-recent > section { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; overflow: visible; }
-.document-layout-four-recent > section > div { display: flex; min-height: 36px; padding: 0 4px; grid-column: 1 / -1; align-items: center; gap: 10px; }
-.document-layout-four-recent > section > div strong { font-size: 14px; }
-.document-layout-four-recent > section button { min-height: 52px; border-radius: var(--fx-radius-control); background: var(--common_bg2_color); box-shadow: 0 3px 10px var(--common_shadow3_color); }
+.document-layout-four > h1 { grid-column: 1 / -1; margin: 2px 0 2px; font-size: 22px; line-height: 30px; }
+.document-layout-four > div { display: grid; position: relative; align-content: start; align-self: stretch; min-width: 0; border: 1px solid var(--fx-line-subtle); border-radius: 14px; background: var(--common_bg2_color); box-shadow: 0 5px 16px var(--common_shadow3_color); }
+.document-layout-four > div:not(.document-layout-four-recent) { height: 232px; padding: 12px; box-sizing: border-box; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.document-layout-four > div:not(.document-layout-four-recent) > button:last-child { grid-column: 1 / -1; }
+.document-layout-four button { display: flex; width: 100%; min-width: 0; min-height: 44px; padding: 0 12px; align-items: center; gap: 9px; border: 0; border-radius: 9px; color: var(--fx-text-primary); background: var(--fx-surface-muted); cursor: pointer; font-size: 13px; font-weight: 500; text-align: left; }
+.document-layout-four button:hover { color: var(--fx-primary); background: var(--fx-primary-selected); }
+.document-layout-four button.is-parent { min-height: 48px; padding: 0 4px; grid-column: 1 / -1; color: var(--fx-text-primary); background: transparent; font-size: 15px; font-weight: 600; }
+.document-layout-four button.is-parent:hover { color: var(--fx-primary); background: transparent; }
+.document-layout-four button svg { flex: 0 0 auto; }
+.document-layout-four > .document-layout-four-recent { display: block; grid-column: 1 / -1; min-height: 142px; padding: 14px; }
+.document-layout-four-recent > section { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.document-layout-four-recent > section > div { display: flex; min-height: 34px; padding: 0 2px; grid-column: 1 / -1; align-items: center; gap: 9px; }
+.document-layout-four-recent > section > div strong { font-size: 15px; }
+.document-layout-four-recent > section button { min-height: 52px; background: var(--fx-surface-muted); }
 .document-layout-four-recent > section button span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .document-layout-four-recent > section button svg:last-child { margin-left: auto; color: var(--fx-text-tertiary); }
-.document-layout-four-recent > aside { display: grid; gap: 12px; }
-.document-layout-four-recent > aside button { min-height: 0; border: 0; border-radius: var(--fx-radius-control); background: var(--common_bg2_color); box-shadow: 0 3px 10px var(--common_shadow3_color); font-size: 14px; font-weight: 600; }
-.document-layout-four button { display: flex; width: 100%; min-height: 48px; padding: 0 16px; align-items: center; gap: 10px; border: 0; border-radius: var(--fx-radius-control); color: var(--fx-text-primary); background: transparent; cursor: pointer; font-size: 13px; font-weight: 500; text-align: left; }
-.document-layout-four button:last-child { border-bottom: 0; }
-.document-layout-four button:hover { color: var(--fx-primary); background: var(--fx-primary-selected); }
-.document-layout-four button.is-parent { min-height: 52px; margin-bottom: 4px; background: var(--common_bg2_color); box-shadow: 0 3px 10px var(--common_shadow3_color); font-size: 14px; font-weight: 600; }
-.document-layout-four button.is-active { color: var(--fx-primary); background: var(--fx-primary-selected); font-weight: 600; }
-.document-layout-four button svg { flex: 0 0 auto; }
-.document-layout-four > div:not(.document-layout-four-recent) { height: 196px; box-sizing: border-box; }
-.document-layout-four > div:nth-of-type(1) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.document-layout-four > div:nth-of-type(1) .is-parent { grid-column: 1 / -1; }
-.document-layout-four > div:not(.document-layout-four-recent) button:not(.is-parent) { position: relative; padding-left: 34px; }
-.document-layout-four > div:not(.document-layout-four-recent) button:not(.is-parent)::before { position: absolute; top: 0; bottom: 0; left: 18px; width: 1px; background: var(--fx-line-strong); content: ''; }
-.document-layout-four > div:not(.document-layout-four-recent) button:not(.is-parent)::after { position: absolute; top: 50%; left: 18px; width: 9px; height: 1px; background: var(--fx-line-strong); content: ''; }
+.document-layout-four-recent > aside { position: absolute; top: 13px; right: 14px; display: flex; gap: 6px; }
+.document-layout-four-recent > aside button { width: auto; min-height: 32px; padding: 0 10px; color: var(--fx-text-secondary); background: transparent; font-size: 12px; font-weight: 500; }
 .editor-scroll.is-pushing-right { animation: draft-push-right 480ms cubic-bezier(.2,.8,.2,1); }
 @keyframes draft-push-right { from { opacity: .72; transform: translateX(-56px) scale(.985); } to { opacity: 1; transform: translateX(0) scale(1); } }
 
