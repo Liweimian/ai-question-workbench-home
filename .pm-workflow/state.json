@@ -13,7 +13,7 @@
       "status": "completed",
       "startedAt": "2026-10-22T00:00:00+08:00",
       "completedAt": "2026-10-30T17:00:00+08:00",
-      "iterationCount": 286,
+      "iterationCount": 298,
       "outputs": [
         "src/pages/WorkbenchHomePage.tsx",
         "src/components/WorkspaceHeader.tsx",
@@ -22,6 +22,7 @@
         "src/components/LibraryPicker.tsx",
         "src/components/BlockAddMenu.tsx",
         "src/components/CompositionHub.tsx",
+        "src/components/DocumentActionToolbar.tsx",
         "src/components/DocumentCenter.tsx",
         "src/components/TaskFirstNavigation.tsx",
         "src/components/AiAssistantWorkspace.tsx",
@@ -31,9 +32,13 @@
         "dist/"
       ],
       "verification": [
+        "browser centered document action toolbar",
+        "browser home format-toolbar hidden and expanded-editor toolbar retained",
+        "browser removal of new-composition navigation entry",
         "npm run typecheck",
         "npm run build",
         "git diff --check",
+        "browser document action toolbar placement, disabled states and overflow inspection",
         "browser scheme-four 3x3 flat-entry layout and fixed draft-pane inspection",
         "browser three-column visual inspection",
         "browser history flow",
@@ -544,5 +549,5 @@
     }
   ],
   "createdAt": "2026-10-22T00:00:00+08:00",
-  "updatedAt": "2026-10-31T01:25:00+08:00"
+  "updatedAt": "2026-10-30T23:59:30+08:00"
 }

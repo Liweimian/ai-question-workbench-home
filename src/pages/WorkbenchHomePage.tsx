@@ -5,7 +5,8 @@ import { AiAssistantWorkspace } from '../components/AiAssistantWorkspace'
 import { QuestionSortPanel } from '../components/QuestionSortPanel'
 import { DocumentCanvas } from '../components/DocumentCanvas'
 import { EmptyCanvas } from '../components/EmptyCanvas'
-import { MyResourcesPanel } from '../components/MyResourcesPanel'
+import { MyResourcesPanel, RESOURCE_CREATED_FOLDERS } from '../components/MyResourcesPanel'
+import { ResourceFileDetail } from '../components/ResourceFileDetail'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { DocumentCenter } from '../components/DocumentCenter'
@@ -13,8 +14,8 @@ import { ElephantIcon, FeixiangAiLibraryLogo } from '../components/ElephantIcon'
 import { isDefaultDocumentTitle } from '../data/workbenchData'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { defaultDocumentFormat } from '../prototype/types'
-import type { AddQuestionMode, MyResourceKind, SourceRecord } from '../prototype/types'
-import { BrainCircuit, FileText, House, PanelLeftClose, PanelRightOpen, RefreshCw, X } from 'lucide-react'
+import type { AddQuestionMode, MyResourceKind, MyResourceSummary, SourceRecord } from '../prototype/types'
+import { BrainCircuit, File, FileText, House, PanelLeftClose, PanelRightOpen, RefreshCw, X } from 'lucide-react'
 import { EditorStudioShell } from '../components/EditorStudioShell'
 import { ScoreSettingsDialog } from '../components/ScoreSettingsDialog'
 import { getDocumentKind, needsPaperScoreSettings } from '../utils/documentEditorUtils'
@@ -61,6 +62,8 @@ export function WorkbenchHomePage() {
   const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
   const [myResourcesActive, setMyResourcesActive] = useState(false)
   const [myResourcesInitialKind, setMyResourcesInitialKind] = useState<MyResourceKind | '全部'>('全部')
+  const [fileDetailTabs, setFileDetailTabs] = useState<MyResourceSummary[]>([])
+  const [activeFileDetailId, setActiveFileDetailId] = useState<string | null>(null)
   const [recentBrowseTabOpen, setRecentBrowseTabOpen] = useState(false)
   const [recentBrowseActive, setRecentBrowseActive] = useState(false)
   const [recentBrowseEntries, setRecentBrowseEntries] = useState<RecentBrowseEntry[]>(() => readRecentBrowseEntries())
@@ -97,6 +100,8 @@ export function WorkbenchHomePage() {
     setAssistantActive(false)
     setMyResourcesTabOpen(false)
     setMyResourcesActive(false)
+    setFileDetailTabs([])
+    setActiveFileDetailId(null)
   }, [workbench.document.id])
 
   useEffect(() => {
@@ -115,6 +120,7 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
     setMyResourcesActive(false)
+    setActiveFileDetailId(null)
     if (prompt === undefined && workbench.assistantRun) {
       workbench.closeAdd()
       setAssistantTabOpen(true)
@@ -147,6 +153,7 @@ export function WorkbenchHomePage() {
     setAssistantActive(false)
     setMyResourcesActive(false)
     setRecentBrowseActive(false)
+    setActiveFileDetailId(null)
     if (mode !== 'menu') {
       setOpenAddTabs((current) => current.includes(mode) ? current : [...current, mode])
     }
@@ -159,6 +166,7 @@ export function WorkbenchHomePage() {
     setAssistantActive(false)
     setMyResourcesActive(false)
     setRecentBrowseActive(false)
+    setActiveFileDetailId(null)
     if (!workbench.isAddOpen || workbench.addMode !== mode) workbench.openAdd(mode)
   }
 
@@ -171,6 +179,7 @@ export function WorkbenchHomePage() {
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
     setMyResourcesActive(false)
+    setActiveFileDetailId(null)
     workbench.closeAdd()
     setRecentBrowseTabOpen(true)
     setRecentBrowseActive(true)
@@ -187,6 +196,7 @@ export function WorkbenchHomePage() {
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
     setMyResourcesActive(false)
+    setActiveFileDetailId(null)
     workbench.closeAdd()
     setRecentBrowseActive(true)
     refreshRecentBrowseEntries()
@@ -197,6 +207,7 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(true)
     setAssistantActive(false)
     setMyResourcesActive(false)
+    setActiveFileDetailId(null)
     setOpenAddTabs((current) => current.includes(libraryMode) ? current : [...current, libraryMode])
     setLibraryDetailTabs((current) => current.some((tab) => tab.key === key)
       ? current
@@ -221,6 +232,7 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(true)
     setAssistantActive(false)
     setMyResourcesActive(false)
+    setActiveFileDetailId(null)
     setActiveLibraryDetailKey(tab.key)
     if (!workbench.isAddOpen || workbench.addMode !== tab.libraryMode) {
       workbench.openAdd(tab.libraryMode, { libraryView: tab.record.sourceType })
@@ -233,6 +245,7 @@ export function WorkbenchHomePage() {
     setAssistantActive(false)
     setMyResourcesActive(false)
     setRecentBrowseActive(false)
+    setActiveFileDetailId(null)
     workbench.closeAdd()
   }
 
@@ -253,6 +266,7 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
     setMyResourcesActive(false)
+    setActiveFileDetailId(null)
     workbench.closeAdd()
     setAssistantActive(true)
   }
@@ -270,6 +284,35 @@ export function WorkbenchHomePage() {
     setAssistantActive(false)
     workbench.closeAdd()
     setMyResourcesTabOpen(true)
+    setMyResourcesActive(true)
+    setActiveFileDetailId(null)
+  }
+
+  const openFileDetail = (resource: MyResourceSummary) => {
+    setSidePanelOpen(true)
+    setActiveLibraryDetailKey(null)
+    setAssistantActive(false)
+    setRecentBrowseActive(false)
+    workbench.closeAdd()
+    setMyResourcesActive(false)
+    setFileDetailTabs((current) => current.some((item) => item.id === resource.id) ? current : [...current, resource])
+    setActiveFileDetailId(resource.id)
+  }
+
+  const activateFileDetail = (id: string) => {
+    setSidePanelOpen(true)
+    setActiveLibraryDetailKey(null)
+    setAssistantActive(false)
+    setRecentBrowseActive(false)
+    workbench.closeAdd()
+    setMyResourcesActive(false)
+    setActiveFileDetailId(id)
+  }
+
+  const closeFileDetailTab = (id: string) => {
+    setFileDetailTabs((current) => current.filter((item) => item.id !== id))
+    if (activeFileDetailId !== id) return
+    setActiveFileDetailId(null)
     setMyResourcesActive(true)
   }
 
@@ -591,7 +634,7 @@ export function WorkbenchHomePage() {
                     role="tab"
                     aria-label="添加题目首页"
                     title="添加题目首页"
-                    aria-selected={!workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive && !recentBrowseActive}
+                    aria-selected={!workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive && !recentBrowseActive && !activeFileDetailId}
                     className={`add-workspace-home${!workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive && !recentBrowseActive ? ' is-active' : ''}`}
                     onClick={activateAddHome}
                   ><House size={17} /></button>
@@ -662,6 +705,19 @@ export function WorkbenchHomePage() {
                       </button>
                     </span>
                   ) : null}
+                  {fileDetailTabs.map((tab) => (
+                    <span key={tab.id} className={`add-workspace-tab is-file-detail${activeFileDetailId === tab.id ? ' is-active' : ''}`}>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeFileDetailId === tab.id}
+                        onClick={() => activateFileDetail(tab.id)}
+                      ><File size={14} /><span>{tab.title}</span></button>
+                      <button type="button" className="add-workspace-tab-close" aria-label={`关闭${tab.title}`} onClick={() => closeFileDetailTab(tab.id)}>
+                        <X size={13} />
+                      </button>
+                    </span>
+                  ))}
                   {recentBrowseTabOpen ? (
                     <span className={`add-workspace-tab is-recent-browse${recentBrowseActive ? ' is-active' : ''}`}>
                       <button
@@ -684,7 +740,15 @@ export function WorkbenchHomePage() {
                     onClick={collapseSidePanel}
                   ><PanelLeftClose size={17} /></button>
                 </nav>
-                {myResourcesActive && myResourcesTabOpen ? (
+                {activeFileDetailId && fileDetailTabs.some((tab) => tab.id === activeFileDetailId) ? (
+                  <ResourceFileDetail
+                    resource={fileDetailTabs.find((tab) => tab.id === activeFileDetailId)!}
+                    folders={RESOURCE_CREATED_FOLDERS}
+                    onBack={() => { setActiveFileDetailId(null); setMyResourcesActive(true) }}
+                    onResourceChange={(next) => setFileDetailTabs((current) => current.map((item) => item.id === next.id ? next : item))}
+                    onDeleted={closeFileDetailTab}
+                  />
+                ) : myResourcesActive && myResourcesTabOpen ? (
                   <MyResourcesPanel
                     initialKind={myResourcesInitialKind}
                     histories={workbench.historyDocuments}
@@ -694,6 +758,7 @@ export function WorkbenchHomePage() {
                     addedResourceIds={workbench.myResourceAddedIds}
                     onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
                     onAddResource={(resource) => { void workbench.addMyResource(resource) }}
+                    onOpenFile={openFileDetail}
                   />
                 ) : recentBrowseActive && recentBrowseTabOpen ? (
                   <RecentBrowsePanel
