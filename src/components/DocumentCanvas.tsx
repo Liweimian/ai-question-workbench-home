@@ -2,10 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
 import { ArrowDown, ArrowUp, Bold, GripVertical, Italic, Omega, Radical, Sparkles, Trash2, Underline } from 'lucide-react'
 import { defaultDocumentFormat } from '../prototype/types'
-import type { AddQuestionMode, AiAssistantRun, AsyncStatus, DocumentFormat, Question, QuestionPatch, QuestionType, WorkbenchDocument } from '../prototype/types'
+import type { AddQuestionMode, AsyncStatus, DocumentFormat, DocumentSyncState, OpenAddOptions, Question, QuestionPatch, QuestionType, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import { ContextualAiPopover } from './ContextualAiPopover'
+import { DocumentActionToolbar } from './DocumentActionToolbar'
+import { ExpandedDocumentToolbar } from './ExpandedDocumentToolbar'
 import { DocumentFormatToolbar } from './DocumentFormatToolbar'
+import type { PaperAnswerMode, WorkbenchDocumentKind } from '../prototype/types'
+import { getDocumentKind } from '../utils/documentEditorUtils'
 
 interface DocumentCanvasProps {
   document: WorkbenchDocument
@@ -22,14 +26,21 @@ interface DocumentCanvasProps {
   onDeleteQuestion: () => void
   onQuestionChange: (questionId: string, patch: QuestionPatch) => void
   onDocumentFormatChange: (patch: Partial<DocumentFormat>) => void
+  canSave: boolean
+  contentBusy: boolean
+  syncState: DocumentSyncState
+  assignmentOutdated: boolean
+  onSave: () => void
+  onAssign: () => void
   onSectionTitleChange: (questionType: QuestionType, title: string) => void
-  onAdd: (mode?: AddQuestionMode) => void
-  assistantStatus: AsyncStatus
-  assistantRun: AiAssistantRun | null
-  assistantPreviewText: string
-  assistantError: string
-  onOpenAssistant: (prompt: string) => void
-  onConfirmAssistant: () => boolean
+  onAdd: (mode?: AddQuestionMode, options?: OpenAddOptions) => void
+  onOpenMyResources?: () => void
+  hideActionToolbar?: boolean
+  onRequirePaperScores?: (action: 'assign' | 'download' | 'print') => boolean
+  onKindChange: (kind: WorkbenchDocumentKind) => void
+  onAnswerModeChange: (mode: PaperAnswerMode) => void
+  onGenerateAnswerSheet: () => void
+  studioLayout?: boolean
 }
 
 type QuestionStyle = DocumentFormat & {
@@ -162,7 +173,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
 
   return (
     <article
-      className={`editor-document${questionAiOpen ? ' is-ai-focus' : ''}`}
+      className={`editor-document${questionAiOpen ? ' is-ai-focus' : ''}${props.studioLayout ? ' is-studio-paper' : ''}${props.compactPreview && !props.hideActionToolbar ? ' has-action-rail' : ''}`}
       data-sec="3"
       aria-label="题单编辑区"
       style={{
@@ -173,8 +184,35 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
         '--document-letter-spacing': `${documentFormat.letterSpacing}px`,
       } as React.CSSProperties}
     >
+      {props.compactPreview && !props.hideActionToolbar ? (
+        <div className="document-action-rail">
+          <DocumentActionToolbar
+            document={props.document}
+            canSave={props.canSave}
+            contentBusy={props.contentBusy}
+            syncState={props.syncState}
+            assignmentOutdated={props.assignmentOutdated}
+            onSave={props.onSave}
+            onAssign={props.onAssign}
+            onGenerateAnswerSheet={props.onGenerateAnswerSheet}
+            onRequirePaperScores={props.onRequirePaperScores}
+          />
+        </div>
+      ) : null}
+      <div className={props.compactPreview && !props.hideActionToolbar ? 'editor-paper-sheet' : undefined}>
       <header className="editor-document-heading">
-        <DocumentFormatToolbar value={documentFormat} onChange={props.onDocumentFormatChange} />
+        {!props.studioLayout && !props.compactPreview ? (
+          <ExpandedDocumentToolbar
+            document={props.document}
+            value={documentFormat}
+            onChange={props.onDocumentFormatChange}
+            onKindChange={props.onKindChange}
+            onAnswerModeChange={props.onAnswerModeChange}
+          />
+        ) : null}
+        {props.compactPreview && props.hideActionToolbar ? (
+          <DocumentFormatToolbar value={documentFormat} onChange={props.onDocumentFormatChange} />
+        ) : null}
         <MetisInput
           value={props.document.title}
           onChange={(event) => props.onTitleChange(event.target.value)}
@@ -239,6 +277,19 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
                     <label className="question-format-control" title="字号"><select aria-label="题目字号" value={questionStyle.fontSize} onChange={(event) => updateQuestionStyle('fontSize', event.target.value as DocumentFormat['fontSize'])}><option value="14">小</option><option value="16">标准</option><option value="18">大</option></select></label>
                     <label className="question-format-control" title="行距"><select aria-label="题目行距" value={questionStyle.lineHeight} onChange={(event) => updateQuestionStyle('lineHeight', event.target.value as DocumentFormat['lineHeight'])}><option value="1.5">1.5</option><option value="1.7">1.7</option><option value="2">2.0</option></select></label>
                     <label className="question-format-control" title="字距"><select aria-label="题目字距" value={questionStyle.letterSpacing} onChange={(event) => updateQuestionStyle('letterSpacing', event.target.value as DocumentFormat['letterSpacing'])}><option value="0">0</option><option value="0.5">0.5</option><option value="1">1.0</option></select></label>
+                    {getDocumentKind(props.document) === '试卷' ? (
+                      <label className="question-format-control question-score-control" title="分值">
+                        <span>分值</span>
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          aria-label={`第 ${index + 1} 题分值`}
+                          value={question.score || ''}
+                          onChange={(event) => props.onQuestionChange(question.id, { score: Number(event.target.value) || 0 })}
+                        />
+                      </label>
+                    ) : null}
                     <span className="toolbar-divider" />
                     <button type="button" className={`question-inline-tool${questionStyle.bold ? ' is-active' : ''}`} onClick={() => updateQuestionStyle('bold', !questionStyle.bold)} aria-label="加粗" title="加粗"><Bold size={15} /></button>
                     <button type="button" className={`question-inline-tool${questionStyle.italic ? ' is-active' : ''}`} onClick={() => updateQuestionStyle('italic', !questionStyle.italic)} aria-label="斜体" title="斜体"><Italic size={15} /></button>
@@ -326,15 +377,8 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
       </div>
 
       <div className="editor-add-row">
-        <BlockAddMenu
-          onOpenAdd={props.onAdd}
-          assistantStatus={props.assistantStatus}
-          assistantRun={props.assistantRun}
-          assistantPreviewText={props.assistantPreviewText}
-          assistantError={props.assistantError}
-          onOpenAssistant={props.onOpenAssistant}
-          onConfirmAssistant={props.onConfirmAssistant}
-        />
+        <BlockAddMenu onOpenAdd={props.onAdd} onOpenMyResources={props.onOpenMyResources} />
+      </div>
       </div>
     </article>
   )

@@ -36,10 +36,16 @@ export function QuestionSortPanel(props: QuestionSortPanelProps) {
   }
 
   return (
-    <aside className="question-sort-panel" aria-label="题目排序">
+    <aside className={`question-sort-panel${groups.length === 0 ? ' is-empty' : ''}`} aria-label="题目排序">
       <header><strong>题目排序</strong><button type="button" aria-label="收起题目排序" onClick={() => props.onCollapsedChange(true)}><X size={15} /></button></header>
       <div className="question-sort-tip"><span>可拖动排序</span><button type="button" onClick={() => props.onReorderQuestions([...props.questions].sort((a, b) => typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type)).map((question) => question.id))}>按题型排序</button></div>
       <div className="question-sort-groups">
+        {groups.length === 0 ? (
+          <section className="question-sort-empty">
+            <h3>基础提优题</h3>
+            <p>题单中还没有题目</p>
+          </section>
+        ) : null}
         {groups.map((group, groupIndex) => (
           <section key={group.type}>
             <h3>{['一', '二', '三'][groupIndex]}、{group.type}</h3>

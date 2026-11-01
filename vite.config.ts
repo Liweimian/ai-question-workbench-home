@@ -24,7 +24,7 @@ function craCompatibleSvg(): Plugin {
 }
 
 export default defineConfig(({ mode }) => ({
-  base: './',
+  base: process.env.VITE_BASE_PATH || './',
   plugins: [react(), craCompatibleSvg()],
   resolve: { alias: { buffer: 'buffer/' } },
   define: {

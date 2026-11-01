@@ -16,6 +16,7 @@ import type {
   RewriteRequest,
   WorkbenchDocument,
 } from '../prototype/types'
+import { getDocumentKind } from '../utils/documentEditorUtils'
 
 interface QuestionInspectorProps {
   document: WorkbenchDocument
@@ -27,6 +28,7 @@ interface QuestionInspectorProps {
   onViewChange: (view: InspectorView) => void
   onRewrite: (instruction: RewriteRequest['instruction']) => void
   onApply: (mode: 'replace' | 'append') => void
+  studioLayout?: boolean
 }
 
 const actions: Array<{ label: RewriteRequest['instruction']; description: string }> = [
@@ -53,8 +55,10 @@ export function QuestionInspector(props: QuestionInspectorProps) {
     return counts
   }, {})
 
+  const kind = getDocumentKind(props.document)
+
   return (
-    <aside className="question-inspector" data-sec="4" aria-label="题目辅助信息">
+    <aside className={`question-inspector${props.studioLayout ? ' is-studio-panel' : ''}`} data-sec="4" aria-label="题目辅助信息">
       <div className="inspector-tabs" role="tablist" aria-label="右侧辅助面板">
         <button
           type="button"
@@ -77,7 +81,13 @@ export function QuestionInspector(props: QuestionInspectorProps) {
         </button>
       </div>
 
-      {!props.question ? (
+      {props.document.questions.length === 0 ? (
+        <div className="inspector-scroll document-inspector-empty is-studio-empty">
+          <h2>题目信息</h2>
+          <p>{kind} 中还没有题目</p>
+          {props.studioLayout ? <p className="inspector-studio-hint">请先返回题目浏览区添加内容</p> : null}
+        </div>
+      ) : !props.question ? (
         <div className="inspector-scroll document-inspector-empty">
           <div className="document-inspector-icon"><FileQuestion size={24} /></div>
           <h2>{props.document.title}</h2>

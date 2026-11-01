@@ -1,16 +1,25 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { applyFxZoom } from './design-system/fx-adapt'
+import { AnswerSheetPage } from './pages/AnswerSheetPage'
 import { WorkbenchHomePage } from './pages/WorkbenchHomePage'
+import { parseAnswerSheetDocumentId } from './utils/answerSheetRoute'
 
 export function App() {
-  const reviewMode = new URLSearchParams(window.location.search).get('mode') === 'review'
+  const [answerSheetId, setAnswerSheetId] = useState(() => parseAnswerSheetDocumentId())
 
-  useEffect(() => applyFxZoom('.fx-zoom-area'), [])
+  useEffect(() => {
+    const syncRoute = () => setAnswerSheetId(parseAnswerSheetDocumentId())
+    window.addEventListener('hashchange', syncRoute)
+    return () => window.removeEventListener('hashchange', syncRoute)
+  }, [])
 
-  return (
-    <>
-      <WorkbenchHomePage />
-      {reviewMode ? <div className="review-mode-badge">过稿模式 · 产品文档待下一阶段生成</div> : null}
-    </>
-  )
+  useEffect(() => {
+    if (!answerSheetId) applyFxZoom('.fx-zoom-area')
+  }, [answerSheetId])
+
+  if (answerSheetId) {
+    return <AnswerSheetPage documentId={answerSheetId} />
+  }
+
+  return <WorkbenchHomePage />
 }

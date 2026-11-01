@@ -1,5 +1,4 @@
-import { AlignJustify, Bold, Italic, MoveHorizontal, Rows3, Underline } from 'lucide-react'
-import type { CSSProperties } from 'react'
+import { AlignJustify, MoveHorizontal, Rows3 } from 'lucide-react'
 import type { DocumentFormat } from '../prototype/types'
 
 interface DocumentFormatToolbarProps {
@@ -10,11 +9,6 @@ interface DocumentFormatToolbarProps {
 export function DocumentFormatToolbar({ value, onChange }: DocumentFormatToolbarProps) {
   return (
     <div className="document-format-toolbar" role="toolbar" aria-label="题单全局格式设置">
-      <button type="button" className={value.bold ? 'is-active' : ''} onClick={() => onChange({ bold: !value.bold })} aria-label="题单加粗" title="加粗"><Bold size={15} /></button>
-      <button type="button" className={value.italic ? 'is-active' : ''} onClick={() => onChange({ italic: !value.italic })} aria-label="题单斜体" title="斜体"><Italic size={15} /></button>
-      <button type="button" className={value.underline ? 'is-active' : ''} onClick={() => onChange({ underline: !value.underline })} aria-label="题单下划线" title="下划线"><Underline size={15} /></button>
-      <label className="document-color-control" title="文字颜色" style={{ '--document-color': value.textColor } as CSSProperties}><span aria-hidden="true">A</span><input type="color" value={value.textColor} onChange={(event) => onChange({ textColor: event.target.value })} aria-label="题单文字颜色" /></label>
-      <span className="document-format-divider" />
       <label title="字体">
         <select value={value.fontFamily} onChange={(event) => onChange({ fontFamily: event.target.value as DocumentFormat['fontFamily'] })} aria-label="题单字体"><option value="serif">宋体</option><option value="sans">黑体</option><option value="kaiti">楷体</option></select>
       </label>

@@ -22,8 +22,13 @@ import type {
   RewriteRequest,
   SourceRecord,
   WorkbenchDocument,
+  WorkbenchDocumentKind,
+  PaperAnswerMode,
+  DocumentOutputLock,
+  AnswerSheetState,
 } from '../prototype/types'
-import { workbenchRepository } from '../services/workbenchRepository'
+import { canSwitchDocumentKind, getDocumentKind, getPaperAnswerMode, needsPaperScoreSettings } from '../utils/documentEditorUtils'
+import { persistDocumentNow, workbenchRepository } from '../services/workbenchRepository'
 
 type ContentOperation = 'source-add' | 'my-resource-add' | 'upload' | 'personalized' | 'compose' | 'create' | 'manual' | 'history-load'
 
@@ -49,7 +54,12 @@ type EditorAction =
   | { type: 'set-intro'; intro: string }
   | { type: 'set-format'; patch: Partial<DocumentFormat> }
   | { type: 'set-section-title'; questionType: QuestionType; title: string }
+  | { type: 'set-document-kind'; kind: WorkbenchDocumentKind }
+  | { type: 'set-answer-mode'; mode: PaperAnswerMode }
+  | { type: 'set-answer-sheet'; sheet: AnswerSheetState | undefined }
+  | { type: 'add-output-lock'; lock: DocumentOutputLock }
   | { type: 'update-question'; questionId: string; patch: QuestionPatch }
+  | { type: 'set-question-scores'; scores: Record<string, number> }
   | { type: 'append'; questions: Question[] }
   | { type: 'load-document'; document: WorkbenchDocument }
   | { type: 'apply-rewrite'; selectedQuestionId: string; preview: Question; mode: 'replace' | 'append' }
@@ -88,6 +98,9 @@ const cloneDocument = (document: WorkbenchDocument): WorkbenchDocument => ({
 const documentFingerprint = (document: WorkbenchDocument) => JSON.stringify({
   title: document.title,
   intro: document.intro ?? '',
+  kind: document.kind ?? '题单',
+  answerMode: document.answerMode ?? '原卷作答',
+  scoreSettingsConfirmed: Boolean(document.scoreSettingsConfirmed),
   format: document.format ?? defaultDocumentFormat,
   sectionTitles: document.sectionTitles ?? {},
   questions: document.questions,
@@ -102,6 +115,10 @@ const isUntouchedBlankDocument = (document: WorkbenchDocument) => (
   )
 )
 
+const documentHasEditableContent = (document: WorkbenchDocument) => (
+  document.questions.length > 0 || Boolean(document.intro?.trim())
+)
+
 const toHistorySummary = (
   document: WorkbenchDocument,
   previous?: HistoryDocumentSummary,
@@ -113,6 +130,8 @@ const toHistorySummary = (
   gradeSubject: document.gradeSubject,
   questionCount: document.questions.length,
   updatedAt: '刚刚',
+  savedAtMs: Date.now(),
+  estimatedMinutes: Math.max(document.questions.length * 3, 6),
   status: status ?? previous?.status ?? '草稿',
   assignmentOutdated: assignmentOutdated ?? previous?.assignmentOutdated ?? false,
   origin: previous?.origin ?? '手工组题',
@@ -153,6 +172,71 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
       document: {
         ...state.document,
         sectionTitles: { ...state.document.sectionTitles, [action.questionType]: title },
+        updatedAt: '刚刚',
+      },
+      undoDocument: cloneDocument(state.document),
+    }
+  }
+
+  if (action.type === 'set-document-kind') {
+    if ((state.document.kind ?? '题单') === action.kind) return state
+    const nextDocument: WorkbenchDocument = {
+      ...state.document,
+      kind: action.kind,
+      updatedAt: '刚刚',
+    }
+    if (action.kind === '题单') {
+      nextDocument.answerMode = '原卷作答'
+    } else {
+      nextDocument.scoreSettingsConfirmed = false
+      if (!nextDocument.answerMode) nextDocument.answerMode = '原卷作答'
+    }
+    return {
+      document: nextDocument,
+      undoDocument: cloneDocument(state.document),
+    }
+  }
+
+  if (action.type === 'set-answer-mode') {
+    if ((state.document.answerMode ?? '原卷作答') === action.mode
+      && (state.document.kind ?? '题单') === '试卷') return state
+    return {
+      document: {
+        ...state.document,
+        kind: '试卷',
+        answerMode: action.mode,
+        updatedAt: '刚刚',
+      },
+      undoDocument: cloneDocument(state.document),
+    }
+  }
+
+  if (action.type === 'set-answer-sheet') {
+    return {
+      document: { ...state.document, answerSheet: action.sheet, updatedAt: '刚刚' },
+      undoDocument: cloneDocument(state.document),
+    }
+  }
+
+  if (action.type === 'add-output-lock') {
+    const locks = new Set(state.document.outputLocks ?? [])
+    if (locks.has(action.lock)) return state
+    locks.add(action.lock)
+    return {
+      document: { ...state.document, outputLocks: [...locks], updatedAt: '刚刚' },
+      undoDocument: cloneDocument(state.document),
+    }
+  }
+
+  if (action.type === 'set-question-scores') {
+    return {
+      document: {
+        ...state.document,
+        questions: state.document.questions.map((question) => ({
+          ...question,
+          score: action.scores[question.id] ?? question.score,
+        })),
+        scoreSettingsConfirmed: true,
         updatedAt: '刚刚',
       },
       undoDocument: cloneDocument(state.document),
@@ -412,14 +496,19 @@ export function useWorkbench() {
     setHistoryStatus('success')
   }, [])
 
-  const saveDocument = useCallback(async (explicit = true) => {
+  const saveDocument = useCallback(async (explicit = true, saveKind?: WorkbenchDocumentKind) => {
     if (autoSaveTimerRef.current !== null) {
       window.clearTimeout(autoSaveTimerRef.current)
       autoSaveTimerRef.current = null
     }
-    const snapshot = cloneDocument(latestDocumentRef.current)
+    const resolvedKind = saveKind ?? getDocumentKind(latestDocumentRef.current)
+    const snapshot = cloneDocument({ ...latestDocumentRef.current, kind: resolvedKind })
     if (isUntouchedBlankDocument(snapshot)) {
       if (explicit) MetisMessage.info('先添加题目或修改题稿名称后再保存')
+      return false
+    }
+    if (needsPaperScoreSettings(snapshot, resolvedKind)) {
+      if (explicit) MetisMessage.error('试题分值不能为空')
       return false
     }
     const requestId = saveRequestIdRef.current + 1
@@ -448,7 +537,12 @@ export function useWorkbench() {
         effectiveAssignmentOutdated,
       )
       setDocumentSyncState(latestFingerprint === snapshotFingerprint ? 'saved' : 'dirty')
-      if (explicit) MetisMessage.success('题单已保存，并同步到我的资源')
+      if (saveKind && saveKind !== getDocumentKind(latestDocumentRef.current)) {
+        dispatch({ type: 'set-document-kind', kind: saveKind })
+      }
+      if (explicit) {
+        MetisMessage.success(resolvedKind === '试卷' ? '试卷已保存' : '题单已保存，并同步到我的资源')
+      }
       return true
     } catch {
       if (saveRequestIdRef.current === requestId && documentIdRef.current === snapshot.id) {
@@ -457,7 +551,7 @@ export function useWorkbench() {
       }
       return false
     }
-  }, [assignmentOutdated, documentStatus, rememberDocument])
+  }, [assignmentOutdated, document.kind, documentStatus, rememberDocument])
 
   const assignDocument = useCallback(async () => {
     if (autoSaveTimerRef.current !== null) {
@@ -467,6 +561,10 @@ export function useWorkbench() {
     const snapshot = cloneDocument(latestDocumentRef.current)
     if (snapshot.questions.length === 0) {
       MetisMessage.error('请先添加题目')
+      return false
+    }
+    if (needsPaperScoreSettings(snapshot)) {
+      MetisMessage.error('试题分值不能为空')
       return false
     }
     const requestId = saveRequestIdRef.current + 1
@@ -483,6 +581,7 @@ export function useWorkbench() {
       setAssignmentOutdated(false)
       rememberDocument(latestFingerprint === snapshotFingerprint ? result.document : latest, '已布置', false)
       setDocumentSyncState(latestFingerprint === snapshotFingerprint ? 'saved' : 'dirty')
+      dispatch({ type: 'add-output-lock', lock: 'assign' })
       MetisMessage.success('题单已保存并布置成功')
       return true
     } catch {
@@ -493,6 +592,17 @@ export function useWorkbench() {
       return false
     }
   }, [rememberDocument])
+
+  useEffect(() => {
+    const sheet = document.answerSheet
+    if (!sheet?.generatedAt || !sheet.sourceFingerprint) return
+    const fingerprint = documentFingerprint(document)
+    if (sheet.sourceFingerprint === fingerprint) {
+      if (sheet.outdated) dispatch({ type: 'set-answer-sheet', sheet: { ...sheet, outdated: false } })
+      return
+    }
+    if (!sheet.outdated) dispatch({ type: 'set-answer-sheet', sheet: { ...sheet, outdated: true } })
+  }, [document])
 
   useEffect(() => {
     if (autoSaveTimerRef.current !== null) {
@@ -705,11 +815,25 @@ export function useWorkbench() {
       return false
     }
     appendQuestions(composePreview, `已确认并加入 ${composePreview.length} 道题`, false)
-    setComposePreview([])
-    setComposePrompt('')
     setAssistantRun((current) => current ? { ...current, confirmed: true } : current)
     return true
   }, [appendQuestions, composePreview, composeTargetDocumentId])
+
+  const addComposeQuestions = useCallback((questions: Question[]) => {
+    if (questions.length === 0) return false
+    if (composeTargetDocumentId !== documentIdRef.current) {
+      MetisMessage.error('预览已失效，请重新生成')
+      return false
+    }
+    const existingIds = new Set(document.questions.map((question) => question.id))
+    const nextQuestions = questions.filter((question) => !existingIds.has(question.id))
+    if (nextQuestions.length === 0) {
+      MetisMessage.info('选中的题目已在当前题单中')
+      return false
+    }
+    appendQuestions(nextQuestions, `已加入 ${nextQuestions.length} 道题`, false)
+    return true
+  }, [appendQuestions, composeTargetDocumentId, document.questions])
 
   const createQuestions = useCallback(async (requestOverride?: CreateQuestionRequest) => {
     const request = requestOverride ?? createConfig
@@ -787,7 +911,7 @@ export function useWorkbench() {
     }
   }, [appendQuestions, beginContentOperation, closeAdd, finishContentOperation])
 
-  const createNewDocument = useCallback(() => {
+  const createNewDocument = useCallback((options?: { preserveAddWorkspace?: boolean; successMessage?: string | false; rememberCurrent?: boolean }) => {
     if (contentOperationRef.current) {
       MetisMessage.info('正在处理上一项内容，请稍候')
       return false
@@ -797,7 +921,7 @@ export function useWorkbench() {
       return false
     }
 
-    rememberDocument(document)
+    if (options?.rememberCurrent !== false) rememberDocument(document)
     const baseTitle = formatDefaultDocumentTitle()
     const existingTitles = new Set([document.title.trim(), ...historyDocuments.map((item) => item.title.trim())])
     let nextTitle = baseTitle
@@ -817,9 +941,11 @@ export function useWorkbench() {
     dispatch({ type: 'load-document', document: nextDocument })
     setSelectedQuestionId(null)
     setInspectorView('info')
-    setIsAddOpen(false)
-    setAddModeState('menu')
-    setLibraryInitialView(undefined)
+    if (!options?.preserveAddWorkspace) {
+      setIsAddOpen(false)
+      setAddModeState('menu')
+      setLibraryInitialView(undefined)
+    }
     setCreatePreview([])
     setCreateTargetDocumentId(null)
     createRequestIdRef.current += 1
@@ -827,13 +953,45 @@ export function useWorkbench() {
     setCreateStatus('idle')
     setCreateError('')
     clearAssistantRun()
-    MetisMessage.success('已新建空白题单，上一份已保留在最近记录，可撤销')
+    if (options?.successMessage !== false) {
+      MetisMessage.success(options?.successMessage ?? '已新建空白题单，上一份已保留在最近记录，可撤销')
+    }
     return true
   }, [clearAssistantRun, document, historyDocuments, invalidateRewrite, rememberDocument])
+
+  const completeEditWholeVolumeAsNewDocument = useCallback(async (
+    type: ResourceType,
+    sourceId: string,
+    count: number,
+    selectedQuestions: Question[] | undefined,
+    mode: 'plain' | 'discard' | 'save-first',
+  ): Promise<'success' | 'failed'> => {
+    if (mode === 'plain' || !documentHasEditableContent(document)) {
+      const added = await addSource(type, sourceId, count, selectedQuestions)
+      if (added) MetisMessage.success('已将整卷载入当前题单')
+      return added ? 'success' : 'failed'
+    }
+    if (mode === 'save-first') {
+      const saved = await saveDocument(true)
+      if (!saved) return 'failed'
+    }
+    if (!createNewDocument({
+      preserveAddWorkspace: true,
+      successMessage: false,
+      rememberCurrent: mode === 'save-first',
+    })) return 'failed'
+    const added = await addSource(type, sourceId, count, selectedQuestions)
+    if (added) MetisMessage.success(mode === 'save-first' ? '已保存当前题单，并新建题单载入整卷' : '已用整卷覆盖当前题单')
+    return added ? 'success' : 'failed'
+  }, [addSource, createNewDocument, document, saveDocument])
 
   const openHistoryDocument = useCallback(async (documentId: string) => {
     if (document.id === documentId) {
       MetisMessage.info('这份题单已经打开')
+      return
+    }
+    if (documentSyncState === 'dirty' && !isUntouchedBlankDocument(document)) {
+      MetisMessage.info('当前题单尚未保存，请先保存。')
       return
     }
     if (!beginContentOperation('history-load')) return
@@ -858,7 +1016,7 @@ export function useWorkbench() {
     } finally {
       finishContentOperation('history-load')
     }
-  }, [beginContentOperation, clearAssistantRun, document, finishContentOperation, invalidateRewrite, rememberDocument])
+  }, [beginContentOperation, clearAssistantRun, document, documentSyncState, finishContentOperation, invalidateRewrite, rememberDocument])
 
   const selectQuestion = useCallback((questionId: string) => {
     invalidateRewrite()
@@ -932,6 +1090,60 @@ export function useWorkbench() {
     MetisMessage.success('已删除题目，可撤销')
   }, [document.questions, invalidateRewrite, selectedQuestionId])
 
+  const setDocumentKind = useCallback((kind: WorkbenchDocumentKind) => {
+    if (!canSwitchDocumentKind(document)) {
+      MetisMessage.info('已下载或布置后，不能再切换题单 / 试卷类型')
+      return
+    }
+    if (getDocumentKind(document) === kind) return
+    dispatch({ type: 'set-document-kind', kind })
+  }, [document])
+
+  const setAnswerMode = useCallback((mode: PaperAnswerMode) => {
+    dispatch({ type: 'set-answer-mode', mode })
+  }, [])
+
+  const applyQuestionScores = useCallback((scores: Record<string, number>) => {
+    const nextDocument = {
+      ...latestDocumentRef.current,
+      questions: latestDocumentRef.current.questions.map((question) => ({
+        ...question,
+        score: scores[question.id] ?? question.score,
+      })),
+      scoreSettingsConfirmed: true,
+    }
+    latestDocumentRef.current = nextDocument
+    dispatch({ type: 'set-question-scores', scores })
+  }, [])
+
+  const generateAnswerSheet = useCallback(() => {
+    const current = latestDocumentRef.current
+    if (getDocumentKind(current) !== '试卷') return false
+    if (current.questions.length === 0) {
+      MetisMessage.error('请先添加题目')
+      return false
+    }
+    if (needsPaperScoreSettings(current)) {
+      MetisMessage.error('试题分值不能为空')
+      return false
+    }
+    const fingerprint = documentFingerprint(current)
+    const hadSheet = Boolean(current.answerSheet?.generatedAt)
+    const sheet = { generatedAt: new Date().toISOString(), sourceFingerprint: fingerprint, outdated: false }
+    const outputLocks = Array.from(new Set([...(current.outputLocks ?? []), 'answer-sheet' as const]))
+    const nextDocument = { ...current, answerSheet: sheet, outputLocks, updatedAt: '刚刚' }
+    latestDocumentRef.current = nextDocument
+    persistDocumentNow(nextDocument)
+    dispatch({ type: 'set-answer-sheet', sheet })
+    dispatch({ type: 'add-output-lock', lock: 'answer-sheet' })
+    MetisMessage.success(hadSheet ? '答题卡已更新' : '答题卡已生成')
+    return true
+  }, [])
+
+  const markDocumentOutput = useCallback((lock: DocumentOutputLock) => {
+    dispatch({ type: 'add-output-lock', lock })
+  }, [])
+
   const undo = useCallback(() => {
     if (contentOperationRef.current) {
       MetisMessage.info('正在处理 AI 要求，请稍候再撤销')
@@ -959,6 +1171,10 @@ export function useWorkbench() {
     setIntro: (intro: string) => dispatch({ type: 'set-intro', intro }),
     setDocumentFormat: (patch: Partial<DocumentFormat>) => dispatch({ type: 'set-format', patch }),
     setSectionTitle: (questionType: QuestionType, title: string) => dispatch({ type: 'set-section-title', questionType, title }),
+    setDocumentKind,
+    setAnswerMode,
+    generateAnswerSheet,
+    markDocumentOutput,
     selectedQuestion,
     selectedQuestionId,
     inspectorView,
@@ -999,10 +1215,13 @@ export function useWorkbench() {
     closeAdd,
     loadSources,
     addSource,
+    currentDocumentHasContent: documentHasEditableContent(document),
+    completeEditWholeVolumeAsNewDocument,
     addMyResource,
     recognizeUpload,
     personalizeFromUpload,
     composeFromBank,
+    addComposeQuestions,
     confirmComposePreview,
     createQuestions,
     addCreatedQuestions,
@@ -1011,6 +1230,7 @@ export function useWorkbench() {
     openHistoryDocument,
     selectQuestion,
     updateQuestion,
+    applyQuestionScores,
     rewrite,
     applyRewrite,
     moveQuestion,

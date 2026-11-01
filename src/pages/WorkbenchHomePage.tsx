@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
+import { MetisMessage } from '@yuanfudao/metis-web-component'
 import { QuestionInspector } from '../components/AiInspector'
 import { AiAssistantWorkspace } from '../components/AiAssistantWorkspace'
 import { QuestionSortPanel } from '../components/QuestionSortPanel'
@@ -13,7 +14,14 @@ import { isDefaultDocumentTitle } from '../data/workbenchData'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { defaultDocumentFormat } from '../prototype/types'
 import type { AddQuestionMode, MyResourceKind, SourceRecord } from '../prototype/types'
-import { BrainCircuit, FileText, House, PanelLeftClose, PanelRightOpen, X } from 'lucide-react'
+import { BrainCircuit, FileText, House, PanelLeftClose, PanelRightOpen, RefreshCw, X } from 'lucide-react'
+import { EditorStudioShell } from '../components/EditorStudioShell'
+import { ScoreSettingsDialog } from '../components/ScoreSettingsDialog'
+import { getDocumentKind, needsPaperScoreSettings } from '../utils/documentEditorUtils'
+import { openAnswerSheetTab } from '../utils/answerSheetRoute'
+import { RecentBrowsePanel } from '../components/RecentBrowsePanel'
+import { RequirementSpecControls } from '../components/RequirementSpecControls'
+import { readRecentBrowseEntries, recordRecentBrowse, type RecentBrowseEntry } from '../utils/recentBrowseHistory'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
@@ -27,8 +35,8 @@ interface LibraryDetailTab {
 const addTabLabels: Record<AddTabMode, string> = {
   resource: '飞象题库',
   school: '校本题库',
-  upload: 'AI 录题',
-  create: 'AI 生题',
+  upload: '上传文件 AI 录题',
+  create: 'AI 出题',
   manual: '手工录入',
 }
 
@@ -53,9 +61,12 @@ export function WorkbenchHomePage() {
   const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
   const [myResourcesActive, setMyResourcesActive] = useState(false)
   const [myResourcesInitialKind, setMyResourcesInitialKind] = useState<MyResourceKind | '全部'>('全部')
-  const [homeLayoutVariant, setHomeLayoutVariant] = useState<2 | 3 | 4>(2)
-  const [draftPushAnimating, setDraftPushAnimating] = useState(false)
+  const [recentBrowseTabOpen, setRecentBrowseTabOpen] = useState(false)
+  const [recentBrowseActive, setRecentBrowseActive] = useState(false)
+  const [recentBrowseEntries, setRecentBrowseEntries] = useState<RecentBrowseEntry[]>(() => readRecentBrowseEntries())
   const [recentlyAddedQuestionId, setRecentlyAddedQuestionId] = useState<string | null>(null)
+  const [scoreDialogOpen, setScoreDialogOpen] = useState(false)
+  const [scoreDialogNext, setScoreDialogNext] = useState<'save' | 'generate' | 'assign' | 'download' | 'print' | null>(null)
   const hasQuestions = workbench.document.questions.length > 0
   const activeLibraryDetail = libraryDetailTabs.find((tab) => tab.key === activeLibraryDetailKey) ?? null
 
@@ -123,10 +134,6 @@ export function WorkbenchHomePage() {
     mode: Parameters<typeof workbench.openAdd>[0] = 'menu',
     options?: Parameters<typeof workbench.openAdd>[1],
   ) => {
-    if (homeLayoutVariant === 3 && !workbench.isAddOpen && !assistantActive && !myResourcesActive) {
-      setDraftPushAnimating(true)
-      window.setTimeout(() => setDraftPushAnimating(false), 520)
-    }
     if (mode === 'compose') {
       openAssistant('从题库挑选 6 道一次函数基础题')
       return
@@ -139,6 +146,7 @@ export function WorkbenchHomePage() {
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
     setMyResourcesActive(false)
+    setRecentBrowseActive(false)
     if (mode !== 'menu') {
       setOpenAddTabs((current) => current.includes(mode) ? current : [...current, mode])
     }
@@ -150,7 +158,38 @@ export function WorkbenchHomePage() {
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
     setMyResourcesActive(false)
+    setRecentBrowseActive(false)
     if (!workbench.isAddOpen || workbench.addMode !== mode) workbench.openAdd(mode)
+  }
+
+  const refreshRecentBrowseEntries = () => {
+    setRecentBrowseEntries(readRecentBrowseEntries())
+  }
+
+  const openRecentBrowse = () => {
+    setSidePanelOpen(true)
+    setActiveLibraryDetailKey(null)
+    setAssistantActive(false)
+    setMyResourcesActive(false)
+    workbench.closeAdd()
+    setRecentBrowseTabOpen(true)
+    setRecentBrowseActive(true)
+    refreshRecentBrowseEntries()
+  }
+
+  const closeRecentBrowseTab = () => {
+    setRecentBrowseTabOpen(false)
+    setRecentBrowseActive(false)
+  }
+
+  const activateRecentBrowseTab = () => {
+    setSidePanelOpen(true)
+    setActiveLibraryDetailKey(null)
+    setAssistantActive(false)
+    setMyResourcesActive(false)
+    workbench.closeAdd()
+    setRecentBrowseActive(true)
+    refreshRecentBrowseEntries()
   }
 
   const openLibraryDetail = (libraryMode: LibraryTabMode, record: SourceRecord) => {
@@ -163,12 +202,19 @@ export function WorkbenchHomePage() {
       ? current
       : [...current, { key, libraryMode, record }])
     setActiveLibraryDetailKey(key)
+    setRecentBrowseActive(false)
+    recordRecentBrowse(libraryMode, record)
+    refreshRecentBrowseEntries()
     if (!workbench.isAddOpen || workbench.addMode !== libraryMode) {
       workbench.openAdd(libraryMode, { libraryView: record.sourceType })
     }
     window.requestAnimationFrame(() => {
       document.querySelector<HTMLButtonElement>(`[data-detail-tab-key="${key}"]`)?.focus()
     })
+  }
+
+  const openRecentBrowseEntry = (entry: RecentBrowseEntry) => {
+    openLibraryDetail(entry.libraryMode, entry.record)
   }
 
   const activateLibraryDetail = (tab: LibraryDetailTab) => {
@@ -186,6 +232,7 @@ export function WorkbenchHomePage() {
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
     setMyResourcesActive(false)
+    setRecentBrowseActive(false)
     workbench.closeAdd()
   }
 
@@ -257,30 +304,149 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(false)
   }
 
-  const isAddHome = !workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive
-  const alternateHomeLayout = sidePanelOpen && isAddHome && (homeLayoutVariant === 2 || homeLayoutVariant === 3) && !draftCollapsed
+  const isAddHome = !workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive && !recentBrowseActive
+  const alternateHomeLayout = sidePanelOpen && isAddHome && !draftCollapsed
+  const studioEditorOpen = !sidePanelOpen
+  const documentCenterVisible = sidePanelOpen && isAddHome
+  const reviewMode = new URLSearchParams(window.location.search).get('mode') === 'review'
+  const libraryDetailRecord = activeLibraryDetail?.record ?? null
   const shellClassName = sidePanelOpen
     ? `workspace-shell is-split-source${draftCollapsed ? ' is-draft-collapsed' : ''}`
-    : `workspace-shell is-focus-editor${hasQuestions ? ` has-inspector${sortCollapsed ? ' is-sort-collapsed' : ''}` : ' is-empty'}`
+    : `workspace-shell is-focus-editor is-studio${sortCollapsed ? ' is-sort-collapsed' : ''}${hasQuestions ? '' : ' is-empty'}`
   const documentFormat = { ...defaultDocumentFormat, ...workbench.document.format }
   const hasCustomDocumentFormat = Object.entries(defaultDocumentFormat).some(
     ([key, value]) => documentFormat[key as keyof typeof documentFormat] !== value,
   )
-  const renderDraftContent = () => <div className={`editor-scroll${hasQuestions ? '' : ' is-empty'}${draftPushAnimating ? ' is-pushing-right' : ''}`}>
-    {!hasQuestions ? (
+  const canSaveDocument = workbench.document.questions.length > 0
+    || Boolean(workbench.document.intro?.trim())
+    || hasCustomDocumentFormat
+    || (!['未命名组题', '未命名题单'].includes(workbench.document.title.trim()) && !isDefaultDocumentTitle(workbench.document.title))
+  const finalizeNewDocument = () => {
+    if (!workbench.createNewDocument({ preserveAddWorkspace: sidePanelOpen })) return
+    setActiveLibraryDetailKey(null)
+    setAssistantTabOpen(false)
+    setAssistantActive(false)
+    setSidePanelOpen(true)
+    setDraftCollapsed(false)
+  }
+
+  const hasUnsavedDocumentChanges = workbench.documentSyncState === 'dirty' || workbench.assignmentOutdated
+
+  const expandEditorForScores = () => {
+    setDraftCollapsed(false)
+    setSidePanelOpen(false)
+  }
+
+  const openScoreDialog = (next: 'save' | 'generate' | 'assign' | 'download' | 'print') => {
+    if (sidePanelOpen) expandEditorForScores()
+    setScoreDialogNext(next)
+    setScoreDialogOpen(true)
+  }
+
+  const requirePaperScores = (next: 'save' | 'generate' | 'assign' | 'download' | 'print', kind = getDocumentKind(workbench.document)) => {
+    if (!needsPaperScoreSettings(workbench.document, kind)) return true
+    MetisMessage.error('试题分值不能为空')
+    if (kind === '试卷' && getDocumentKind(workbench.document) !== '试卷') {
+      workbench.setDocumentKind('试卷')
+    }
+    openScoreDialog(next)
+    return false
+  }
+
+  const downloadCurrentDocument = () => {
+    const title = workbench.document.title.trim() || '未命名'
+    const safeTitle = title.replace(/[\\/:*?"<>|]/g, '-')
+    const wordHtml = `<html><meta charset="utf-8"><body><h1>${safeTitle}</h1><p>共 ${workbench.document.questions.length} 道题</p></body></html>`
+    const url = URL.createObjectURL(new Blob([wordHtml], { type: 'application/msword' }))
+    const anchor = window.document.createElement('a')
+    anchor.href = url
+    anchor.download = `${safeTitle}.doc`
+    anchor.click()
+    URL.revokeObjectURL(url)
+    workbench.markDocumentOutput('download')
+    MetisMessage.success('Word 已开始下载')
+  }
+
+  const printCurrentDocument = () => {
+    workbench.markDocumentOutput('print')
+    window.print()
+  }
+
+  const finishScoreDialogAction = (next: typeof scoreDialogNext) => {
+    if (next === 'generate') {
+      if (workbench.generateAnswerSheet()) openAnswerSheetTab(workbench.document.id)
+      return
+    }
+    if (next === 'save') {
+      void workbench.saveDocument(true, '试卷')
+      return
+    }
+    if (next === 'assign') {
+      void workbench.assignDocument()
+      return
+    }
+    if (next === 'download') {
+      downloadCurrentDocument()
+      return
+    }
+    if (next === 'print') printCurrentDocument()
+  }
+
+  const trySaveDocument = async (kind?: Parameters<typeof workbench.saveDocument>[1]) => {
+    const resolvedKind = kind ?? getDocumentKind(workbench.document)
+    if (!requirePaperScores('save', resolvedKind)) return false
+    return workbench.saveDocument(true, kind)
+  }
+
+  const tryAssignDocument = () => {
+    if (!requirePaperScores('assign')) return
+    void workbench.assignDocument()
+  }
+
+  const tryDownloadDocument = () => {
+    if (!requirePaperScores('download')) return
+    downloadCurrentDocument()
+  }
+
+  const tryPrintDocument = () => {
+    if (!requirePaperScores('print')) return
+    printCurrentDocument()
+  }
+
+  const tryGenerateAnswerSheet = () => {
+    if (workbench.document.questions.length === 0) return
+    if (!requirePaperScores('generate')) return
+    if (workbench.generateAnswerSheet()) openAnswerSheetTab(workbench.document.id)
+  }
+
+  const renderDraftContent = (hideActionToolbar = false, studioLayout = false) => {
+    const draftBody = !hasQuestions ? (
       <EmptyCanvas
         document={workbench.document}
         sidePanelOpen={sidePanelOpen}
+        hideActionToolbar={hideActionToolbar}
         onTitleChange={workbench.setTitle}
         onIntroChange={workbench.setIntro}
         onDocumentFormatChange={workbench.setDocumentFormat}
+        canSave={canSaveDocument}
+        contentBusy={workbench.isContentBusy}
+        syncState={workbench.documentSyncState}
+        assignmentOutdated={workbench.assignmentOutdated}
+        onSave={() => { void trySaveDocument() }}
+        onAssign={tryAssignDocument}
+        onRequirePaperScores={requirePaperScores}
         onOpenAssistant={openAssistant}
         onOpenAdd={openAdd}
+        onOpenMyResources={() => openMyResources('全部')}
+        onKindChange={workbench.setDocumentKind}
+        onAnswerModeChange={workbench.setAnswerMode}
+        studioLayout={studioLayout}
       />
     ) : (
       <DocumentCanvas
         document={workbench.document}
         compactPreview={sidePanelOpen}
+        hideActionToolbar={hideActionToolbar}
         selectedQuestionId={workbench.selectedQuestionId}
         highlightedQuestionId={recentlyAddedQuestionId}
         onTitleChange={workbench.setTitle}
@@ -293,17 +459,29 @@ export function WorkbenchHomePage() {
         onDeleteQuestion={workbench.deleteQuestion}
         onQuestionChange={workbench.updateQuestion}
         onDocumentFormatChange={workbench.setDocumentFormat}
+        canSave={canSaveDocument}
+        contentBusy={workbench.isContentBusy}
+        syncState={workbench.documentSyncState}
+        assignmentOutdated={workbench.assignmentOutdated}
+        onSave={() => { void trySaveDocument() }}
+        onAssign={tryAssignDocument}
+        onRequirePaperScores={requirePaperScores}
         onSectionTitleChange={workbench.setSectionTitle}
         onAdd={openAdd}
-        assistantStatus={workbench.composeStatus}
-        assistantRun={workbench.assistantRun}
-        assistantPreviewText={workbench.composePreview.slice(0, 3).map((question, index) => `${index + 1}. ${question.stem}`).join('\n')}
-        assistantError={workbench.composeError}
-        onOpenAssistant={(prompt) => { void workbench.composeFromBank(prompt) }}
-        onConfirmAssistant={workbench.confirmComposePreview}
+        onOpenMyResources={() => openMyResources('全部')}
+        onKindChange={workbench.setDocumentKind}
+        onAnswerModeChange={workbench.setAnswerMode}
+        onGenerateAnswerSheet={tryGenerateAnswerSheet}
+        studioLayout={studioLayout}
       />
-    )}
-  </div>
+    )
+
+    return (
+      <div className={`editor-scroll${hasQuestions ? '' : ' is-empty'}${studioLayout ? ' is-studio-canvas' : ''}`}>
+        {draftBody}
+      </div>
+    )
+  }
 
   return (
     <div className="fx-app metis-theme-aiq">
@@ -313,7 +491,7 @@ export function WorkbenchHomePage() {
             documentTitle={workbench.document.title}
             documentUpdatedAt={workbench.document.updatedAt}
             questionCount={workbench.document.questions.length}
-            canSave={workbench.document.questions.length > 0 || Boolean(workbench.document.intro?.trim()) || hasCustomDocumentFormat || (!['未命名组题', '未命名题单'].includes(workbench.document.title.trim()) && !isDefaultDocumentTitle(workbench.document.title))}
+            canSave={canSaveDocument}
             canUndo={workbench.canUndo && !workbench.isContentBusy}
             contentBusy={workbench.isContentBusy}
             documentStatus={workbench.documentStatus}
@@ -325,16 +503,12 @@ export function WorkbenchHomePage() {
               setAssistantActive(false)
               workbench.undo()
             }}
-            onCreateNew={() => {
-              if (!workbench.createNewDocument()) return
-              setActiveLibraryDetailKey(null)
-              setAssistantTabOpen(false)
-              setAssistantActive(false)
-              setSidePanelOpen(true)
-              setDraftCollapsed(false)
-            }}
-            onSave={() => { void workbench.saveDocument() }}
-            onAssign={() => { void workbench.assignDocument() }}
+            onCreateNew={finalizeNewDocument}
+            hasUnsavedChanges={hasUnsavedDocumentChanges}
+            onSaveAndCreateNew={() => workbench.saveDocument(true, '题单')}
+            onSave={(kind) => trySaveDocument(kind)}
+            onAssign={tryAssignDocument}
+            onMarkOutput={workbench.markDocumentOutput}
             sidePanelOpen={sidePanelOpen}
             onSidePanelOpen={() => {
               setSidePanelOpen(true)
@@ -344,25 +518,53 @@ export function WorkbenchHomePage() {
               setSidePanelOpen(false)
               setDraftCollapsed(false)
             }}
+            studioEditorOpen={studioEditorOpen}
+            studioDocument={studioEditorOpen ? workbench.document : undefined}
+            onStudioSave={() => { void trySaveDocument() }}
+            onStudioAssign={tryAssignDocument}
+            onStudioGenerateAnswerSheet={tryGenerateAnswerSheet}
+            onRequirePaperScores={requirePaperScores}
             draftCollapsed={draftCollapsed}
             onDraftCollapse={() => setDraftCollapsed(true)}
             onDraftExpand={() => setDraftCollapsed(false)}
-            onBackHome={activateAddHome}
           />
 
-          <section className={`${shellClassName}${alternateHomeLayout ? ` is-alternate-home is-home-layout-${homeLayoutVariant}` : ''}`} aria-label="飞象AI题库编辑器">
-            {!sidePanelOpen && hasQuestions ? (
-              <QuestionSortPanel
-                questions={workbench.document.questions}
-                selectedQuestionId={workbench.selectedQuestionId}
-                collapsed={sortCollapsed}
-                onCollapsedChange={setSortCollapsed}
-                onSelectQuestion={workbench.selectQuestion}
-                onReorderQuestions={workbench.reorderQuestions}
-              />
-            ) : null}
-
-            {!alternateHomeLayout ? (!draftCollapsed ? renderDraftContent() : (
+          <section className={`${shellClassName}${alternateHomeLayout ? ' is-alternate-home is-home-layout-2' : ''}`} aria-label="飞象AI题库编辑器">
+            {!alternateHomeLayout ? (!draftCollapsed ? (studioEditorOpen ? (
+              <EditorStudioShell
+                document={workbench.document}
+                onDocumentFormatChange={workbench.setDocumentFormat}
+                onKindChange={workbench.setDocumentKind}
+                onAnswerModeChange={workbench.setAnswerMode}
+                onOpenScoreSettings={() => openScoreDialog('save')}
+                sortPanel={(
+                  <QuestionSortPanel
+                    questions={workbench.document.questions}
+                    selectedQuestionId={workbench.selectedQuestionId}
+                    collapsed={sortCollapsed}
+                    onCollapsedChange={setSortCollapsed}
+                    onSelectQuestion={workbench.selectQuestion}
+                    onReorderQuestions={workbench.reorderQuestions}
+                  />
+                )}
+                inspector={(
+                  <QuestionInspector
+                    document={workbench.document}
+                    question={workbench.selectedQuestion}
+                    questionNumber={questionNumber}
+                    view={workbench.inspectorView}
+                    status={workbench.rewriteStatus}
+                    preview={workbench.rewritePreview}
+                    onViewChange={workbench.setInspectorView}
+                    onRewrite={(instruction) => { void workbench.rewrite(instruction) }}
+                    onApply={workbench.applyRewrite}
+                    studioLayout
+                  />
+                )}
+              >
+                {renderDraftContent(true, true)}
+              </EditorStudioShell>
+            ) : renderDraftContent(sidePanelOpen)) : (
               <aside className="draft-collapsed-rail" aria-label="组题画布已收起">
                 <button type="button" onClick={() => setDraftCollapsed(false)} aria-label="展开组题画布" title="展开组题画布">
                   <PanelRightOpen size={17} />
@@ -389,8 +591,8 @@ export function WorkbenchHomePage() {
                     role="tab"
                     aria-label="添加题目首页"
                     title="添加题目首页"
-                    aria-selected={!workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive}
-                    className={`add-workspace-home${!workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive ? ' is-active' : ''}`}
+                    aria-selected={!workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive && !recentBrowseActive}
+                    className={`add-workspace-home${!workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive && !recentBrowseActive ? ' is-active' : ''}`}
                     onClick={activateAddHome}
                   ><House size={17} /></button>
                   {openAddTabs.map((mode) => (
@@ -460,6 +662,20 @@ export function WorkbenchHomePage() {
                       </button>
                     </span>
                   ) : null}
+                  {recentBrowseTabOpen ? (
+                    <span className={`add-workspace-tab is-recent-browse${recentBrowseActive ? ' is-active' : ''}`}>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={recentBrowseActive}
+                        onClick={activateRecentBrowseTab}
+                        data-track="/click/aiQuestionHome/switchRecentBrowseTab | 切换最近浏览 | 无"
+                      ><RefreshCw size={14} /><span>最近浏览</span></button>
+                      <button type="button" className="add-workspace-tab-close" aria-label="关闭最近浏览" onClick={closeRecentBrowseTab}>
+                        <X size={13} />
+                      </button>
+                    </span>
+                  ) : null}
                   <button
                     type="button"
                     className="add-workspace-collapse"
@@ -479,6 +695,11 @@ export function WorkbenchHomePage() {
                     onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
                     onAddResource={(resource) => { void workbench.addMyResource(resource) }}
                   />
+                ) : recentBrowseActive && recentBrowseTabOpen ? (
+                  <RecentBrowsePanel
+                    entries={recentBrowseEntries}
+                    onOpenEntry={openRecentBrowseEntry}
+                  />
                 ) : assistantActive && assistantTabOpen ? (
                   <AiAssistantWorkspace
                     run={workbench.assistantRun}
@@ -486,10 +707,11 @@ export function WorkbenchHomePage() {
                     error={workbench.composeError}
                     status={workbench.composeStatus}
                     contentBusy={workbench.isContentBusy}
-                    previewText={workbench.composePreview.slice(0, 3).map((question, index) => `${index + 1}. ${question.stem}`).join('\n')}
+                    questions={workbench.composePreview}
+                    addedQuestionIds={new Set(workbench.document.questions.map((question) => question.id))}
                     onPromptChange={workbench.setComposePrompt}
                     onSubmit={submitAssistant}
-                    onConfirm={workbench.confirmComposePreview}
+                    onAddQuestions={workbench.addComposeQuestions}
                   />
                 ) : workbench.isAddOpen ? (
                   <SourceDrawer
@@ -509,6 +731,8 @@ export function WorkbenchHomePage() {
                     onModeChange={workbench.setAddMode}
                     onResourceTypeChange={(type) => void workbench.loadSources(type)}
                     onAddSource={(type, sourceId, count, selectedQuestions) => workbench.addSource(type, sourceId, count, selectedQuestions)}
+                    currentDocumentHasContent={workbench.currentDocumentHasContent}
+                    onCompleteEditWholeVolume={(type, sourceId, count, selectedQuestions, mode) => workbench.completeEditWholeVolumeAsNewDocument(type, sourceId, count, selectedQuestions, mode)}
                     onOpenLibraryDetail={(record) => {
                       if (workbench.addMode === 'resource' || workbench.addMode === 'school') {
                         openLibraryDetail(workbench.addMode, record)
@@ -524,35 +748,51 @@ export function WorkbenchHomePage() {
                 ) : (
                   <DocumentCenter
                     embedded
-                    layoutVariant={homeLayoutVariant}
-                    contentBusy={workbench.isContentBusy || workbench.documentSyncState === 'saving'}
-                    draftContent={alternateHomeLayout ? renderDraftContent() : undefined}
+                    draftContent={renderDraftContent(false)}
                     histories={workbench.historyDocuments}
                     historyStatus={workbench.historyStatus}
                     onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
                     onOpenMyResources={() => openMyResources('全部')}
                     onOpenSource={(mode, options) => openAdd(mode, options)}
-                    onLayoutVariantChange={setHomeLayoutVariant}
+                    onOpenRecentBrowse={openRecentBrowse}
                     onReload={() => { void workbench.reloadHistory() }}
                   />
                 )}
               </div>
-            ) : hasQuestions ? (
-              <QuestionInspector
-                document={workbench.document}
-                question={workbench.selectedQuestion}
-                questionNumber={questionNumber}
-                view={workbench.inspectorView}
-                status={workbench.rewriteStatus}
-                preview={workbench.rewritePreview}
-                onViewChange={workbench.setInspectorView}
-                onRewrite={(instruction) => void workbench.rewrite(instruction)}
-                onApply={workbench.applyRewrite}
-              />
             ) : null}
           </section>
         </div>
       </main>
+      <RequirementSpecControls
+        reviewMode={reviewMode}
+        context={{
+          documentCenterVisible,
+          studioEditorOpen,
+          isAddOpen: workbench.isAddOpen,
+          addMode: workbench.addMode,
+          libraryInitialView: workbench.libraryInitialView,
+          activeLibraryDetail: libraryDetailRecord,
+          myResourcesTabOpen: myResourcesActive,
+          recentBrowseTabOpen: recentBrowseActive,
+          assistantTabOpen: assistantActive,
+        }}
+      />
+      {scoreDialogOpen ? (
+        <ScoreSettingsDialog
+          questions={workbench.document.questions}
+          onClose={() => {
+            setScoreDialogOpen(false)
+            setScoreDialogNext(null)
+          }}
+          onSave={(scores) => {
+            workbench.applyQuestionScores(scores)
+            setScoreDialogOpen(false)
+            const next = scoreDialogNext
+            setScoreDialogNext(null)
+            finishScoreDialogAction(next)
+          }}
+        />
+      ) : null}
     </div>
   )
 }

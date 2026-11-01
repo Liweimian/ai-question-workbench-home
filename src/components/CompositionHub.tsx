@@ -76,10 +76,10 @@ const resourceOverviews: ResourceOverview[] = [
 export function CompositionHub(props: CompositionHubProps) {
   const [resourceCardScheme] = useState<'four' | 'five' | 'six'>('six')
   const taskEntries = [
-    { id: 'upload', title: 'AI 录题', description: '上传文件，识别并录入题目', action: '去上传', icon: FileInput, onClick: () => props.onOpenAdd('upload') },
-    { id: 'create', title: 'AI 生题', description: '设置条件，生成几道新题', action: '去生题', icon: Sparkles, onClick: () => props.onOpenAdd('create') },
+    { id: 'upload', title: '上传文件 AI 录题', description: '上传文件，识别并录入题目', action: '去上传', icon: FileInput, onClick: () => props.onOpenAdd('upload') },
+    { id: 'create', title: 'AI 出题', description: '设置教材、知识点、题型和题量，生成几道新题', action: '去出题', icon: Sparkles, onClick: () => props.onOpenAdd('create') },
     { id: 'resources', title: '我的资源', description: '管理个人资源', action: '去查看', icon: FolderHeart, onClick: props.onOpenMyResources },
-    { id: 'assistant', title: 'AI 助手', description: '描述需求智能组题', action: '去对话', icon: BrainCircuit, onClick: props.onOpenAssistant },
+    { id: 'assistant', title: 'AI 组题', description: '直接说作业或试卷要求，从题库配题组卷', action: '去组题', icon: BrainCircuit, onClick: props.onOpenAssistant },
   ]
 
   return (

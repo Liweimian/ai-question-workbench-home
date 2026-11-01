@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
 import { ArrowLeft, Bold, ChevronDown, Heading2, Italic, Send, Sparkles, Strikethrough, Underline } from 'lucide-react'
 import { defaultDocumentFormat } from '../prototype/types'
-import type { AddQuestionMode, DocumentFormat, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
+import type { AddQuestionMode, DocumentFormat, DocumentSyncState, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
-import { DocumentFormatToolbar } from './DocumentFormatToolbar'
+import { DocumentActionToolbar } from './DocumentActionToolbar'
+import { ExpandedDocumentToolbar } from './ExpandedDocumentToolbar'
+import type { PaperAnswerMode, WorkbenchDocumentKind } from '../prototype/types'
 
 interface EmptyCanvasProps {
   document: WorkbenchDocument
@@ -13,8 +15,20 @@ interface EmptyCanvasProps {
   onTitleChange: (title: string) => void
   onIntroChange: (intro: string) => void
   onDocumentFormatChange: (patch: Partial<DocumentFormat>) => void
+  canSave: boolean
+  contentBusy: boolean
+  syncState: DocumentSyncState
+  assignmentOutdated: boolean
+  onSave: () => void
+  onAssign: () => void
+  onRequirePaperScores?: (action: 'assign' | 'download' | 'print') => boolean
   onOpenAssistant: (prompt?: string) => void
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
+  onOpenMyResources?: () => void
+  hideActionToolbar?: boolean
+  onKindChange: (kind: WorkbenchDocumentKind) => void
+  onAnswerModeChange: (mode: PaperAnswerMode) => void
+  studioLayout?: boolean
 }
 
 export function EmptyCanvas(props: EmptyCanvasProps) {
@@ -62,16 +76,12 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   }
 
   const insertUtility = (action: UtilityAction) => {
-    if (action === 'image-search') return MetisMessage.info('图片搜题入口已打开（原型演示）')
-    const presets: Record<Exclude<UtilityAction, 'image-search'>, string> = {
+    const presets: Record<UtilityAction, string> = {
       'heading-2': '一、选择题',
       'heading-3': '（一）单项选择题',
       'heading-4': '基础题组',
-      table: '姓名：________　班级：________　得分：________',
-      image: '图片占位：点击后上传示意图、材料图或二维码',
       note: '考试说明：请认真审题，并将答案填写在指定位置。',
-      divider: '────────────',
-      'page-break': '—— 分页符 ——',
+      'blank-line': '',
     }
     const nextId = `block-${Date.now()}`
     setBlockIds((current) => [...current, nextId])
@@ -82,7 +92,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       syncBlockContent()
       node.focus()
     })
-    MetisMessage.success('已插入试卷结构内容')
+    MetisMessage.success(action === 'blank-line' ? '已插入空行' : '已插入内容')
   }
 
   const updateSelectionToolbar = () => {
@@ -117,9 +127,32 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   }
 
   return (
-    <article className={`editor-empty${props.sidePanelOpen ? ' is-linked-workspace' : ''}`} data-sec="3" aria-label="空白题单编辑区">
+    <article className={`editor-empty${props.sidePanelOpen ? ' is-linked-workspace' : ''}${props.studioLayout ? ' is-studio-paper' : ''}${!props.hideActionToolbar ? ' has-action-rail' : ''}`} data-sec="3" aria-label="空白题单编辑区">
+      {!props.hideActionToolbar ? (
+        <div className="document-action-rail">
+          <DocumentActionToolbar
+            document={props.document}
+            canSave={props.canSave}
+            contentBusy={props.contentBusy}
+            syncState={props.syncState}
+            assignmentOutdated={props.assignmentOutdated}
+            onSave={props.onSave}
+            onAssign={props.onAssign}
+            onRequirePaperScores={props.onRequirePaperScores}
+          />
+        </div>
+      ) : null}
+      <div className={!props.hideActionToolbar ? 'editor-paper-sheet' : undefined}>
       <header className="editor-empty-heading">
-        <DocumentFormatToolbar value={{ ...defaultDocumentFormat, ...props.document.format }} onChange={props.onDocumentFormatChange} />
+        {!props.studioLayout && !props.sidePanelOpen ? (
+          <ExpandedDocumentToolbar
+            document={props.document}
+            value={{ ...defaultDocumentFormat, ...props.document.format }}
+            onChange={props.onDocumentFormatChange}
+            onKindChange={props.onKindChange}
+            onAnswerModeChange={props.onAnswerModeChange}
+          />
+        ) : null}
         <MetisInput
           value={props.document.title}
           onChange={(event) => props.onTitleChange(event.target.value)}
@@ -129,6 +162,12 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       </header>
 
       <div className="editor-empty-content" onPointerDown={() => setShowExampleContent(false)}>
+        {props.studioLayout && props.document.questions.length === 0 ? (
+          <div className="editor-studio-paper-empty" role="status">
+            <h3>题单中还没有题目</h3>
+            <p>请先返回题目浏览区添加内容</p>
+          </div>
+        ) : null}
         <div className="empty-add-guide" role="note">
           <span className="empty-add-guide-icon"><ArrowLeft size={18} /></span>
           <span><strong>以下为示意内容，请从左侧添加题目</strong></span>
@@ -136,7 +175,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
             <div className={`empty-first-block${blockId === 'initial' && !props.document.intro ? ' is-add-only' : ''}`} role="group" aria-label="题单内容块" key={blockId}>
-              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenAssistant={() => props.onOpenAssistant()} />
+              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenMyResources={props.onOpenMyResources} />
               {blockId !== 'initial' || props.document.intro ? (
                 <div
                   className="empty-block-input"
@@ -262,6 +301,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             </div>
           </div>
         ) : null}
+      </div>
       </div>
     </article>
   )

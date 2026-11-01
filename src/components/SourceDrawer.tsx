@@ -41,6 +41,14 @@ interface SourceDrawerProps {
   onModeChange: (mode: AddQuestionMode) => void
   onResourceTypeChange: (type: ResourceType) => void
   onAddSource: (type: ResourceType, sourceId?: string, count?: number, selectedQuestions?: Question[]) => Promise<boolean>
+  currentDocumentHasContent?: boolean
+  onCompleteEditWholeVolume?: (
+    type: ResourceType,
+    sourceId: string,
+    count: number,
+    selectedQuestions: Question[],
+    mode: 'plain' | 'discard' | 'save-first',
+  ) => Promise<'success' | 'failed'>
   onOpenLibraryDetail?: (record: SourceRecord) => void
   onCreateConfigChange: (value: CreateQuestionRequest) => void
   onCreate: (requestOverride?: CreateQuestionRequest) => void
@@ -59,8 +67,8 @@ const commandOptions: Array<{
 }> = [
   { mode: 'resource', title: '飞象题库选题', description: '浏览练习册、试卷、同步题单和专题', tag: '平台资源', icon: Search },
   { mode: 'school', title: '校本题库选题', description: '浏览本校沉淀的试卷、练习册和章节题目', tag: '本校资源', icon: School },
-  { mode: 'upload', title: 'AI 录题', description: '上传 PDF、Word 或图片，识别并录入原题', tag: '文件识别', icon: FileUp },
-  { mode: 'create', title: 'AI 生题', description: '设置出题条件，生成几道新题', tag: '条件出题', icon: Sparkles },
+  { mode: 'upload', title: '上传文件 AI 录题', description: '上传 PDF、Word 或图片，识别并录入原题', tag: '文件识别', icon: FileUp },
+  { mode: 'create', title: 'AI 出题', description: '设置教材、知识点、题型和题量，生成几道新题', tag: '条件出题', icon: Sparkles },
   { mode: 'manual', title: '手工录入', description: '添加一道空白题并继续编辑', tag: '空白题', icon: FilePenLine },
 ]
 
@@ -69,8 +77,8 @@ const modeTitles: Record<AddQuestionMode, string> = {
   resource: '从飞象题库选题',
   school: '从校本题库选题',
   compose: 'AI 组题',
-  create: 'AI 生题',
-  upload: 'AI 录题',
+  create: 'AI 出题',
+  upload: '上传文件 AI 录题',
   personalized: '上传材料生成个性化练习',
   manual: '手工录入',
 }
@@ -207,13 +215,14 @@ export function SourceDrawer(props: SourceDrawerProps) {
               onOpenDetail={docked ? props.onOpenLibraryDetail : undefined}
               onResourceTypeChange={props.onResourceTypeChange}
               onAddSource={(type, sourceId, count, selectedQuestions) => props.onAddSource(type, sourceId, count, selectedQuestions)}
+              currentDocumentHasContent={props.currentDocumentHasContent}
+              onCompleteEditWholeVolume={props.onCompleteEditWholeVolume}
             />
           ) : null}
 
           {props.mode === 'create' ? (
             <div className="structured-create-tool">
-              <aside className="structured-create-settings" aria-label="AI 生题设置">
-                <div className="structured-create-heading"><Sparkles size={19} /><div><h3>AI 生题</h3><p>设置出题条件，生成几道新题</p></div></div>
+              <aside className="structured-create-settings" aria-label="AI 出题设置">
                 <section>
                   <h4>1. 选择教材及章节</h4>
                   <label>教材<select value={props.createConfig.textbook} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, textbook: event.target.value })}><option>人教版 · 八年级上册</option><option>北师大版 · 八年级上册</option></select></label>

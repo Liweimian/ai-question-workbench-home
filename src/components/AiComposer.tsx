@@ -34,7 +34,7 @@ export function AiComposer({ value, error, status, compact, disabled, kind = 'co
           onKeyDown={(event) => {
             if (event.key === 'Enter' && !event.nativeEvent.isComposing && !blocked) onSubmit()
           }}
-          aria-label={isCreate ? 'AI 生题要求' : 'AI 组题要求'}
+          aria-label={isCreate ? 'AI 出题要求' : 'AI 组题要求'}
         />
         <MetisButton
           type="primary"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { createPortal } from 'react-dom'
 import { MetisButton, MetisInput } from '@yuanfudao/metis-web-component'
@@ -10,6 +10,7 @@ import {
   Eye,
   FileText,
   ListTree,
+  SquarePen,
   ListChecks,
   Search,
   SlidersHorizontal,
@@ -36,6 +37,14 @@ interface LibraryPickerProps {
   onOpenDetail?: (record: SourceRecord) => void
   onResourceTypeChange: (type: ResourceType) => void
   onAddSource: (type: ResourceType, sourceId: string, count: number, selectedQuestions?: Question[]) => Promise<boolean>
+  currentDocumentHasContent?: boolean
+  onCompleteEditWholeVolume?: (
+    type: ResourceType,
+    sourceId: string,
+    count: number,
+    selectedQuestions: Question[],
+    mode: 'plain' | 'discard' | 'save-first',
+  ) => Promise<'success' | 'failed'>
 }
 
 const resourceIcons: Record<ResourceType, typeof BookOpenCheck> = {
@@ -84,19 +93,6 @@ const resourceTypeLabels: Record<ResourceType, string> = {
   special: '专题',
 }
 
-const workbookDirectory = [
-  {
-    title: '第四章 一次函数',
-    lessons: [
-      { title: '4.1 函数', sections: ['达标检测', '基础练习', '能力提升', '拓展训练', '自我反思'] },
-      { title: '4.2 一次函数与正比例函数', sections: [] },
-      { title: '4.3 一次函数的图象', sections: [] },
-    ],
-  },
-  { title: '第五章 二元一次方程组', lessons: [] },
-  { title: '第六章 数据的分析', lessons: [] },
-]
-
 const chapterKnowledgeTree = [
   { title: '第四章 一次函数', items: ['4.1 函数', '4.2 一次函数与正比例函数', '4.3 一次函数的图象', '4.4 一次函数的应用'] },
   { title: '第五章 二元一次方程组', items: ['5.1 认识二元一次方程组', '5.2 求解二元一次方程组'] },
@@ -125,16 +121,116 @@ interface LegacyResourceDetailProps {
   onToggleAnswers: () => void
   onToggleQuestion: (question: Question) => Promise<void>
   onUseAll: () => Promise<void>
+  currentDocumentHasContent?: boolean
+  onCompleteEditWholeVolume?: (
+    type: ResourceType,
+    sourceId: string,
+    count: number,
+    selectedQuestions: Question[],
+    mode: 'plain' | 'discard' | 'save-first',
+  ) => Promise<'success' | 'failed'>
+}
+
+function LegacyUseWholeVolumeMenu(props: {
+  embedded?: boolean
+  contentBusy: boolean
+  showEdit: boolean
+  onAddToDraft: () => void
+  onEdit: () => void
+  onFavorite: () => void
+  favorited: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onPointerDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    return () => document.removeEventListener('mousedown', onPointerDown)
+  }, [open])
+
+  return (
+    <div className="legacy-use-whole-volume" ref={rootRef}>
+      <button
+        type="button"
+        className="is-primary"
+        disabled={props.contentBusy}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <FileText size={15} />
+        {props.embedded ? '添加整卷' : '使用整卷'}
+        <ChevronDown size={13} />
+      </button>
+      {open ? (
+        <div className="legacy-use-whole-menu" role="menu" aria-label="使用整卷">
+          <button type="button" role="menuitem" disabled={props.contentBusy} onClick={() => { props.onAddToDraft(); setOpen(false) }}>
+            <FileText size={16} />
+            加入当前编辑
+          </button>
+          {props.showEdit ? (
+            <button type="button" role="menuitem" onClick={() => { props.onEdit(); setOpen(false) }}>
+              <SquarePen size={16} />
+              编辑
+            </button>
+          ) : null}
+          <div className="legacy-use-whole-menu-divider" role="separator" />
+          <button type="button" role="menuitem" onClick={() => { props.onFavorite(); setOpen(false) }}>
+            <Star size={16} />
+            {props.favorited ? '取消收藏' : '收藏'}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 function LegacyResourceDetail(props: LegacyResourceDetailProps) {
-  const [workbookSection, setWorkbookSection] = useState('达标检测')
+  const [volumeFavorited, setVolumeFavorited] = useState(false)
+  const [editConfirmOpen, setEditConfirmOpen] = useState(false)
+  const [editConfirmPending, setEditConfirmPending] = useState(false)
   const sectionOrder = ['选择题', '填空题', '解答题']
   const sectionNames = ['一、单项选择题', '二、填空题', '三、解答题']
   const groupedQuestions = sectionOrder.map((type, index) => ({
     title: sectionNames[index],
     questions: props.questions.filter((question) => question.type === type),
   })).filter((section) => section.questions.length > 0)
+
+  const handleEditWholeVolume = async () => {
+    if (!props.onCompleteEditWholeVolume || props.contentBusy) return
+    if (props.currentDocumentHasContent) {
+      setEditConfirmOpen(true)
+      return
+    }
+    await props.onCompleteEditWholeVolume(
+      props.record.sourceType,
+      props.record.id,
+      props.questions.length,
+      props.questions,
+      'plain',
+    )
+  }
+
+  const handleCompleteEditWholeVolume = async (mode: 'discard' | 'save-first') => {
+    if (!props.onCompleteEditWholeVolume || editConfirmPending) return
+    setEditConfirmPending(true)
+    try {
+      await props.onCompleteEditWholeVolume(
+        props.record.sourceType,
+        props.record.id,
+        props.questions.length,
+        props.questions,
+        mode,
+      )
+      setEditConfirmOpen(false)
+    } finally {
+      setEditConfirmPending(false)
+    }
+  }
 
   return (
     <section className={`legacy-detail-workspace${props.embedded ? ' is-embedded' : ''}`} aria-label={props.record.title}>
@@ -152,36 +248,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
         </nav>
         <button type="button" className="legacy-detail-home-action" onClick={props.onReturnHome}><ArrowLeft size={15} />返回首页</button>
       </header> : null}
-      <div className={`legacy-detail-stage${props.record.sourceType === 'workbook' ? ' has-directory' : ''}`}>
-        {props.record.sourceType === 'workbook' ? (
-          <aside className={`legacy-workbook-directory${props.showReturnNavigation ? '' : ' has-no-back'}`} aria-label={`${props.record.title}目录`}>
-            {props.showReturnNavigation ? <button type="button" className="legacy-workbook-back" onClick={props.onReturnHome}><ArrowLeft size={15} />返回练习册</button> : null}
-            <h2>{props.record.title}</h2>
-            <div className="legacy-directory-tree" role="tree" aria-label="教材章节目录">
-              {workbookDirectory.map((chapter, chapterIndex) => (
-                <section key={chapter.title}>
-                  <h3><ChevronDown size={14} />{chapter.title}</h3>
-                  {chapter.lessons.map((lesson) => (
-                    <div key={lesson.title}>
-                      <h4 className={chapterIndex === 0 ? 'is-current' : ''}><ChevronDown size={13} />{lesson.title}{chapterIndex === 0 ? <em>已关联</em> : null}</h4>
-                      {lesson.sections.map((section) => (
-                        <button
-                          type="button"
-                          role="treeitem"
-                          key={section}
-                          className={workbookSection === section ? 'is-active' : ''}
-                          onClick={() => setWorkbookSection(section)}
-                        >
-                          {section}
-                        </button>
-                      ))}
-                    </div>
-                  ))}
-                </section>
-              ))}
-            </div>
-          </aside>
-        ) : null}
+      <div className="legacy-detail-stage">
         <main className="legacy-detail-panel">
           <div className="legacy-detail-scroll">
             {groupedQuestions.map((section, sectionIndex) => (
@@ -190,7 +257,15 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                   <h3>{section.title}</h3>
                   {sectionIndex === 0 ? <div className="legacy-question-section-actions">
                     <button type="button" onClick={props.onToggleAnswers}><Eye size={15} />{props.showAnswers ? '隐藏答案' : '显示答案'}</button>
-                    <button type="button" className="is-primary" disabled={props.contentBusy} onClick={() => void props.onUseAll()}><FileText size={15} />{props.embedded ? '添加整卷' : '使用整卷'}<ChevronDown size={13} /></button>
+                    <LegacyUseWholeVolumeMenu
+                      embedded={props.embedded}
+                      contentBusy={props.contentBusy}
+                      showEdit={Boolean(props.embedded && props.onCompleteEditWholeVolume)}
+                      favorited={volumeFavorited}
+                      onAddToDraft={() => void props.onUseAll()}
+                      onEdit={() => void handleEditWholeVolume()}
+                      onFavorite={() => setVolumeFavorited((current) => !current)}
+                    />
                   </div> : null}
                 </div>
                 {section.questions.map((question) => {
@@ -222,6 +297,32 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
         </main>
       </div>
       {props.addStatus === 'loading' ? <div className="legacy-detail-loading">正在加入当前组题…</div> : null}
+      {editConfirmOpen ? (
+        <div className="workspace-confirm-overlay" role="presentation" onClick={() => { if (!editConfirmPending) setEditConfirmOpen(false) }}>
+          <div
+            className="workspace-confirm-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="legacy-whole-volume-unsaved-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <strong id="legacy-whole-volume-unsaved-title">当前题单尚未保存</strong>
+            <span>右侧正在编辑的题单还有内容。请先保存后再新建并载入整卷；或不保存，直接用整卷覆盖当前题单。</span>
+            <div>
+              <button type="button" disabled={editConfirmPending} onClick={() => setEditConfirmOpen(false)}>取消</button>
+              <button type="button" disabled={editConfirmPending} onClick={() => void handleCompleteEditWholeVolume('discard')}>不保存，直接覆盖</button>
+              <button
+                type="button"
+                className="is-primary"
+                disabled={editConfirmPending}
+                onClick={() => void handleCompleteEditWholeVolume('save-first')}
+              >
+                {editConfirmPending ? '处理中…' : '先保存再新建'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }
@@ -308,10 +409,13 @@ export function LibraryPicker(props: LibraryPickerProps) {
         || record.meta.toLowerCase().includes(normalized)
         || record.sourceName?.toLowerCase().includes(normalized))
     ))
+    const sortByLaunchTime = props.resourceType === 'sync' || props.resourceType === 'special'
     return [...filtered].sort((a, b) => {
       if (pinned.has(a.id) !== pinned.has(b.id)) return pinned.has(a.id) ? -1 : 1
-      if (sort === 'recommended') return (b.usageCount ?? 0) - (a.usageCount ?? 0)
-      return (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '')
+      if (sortByLaunchTime || sort === 'latest') {
+        return (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '')
+      }
+      return (b.usageCount ?? 0) - (a.usageCount ?? 0)
     })
   }, [category, isAll, keyword, pinned, props.records, props.resourceType, sort])
 
@@ -420,6 +524,8 @@ export function LibraryPicker(props: LibraryPickerProps) {
           }
           await props.onAddSource(detailRecord.sourceType, detailRecord.id, previewQuestions.length)
         }}
+        currentDocumentHasContent={props.currentDocumentHasContent}
+        onCompleteEditWholeVolume={props.onCompleteEditWholeVolume}
       />
     </>
   ) : null
@@ -522,10 +628,12 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
           {variant === 'dialog' ? <div className="library-list-heading">
             <h3>{isAll ? '全部资源' : category === '全部资源' ? listHeadings[props.resourceType] : category}</h3>
-            <div role="tablist" aria-label="资源排序">
-              <button type="button" className={sort === 'recommended' ? 'is-active' : ''} onClick={() => setSort('recommended')}>推荐</button>
-              <button type="button" className={sort === 'latest' ? 'is-active' : ''} onClick={() => setSort('latest')}>最新</button>
-            </div>
+            {props.resourceType !== 'sync' && props.resourceType !== 'special' ? (
+              <div role="tablist" aria-label="资源排序">
+                <button type="button" className={sort === 'recommended' ? 'is-active' : ''} onClick={() => setSort('recommended')}>推荐</button>
+                <button type="button" className={sort === 'latest' ? 'is-active' : ''} onClick={() => setSort('latest')}>最新</button>
+              </div>
+            ) : null}
           </div> : null}
 
           <div className="library-record-scroll">

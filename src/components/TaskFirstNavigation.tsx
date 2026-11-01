@@ -1,21 +1,7 @@
-import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
-import {
-  BookOpen,
-  BrainCircuit,
-  ChevronRight,
-  Clock3,
-  FileInput,
-  FileText,
-  FolderHeart,
-  Layers3,
-  ListTree,
-  RefreshCw,
-  School,
-  Sparkles,
-  Target,
-  type LucideIcon,
-} from 'lucide-react'
-import type { AddQuestionMode, AsyncStatus, HistoryDocumentSummary, LibraryInitialView, OpenAddOptions } from '../prototype/types'
+import { MetisButton } from '@yuanfudao/metis-web-component'
+import { ChevronRight, Clock3, FolderHeart, RefreshCw } from 'lucide-react'
+import type { AddQuestionMode, AsyncStatus, HistoryDocumentSummary, OpenAddOptions } from '../prototype/types'
+import { addQuestionEntries } from '../data/addQuestionEntries'
 
 interface TaskFirstNavigationProps {
   disabled?: boolean
@@ -24,31 +10,13 @@ interface TaskFirstNavigationProps {
   onOpenDocument: (documentId: string) => void
   onOpenMyResources: () => void
   onOpenSource: (mode: AddQuestionMode, options?: OpenAddOptions) => void
+  onOpenRecentBrowse: () => void
   onReload: () => void
 }
 
-interface FlatEntry {
-  description?: string
-  icon: LucideIcon
-  label: string
-  mode: AddQuestionMode
-  source: string
-  view?: LibraryInitialView
-}
+const flatEntries = addQuestionEntries
 
-const flatEntries: FlatEntry[] = [
-  { mode: 'resource', view: 'chapter', label: '章节知识点选题', source: '飞象题库', icon: ListTree },
-  { mode: 'resource', view: 'workbook', label: '练习册', source: '飞象题库', icon: BookOpen },
-  { mode: 'resource', view: 'paper', label: '试卷', source: '飞象题库', icon: FileText },
-  { mode: 'resource', view: 'sync', label: '同步练习', source: '飞象题库', icon: Layers3 },
-  { mode: 'resource', view: 'special', label: '专题练习', source: '飞象题库', icon: Target },
-  { mode: 'school', label: '校本题库', source: '校本资源', icon: School },
-  { mode: 'upload', label: 'AI 录题', source: 'AI 工具', description: '上传 Word、PDF 或图片，识别并录入题目', icon: FileInput },
-  { mode: 'create', label: 'AI 生题', source: 'AI 工具', description: '设置教材、知识点、难度和题量，生成几道新题', icon: Sparkles },
-  { mode: 'compose', label: 'AI 组题', source: 'AI 工具', description: '说一句组题要求，从题库生成一整套题', icon: BrainCircuit },
-]
-
-export function TaskFirstNavigation({ disabled = false, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onReload }: TaskFirstNavigationProps) {
+export function TaskFirstNavigation({ disabled = false, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onOpenRecentBrowse, onReload }: TaskFirstNavigationProps) {
   const recentDocuments = histories.slice(0, 3)
   const historyPending = historyStatus === 'idle' || historyStatus === 'loading'
   const libraryEntries = flatEntries.slice(0, 6)
@@ -99,8 +67,8 @@ export function TaskFirstNavigation({ disabled = false, histories, historyStatus
       <section className="document-layout-four-group" aria-labelledby="personal-resource-title">
         <h2 id="personal-resource-title">个人资源</h2>
         <div className="document-layout-four-quick-links" aria-label="个人资源入口">
-          <button type="button" disabled={disabled} onClick={onOpenMyResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><span className="document-layout-four-entry-icon"><FolderHeart size={21} /></span><span className="document-layout-four-entry-copy"><strong>我的资源</strong></span></button>
-          <button type="button" onClick={() => MetisMessage.info('近期浏览记录会在这里展示')} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><span className="document-layout-four-entry-icon"><RefreshCw size={21} /></span><span className="document-layout-four-entry-copy"><strong>最近浏览</strong></span></button>
+          <button type="button" disabled={disabled} onClick={onOpenMyResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><span className="document-layout-four-entry-icon"><FolderHeart size={21} /></span><span className="document-layout-four-entry-copy"><strong>从我的资源选题</strong></span></button>
+          <button type="button" disabled={disabled} onClick={onOpenRecentBrowse} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><span className="document-layout-four-entry-icon"><RefreshCw size={21} /></span><span className="document-layout-four-entry-copy"><strong>继续最近浏览</strong></span></button>
         </div>
       </section>
 

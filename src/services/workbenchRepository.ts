@@ -13,6 +13,7 @@ interface StoredDocumentEntry {
   document: WorkbenchDocument
   status: DocumentStatus
   assignmentOutdated?: boolean
+  savedAtMs?: number
 }
 
 function readStoredDocuments(): StoredDocumentEntry[] {
@@ -26,6 +27,15 @@ function readStoredDocuments(): StoredDocumentEntry[] {
   }
 }
 
+export function readStoredDocument(documentId: string): WorkbenchDocument | null {
+  return readStoredDocuments().find((entry) => entry.document.id === documentId)?.document ?? null
+}
+
+export function persistDocumentNow(document: WorkbenchDocument) {
+  const existing = readStoredDocuments().find((entry) => entry.document.id === document.id)
+  return writeStoredDocument(document, existing?.status ?? '草稿', existing?.assignmentOutdated)
+}
+
 function writeStoredDocument(document: WorkbenchDocument, status: DocumentStatus, assignmentOutdated = false) {
   const snapshot = {
     ...document,
@@ -36,7 +46,7 @@ function writeStoredDocument(document: WorkbenchDocument, status: DocumentStatus
     updatedAt: '刚刚',
   }
   const entries = [
-    { document: snapshot, status, assignmentOutdated },
+    { document: snapshot, status, assignmentOutdated, savedAtMs: Date.now() },
     ...readStoredDocuments().filter((entry) => entry.document.id !== snapshot.id),
   ].slice(0, 30)
   window.localStorage.setItem(localDocumentStorageKey, JSON.stringify(entries))
@@ -315,12 +325,14 @@ export const workbenchRepository: WorkbenchRepository = {
     const stored = readStoredDocuments()
     const storedIds = new Set(stored.map((entry) => entry.document.id))
     return [
-      ...stored.map(({ document, status, assignmentOutdated }) => ({
+      ...stored.map(({ document, status, assignmentOutdated, savedAtMs }) => ({
         id: document.id,
         title: document.title,
         gradeSubject: document.gradeSubject,
         questionCount: document.questions.length,
         updatedAt: document.updatedAt,
+        savedAtMs: savedAtMs ?? Date.now(),
+        estimatedMinutes: Math.max(document.questions.length * 3, 6),
         status,
         assignmentOutdated,
         origin: '手工组题' as const,

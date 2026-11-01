@@ -12,6 +12,15 @@ export type QuestionOrigin = 'question-bank' | 'ai-original' | 'upload' | 'manua
 export type DocumentStatus = '草稿' | '已保存' | '已布置'
 export type DocumentSyncState = 'clean' | 'dirty' | 'saving' | 'saved' | 'error'
 export type MyResourceKind = '试卷' | '题单' | '题目' | '文件' | '练习册'
+export type WorkbenchDocumentKind = '题单' | '试卷'
+export type PaperAnswerMode = '原卷作答' | '答题卡作答'
+export type DocumentOutputLock = 'download' | 'print' | 'assign' | 'share' | 'answer-sheet'
+
+export interface AnswerSheetState {
+  generatedAt?: string
+  sourceFingerprint?: string
+  outdated?: boolean
+}
 export type QuestionType = '选择题' | '填空题' | '解答题'
 
 export interface DocumentFormat {
@@ -78,6 +87,11 @@ export interface WorkbenchDocument {
   id: EntityId
   title: string
   gradeSubject: string
+  kind?: WorkbenchDocumentKind
+  answerMode?: PaperAnswerMode
+  answerSheet?: AnswerSheetState
+  scoreSettingsConfirmed?: boolean
+  outputLocks?: DocumentOutputLock[]
   intro?: string
   format?: DocumentFormat
   sectionTitles?: Partial<Record<QuestionType, string>>
@@ -91,6 +105,10 @@ export interface HistoryDocumentSummary {
   gradeSubject: string
   questionCount: number
   updatedAt: string
+  savedAtMs?: number
+  estimatedMinutes?: number
+  schoolStage?: string
+  subjectName?: string
   status: DocumentStatus
   assignmentOutdated?: boolean
   origin: 'AI 组题' | '手工组题' | '上传录题'
