@@ -41,6 +41,7 @@ interface DocumentCanvasProps {
   onAnswerModeChange: (mode: PaperAnswerMode) => void
   onGenerateAnswerSheet: () => void
   studioLayout?: boolean
+  onExpand?: () => void
 }
 
 type QuestionStyle = DocumentFormat & {
@@ -196,6 +197,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
             onAssign={props.onAssign}
             onGenerateAnswerSheet={props.onGenerateAnswerSheet}
             onRequirePaperScores={props.onRequirePaperScores}
+            onExpand={props.onExpand}
           />
         </div>
       ) : null}

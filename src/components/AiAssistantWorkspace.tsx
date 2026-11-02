@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, BrainCircuit, Check, Circle, FileText, LoaderCircle, Plus, SquarePlus } from 'lucide-react'
+import { MetisMessage } from '@yuanfudao/metis-web-component'
+import { AlertCircle, BrainCircuit, Check, Circle, Download, FileText, LoaderCircle, Plus, SquarePlus } from 'lucide-react'
 import type { AiAssistantRun, AsyncStatus, Question } from '../prototype/types'
 import { animateQuestionToDraft } from '../utils/animateQuestionToDraft'
 import { AiComposer } from './AiComposer'
@@ -22,6 +23,17 @@ function getThinkingSteps(prompt: string) {
   return isPaperTask
     ? ['理解试卷范围与题量要求', '检索题库并筛选匹配题目', '编排题型与难度并生成预览']
     : ['理解知识点、题型与难度要求', '检索题库并匹配候选题目', '校验题量与重复项并生成预览']
+}
+
+function downloadGeneratedFile(filename: string, mime: string) {
+  const blob = new Blob([filename], { type: mime })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
+  URL.revokeObjectURL(url)
+  MetisMessage.success(`已开始下载 ${filename}`)
 }
 
 function paperTitleFromPrompt(prompt: string) {
@@ -156,14 +168,19 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
                     </div>
 
                     <footer className="ai-compose-files" aria-label="生成文件">
-                      <button type="button" className="ai-compose-file">
-                        <FileText size={16} />
-                        <span>{paperTitleFromPrompt(run.prompt)}.docx</span>
-                      </button>
-                      <button type="button" className="ai-compose-file">
-                        <FileText size={16} />
-                        <span>答案解析.docx</span>
-                      </button>
+                      {[
+                        { name: `${paperTitleFromPrompt(run.prompt)}.docx`, mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+                        { name: '答案解析.docx', mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+                        { name: '命题说明书.pdf', mime: 'application/pdf' },
+                      ].map((file) => (
+                        <div className="ai-compose-file" key={file.name}>
+                          <FileText size={16} />
+                          <span>{file.name}</span>
+                          <button type="button" onClick={() => downloadGeneratedFile(file.name, file.mime)}>
+                            <Download size={14} />下载
+                          </button>
+                        </div>
+                      ))}
                     </footer>
                   </article>
                 ) : null}

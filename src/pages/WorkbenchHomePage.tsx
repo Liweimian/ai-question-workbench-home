@@ -478,6 +478,7 @@ export function WorkbenchHomePage() {
         onSave={() => { void trySaveDocument() }}
         onAssign={tryAssignDocument}
         onRequirePaperScores={requirePaperScores}
+        onExpand={sidePanelOpen ? () => { setSidePanelOpen(false); setDraftCollapsed(false) } : undefined}
         onOpenAssistant={openAssistant}
         onOpenAdd={openAdd}
         onOpenMyResources={() => openMyResources('全部')}
@@ -509,6 +510,7 @@ export function WorkbenchHomePage() {
         onSave={() => { void trySaveDocument() }}
         onAssign={tryAssignDocument}
         onRequirePaperScores={requirePaperScores}
+        onExpand={sidePanelOpen ? () => { setSidePanelOpen(false); setDraftCollapsed(false) } : undefined}
         onSectionTitleChange={workbench.setSectionTitle}
         onAdd={openAdd}
         onOpenMyResources={() => openMyResources('全部')}
@@ -732,13 +734,15 @@ export function WorkbenchHomePage() {
                       </button>
                     </span>
                   ) : null}
-                  <button
-                    type="button"
-                    className="add-workspace-collapse"
-                    aria-label="收起添加题目工作区"
-                    title="专注编辑"
-                    onClick={collapseSidePanel}
-                  ><PanelLeftClose size={17} /></button>
+                  {isAddHome ? null : (
+                    <button
+                      type="button"
+                      className="add-workspace-collapse"
+                      aria-label="收起添加题目工作区"
+                      title="专注编辑"
+                      onClick={collapseSidePanel}
+                    ><PanelLeftClose size={17} /></button>
+                  )}
                 </nav>
                 {activeFileDetailId && fileDetailTabs.some((tab) => tab.id === activeFileDetailId) ? (
                   <ResourceFileDetail

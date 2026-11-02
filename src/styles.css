@@ -4037,6 +4037,7 @@
 .document-action-toolbar .metis-button { height: 30px; min-width: 0; padding: 0 9px !important; color: var(--fx-text-secondary); font-size: 12px; }
 .document-action-toolbar .metis-button:hover:not(:disabled) { color: var(--fx-primary); background: var(--fx-primary-selected); }
 .document-action-toolbar .document-action-item.is-save .metis-button:not(:disabled) { color: var(--fx-primary); background: var(--fx-primary-selected); font-weight: 600; }
+.document-action-toolbar .document-action-item.is-expand .metis-button { color: var(--fx-text); opacity: 1; }
 .document-action-toolbar .metis-button:disabled { opacity: .42; }
 
 .document-action-popover {
@@ -7827,6 +7828,18 @@
   text-align: left;
 }
 
+.workbook-catalog {
+  min-height: 520px;
+  margin: 0;
+}
+
+.legacy-workbook-section-title {
+  margin: 4px 0 12px;
+  color: var(--fx-text-primary);
+  font-size: 18px;
+  font-weight: 650;
+}
+
 .legacy-directory-tree button:hover,
 .legacy-directory-tree button.is-active {
   color: var(--fx-primary);
@@ -10159,12 +10172,25 @@
   align-items: center;
   gap: 8px;
   min-height: 36px;
-  padding: 0 12px;
+  padding: 0 6px 0 12px;
   overflow: hidden;
   border: 1px solid var(--fx-line-subtle);
   border-radius: 999px;
   color: var(--fx-text-secondary);
   background: var(--common_bg2_color);
+  font-size: 12px;
+}
+
+.ai-compose-file > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
   cursor: pointer;
   font-size: 12px;
 }

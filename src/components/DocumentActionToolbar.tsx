@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
-import { ClipboardList, Download, LoaderCircle, Printer, Save, Send, Share2 } from 'lucide-react'
+import { ClipboardList, Download, LoaderCircle, Maximize2, Printer, Save, Send, Share2 } from 'lucide-react'
 import type { DocumentSyncState, WorkbenchDocument } from '../prototype/types'
 import { getDocumentKind } from '../utils/documentEditorUtils'
 
@@ -14,6 +14,7 @@ interface DocumentActionToolbarProps {
   onAssign: () => void
   onGenerateAnswerSheet?: () => void
   onRequirePaperScores?: (action: 'assign' | 'download' | 'print') => boolean
+  onExpand?: () => void
 }
 
 function escapeHtml(value: string) {
@@ -25,7 +26,7 @@ function escapeHtml(value: string) {
     .replace(/'/g, '&#039;')
 }
 
-export function DocumentActionToolbar({ document, canSave, contentBusy, syncState, assignmentOutdated, onSave, onAssign, onGenerateAnswerSheet, onRequirePaperScores }: DocumentActionToolbarProps) {
+export function DocumentActionToolbar({ document, canSave, contentBusy, syncState, assignmentOutdated, onSave, onAssign, onGenerateAnswerSheet, onRequirePaperScores, onExpand }: DocumentActionToolbarProps) {
   const [assignOpen, setAssignOpen] = useState(false)
   const assignRef = useRef<HTMLSpanElement>(null)
   const hasQuestions = document.questions.length > 0
@@ -88,6 +89,16 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
 
   return (
     <div className="document-action-toolbar" role="toolbar" aria-label="题单操作">
+      {onExpand ? (
+        <span className="document-action-item is-expand">
+          <MetisButton
+            type="borderless"
+            icon={<Maximize2 size={16} />}
+            onClick={onExpand}
+            data-track="/click/aiQuestionHome/enterFocusEditor | 展开题单编辑 | 无"
+          >展开</MetisButton>
+        </span>
+      ) : null}
       <span className="document-action-item is-save">
         <MetisButton
           type="borderless"

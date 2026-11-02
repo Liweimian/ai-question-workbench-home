@@ -29,6 +29,7 @@ interface EmptyCanvasProps {
   onKindChange: (kind: WorkbenchDocumentKind) => void
   onAnswerModeChange: (mode: PaperAnswerMode) => void
   studioLayout?: boolean
+  onExpand?: () => void
 }
 
 export function EmptyCanvas(props: EmptyCanvasProps) {
@@ -139,6 +140,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             onSave={props.onSave}
             onAssign={props.onAssign}
             onRequirePaperScores={props.onRequirePaperScores}
+            onExpand={props.onExpand}
           />
         </div>
       ) : null}

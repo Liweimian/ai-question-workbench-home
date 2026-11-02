@@ -189,7 +189,24 @@ function LegacyUseWholeVolumeMenu(props: {
   )
 }
 
+const workbookDirectory = [
+  {
+    title: '第一章 有理数',
+    groups: [
+      { title: '学习过程', items: ['1.1 正数和负数', '第1课时 相反意义的量', '第2课时 相反意义的量的表示', '1.2 有理数及其大小比较'] },
+      { title: '学业评价', items: ['本章检测'] },
+    ],
+  },
+  { title: '第二章 有理数的运算', groups: [{ title: '学习过程', items: ['2.1 有理数的加法'] }] },
+  { title: '第三章 代数式', groups: [{ title: '学习过程', items: ['3.1 列代数式'] }] },
+  { title: '第四章 整式的加减', groups: [{ title: '学习过程', items: ['4.1 整式'] }] },
+  { title: '第五章 一元一次方程', groups: [{ title: '学习过程', items: ['5.1 方程'] }] },
+  { title: '第六章 几何图形初步', groups: [{ title: '学习过程', items: ['6.1 立体图形与平面图形'] }] },
+]
+
 function LegacyResourceDetail(props: LegacyResourceDetailProps) {
+  const isWorkbook = props.record.sourceType === 'workbook'
+  const [directoryNode, setDirectoryNode] = useState('第1课时 相反意义的量')
   const [volumeFavorited, setVolumeFavorited] = useState(false)
   const [editConfirmOpen, setEditConfirmOpen] = useState(false)
   const [editConfirmPending, setEditConfirmPending] = useState(false)
@@ -248,7 +265,31 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
         </nav>
         <button type="button" className="legacy-detail-home-action" onClick={props.onReturnHome}><ArrowLeft size={15} />返回首页</button>
       </header> : null}
-      <div className="legacy-detail-stage">
+      <div className={`legacy-detail-stage${isWorkbook ? ' has-directory' : ''}`}>
+        {isWorkbook ? (
+          <aside className="legacy-workbook-directory has-no-back" aria-label="练习册章节">
+            <nav className="legacy-directory-tree">
+              {workbookDirectory.map((chapter) => (
+                <section key={chapter.title}>
+                  <h3><ChevronDown size={13} />{chapter.title}</h3>
+                  {chapter.groups.map((group) => (
+                    <div key={group.title}>
+                      <h4><ChevronDown size={12} />{group.title}</h4>
+                      {group.items.map((item) => (
+                        <button
+                          type="button"
+                          key={item}
+                          className={directoryNode === item ? 'is-active' : ''}
+                          onClick={() => setDirectoryNode(item)}
+                        >{item}</button>
+                      ))}
+                    </div>
+                  ))}
+                </section>
+              ))}
+            </nav>
+          </aside>
+        ) : null}
         <main className="legacy-detail-panel">
           <div className="legacy-detail-scroll">
             {groupedQuestions.map((section, sectionIndex) => (
