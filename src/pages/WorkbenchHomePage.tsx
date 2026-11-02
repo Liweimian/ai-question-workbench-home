@@ -819,6 +819,7 @@ export function WorkbenchHomePage() {
                     embedded
                     draftContent={renderDraftContent(false)}
                     histories={workbench.historyDocuments}
+                    currentDocumentId={workbench.document.id}
                     historyStatus={workbench.historyStatus}
                     onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
                     onOpenMyResources={() => openMyResources('全部')}

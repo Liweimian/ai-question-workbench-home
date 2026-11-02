@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { createPortal } from 'react-dom'
-import { MetisButton, MetisInput } from '@yuanfudao/metis-web-component'
+import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
 import {
+  ArchiveX,
   ArrowLeft,
   BookOpenCheck,
   ChevronDown,
@@ -12,6 +13,7 @@ import {
   ListTree,
   SquarePen,
   ListChecks,
+  MoreHorizontal,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -129,6 +131,33 @@ interface LegacyResourceDetailProps {
     selectedQuestions: Question[],
     mode: 'plain' | 'discard' | 'save-first',
   ) => Promise<'success' | 'failed'>
+  schoolLibrary?: boolean
+}
+
+function QuestionMoreMenu(props: { showUnpublish: boolean }) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return undefined
+    const onPointerDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    return () => document.removeEventListener('mousedown', onPointerDown)
+  }, [open])
+  return (
+    <div className="legacy-question-more" ref={rootRef}>
+      <button type="button" aria-label="更多" aria-expanded={open} onClick={() => setOpen((current) => !current)}>
+        <MoreHorizontal size={16} />
+      </button>
+      {open ? (
+        <div className="legacy-question-more-menu" role="menu">
+          <button type="button" role="menuitem" onClick={() => { MetisMessage.info('已提交纠错'); setOpen(false) }}>纠错</button>
+          {props.showUnpublish ? <button type="button" role="menuitem" onClick={() => { MetisMessage.success('已下架'); setOpen(false) }}>下架</button> : null}
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 function LegacyUseWholeVolumeMenu(props: {
@@ -139,6 +168,7 @@ function LegacyUseWholeVolumeMenu(props: {
   onEdit: () => void
   onFavorite: () => void
   favorited: boolean
+  showUnpublish?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -183,6 +213,12 @@ function LegacyUseWholeVolumeMenu(props: {
             <Star size={16} />
             {props.favorited ? '取消收藏' : '收藏'}
           </button>
+          {props.showUnpublish ? (
+            <button type="button" role="menuitem" onClick={() => { MetisMessage.success('已下架'); setOpen(false) }}>
+              <ArchiveX size={16} />
+              下架
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -303,6 +339,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                       contentBusy={props.contentBusy}
                       showEdit={Boolean(props.embedded && props.onCompleteEditWholeVolume)}
                       favorited={volumeFavorited}
+                      showUnpublish={Boolean(props.schoolLibrary && props.record.sourceType === 'paper')}
                       onAddToDraft={() => void props.onUseAll()}
                       onEdit={() => void handleEditWholeVolume()}
                       onFavorite={() => setVolumeFavorited((current) => !current)}
@@ -325,7 +362,8 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                       <footer>
                         <span>知识点：{question.knowledgePoint}</span>
                         <div>
-                          <button type="button">纠错</button><button type="button"><Star size={14} />收藏</button><button type="button">解析</button><button type="button">相似题</button>
+                          <QuestionMoreMenu showUnpublish={Boolean(props.schoolLibrary)} />
+                          <button type="button"><Star size={14} />收藏</button><button type="button">解析</button><button type="button">相似题</button>
                           {props.embedded ? <button type="button" className={`is-add${selected ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={selected || pending} onClick={(event) => { animateQuestionToDraft(event.currentTarget); void props.onToggleQuestion(question) }}>{selected ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button> : null}
                         </div>
                       </footer>
@@ -537,6 +575,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
         showAnswers={showAnswers}
         contentBusy={props.contentBusy}
         addStatus={props.addStatus}
+        schoolLibrary={props.libraryKind === 'school'}
         showReturnNavigation={!detailControlled}
         onReturnHome={() => {
           if (variant === 'dialog') {
@@ -636,7 +675,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
                     <div className="chapter-question-meta"><span>{question.type} / {question.difficulty} / {question.estimatedMinutes}分钟</span></div>
                     <div className="chapter-question-stem"><b>{index + 1}.</b><p>{question.stem}</p></div>
                     {question.options ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
-                    <footer><span>知识点：{question.knowledgePoint}</span><div><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className={`is-add${added ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={added || pending} onClick={(event) => { animateQuestionToDraft(event.currentTarget); void addQuestionImmediately(question) }}>{added ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button></div></footer>
+                    <footer><span>知识点：{question.knowledgePoint}</span><div><QuestionMoreMenu showUnpublish={props.libraryKind === 'school'} /><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className={`is-add${added ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={added || pending} onClick={(event) => { animateQuestionToDraft(event.currentTarget); void addQuestionImmediately(question) }}>{added ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button></div></footer>
                   </article>
                 )
               })}

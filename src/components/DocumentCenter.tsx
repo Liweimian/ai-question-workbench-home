@@ -4,6 +4,7 @@ import {
   BrainCircuit,
   BookOpen,
   FileInput,
+  FilePenLine,
   FileText,
   FolderHeart,
   ListTree,
@@ -25,6 +26,7 @@ interface DocumentCenterProps {
   embedded?: boolean
   draftContent?: ReactNode
   histories: HistoryDocumentSummary[]
+  currentDocumentId?: string
   historyStatus: AsyncStatus
   onOpenDocument: (documentId: string) => void
   onOpenMyResources: () => void
@@ -39,7 +41,7 @@ const aiTaskEntries: Array<{ mode: AddQuestionMode; label: string; description: 
   { mode: 'compose', label: 'AI 组题', description: '直接说作业或试卷要求，从题库配题组卷', icon: BrainCircuit },
 ]
 
-export function DocumentCenter({ embedded = false, draftContent, histories, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onOpenRecentBrowse, onReload }: DocumentCenterProps) {
+export function DocumentCenter({ embedded = false, draftContent, histories, currentDocumentId, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onOpenRecentBrowse, onReload }: DocumentCenterProps) {
   const [recentPanelClosed, setRecentPanelClosed] = useState(() => isRecentEditedPanelClosed())
 
   useEffect(() => {
@@ -78,16 +80,22 @@ export function DocumentCenter({ embedded = false, draftContent, histories, hist
         <div className="document-center-state is-error"><span>最近题单加载失败</span><MetisButton type="bordered" onClick={onReload}>重新加载</MetisButton></div>
       ) : (
         <div className="document-center-list">
-          {recentDocuments.map((item) => (
-            <button type="button" className="document-recent-item" key={item.id} onClick={() => onOpenDocument(item.id)}>
-              <span className="document-file-icon"><FileText size={22} /></span>
+          {recentDocuments.map((item) => {
+            const editing = item.id === currentDocumentId
+            return (
+            <button type="button" className={`document-recent-item${editing ? ' is-editing' : ''}`} key={item.id} onClick={() => onOpenDocument(item.id)} aria-current={editing ? 'true' : undefined}>
+              <span className="document-file-icon" title={editing ? '正在编辑' : undefined}>{editing ? <FilePenLine size={22} /> : <FileText size={22} />}</span>
               <span className="document-recent-item-copy">
-                <strong>{item.title}</strong>
+                <span className="document-recent-item-title">
+                  <strong>{item.title}</strong>
+                  {editing ? <em className="document-editing-label">正在编辑</em> : null}
+                </span>
                 <small>{formatRecentEditedMeta(item)}</small>
               </span>
               <time>{item.updatedAt}</time>
             </button>
-          ))}
+            )
+          })}
         </div>
       )}
     </section>

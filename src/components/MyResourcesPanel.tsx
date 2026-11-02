@@ -28,11 +28,7 @@ export const RESOURCE_CREATED_FOLDERS = ['全部资源', '试卷', '题单', '�
 
 const seedCreatedResources: MyResourceSummary[] = [
   { id: 'mine-3', title: '教辅扫描题 · 待校对', kind: '题目', detail: '12 道题 · AI 录题', questionCount: 12, updatedAt: '10 月 18 日', folder: '题目' },
-  { id: 'mine-4', title: '函数专题资料.pdf', kind: '文件', detail: 'PDF · 8.6 MB', updatedAt: '2026.10.16', folder: '墨水屏作业' },
   { id: 'mine-5', title: '一元一次方程周测', kind: '试卷', detail: '18 道题 · 初中数学', questionCount: 18, updatedAt: '10 月 15 日', folder: '试卷' },
-  { id: 'mine-6', title: '2024-2025学年浙江省杭州市滨江区七年级下册期末试卷：英语.pdf', kind: '文件', detail: 'PDF · 1.7 MB', updatedAt: '2026.11.01', folder: '墨水屏作业' },
-  { id: 'mine-7', title: '墨水屏测试作业.pdf', kind: '文件', detail: 'PDF · 2.4 MB', updatedAt: '2026.10.28', folder: '墨水屏作业' },
-  { id: 'mine-8', title: '2026年广东深圳宝安区二模试卷：语文.pdf', kind: '文件', detail: 'PDF · 3.1 MB', updatedAt: '2026.10.22', folder: '墨水屏作业' },
 ]
 
 const favoriteResources: MyResourceSummary[] = [
@@ -101,8 +97,6 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
   const [renameTarget, setRenameTarget] = useState<MyResourceSummary | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [moveTarget, setMoveTarget] = useState<MyResourceSummary | null>(null)
-  const [publishRecords, setPublishRecords] = useState<{ id: string; title: string; at: string }[]>([])
-  const [showRecords, setShowRecords] = useState(false)
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -114,7 +108,6 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
     setFolder('全部资源')
     setKind(props.initialKind ?? '全部')
     setSelectedIds(new Set())
-    setShowRecords(false)
     if (props.initialKind && props.initialKind !== '全部' && KIND_FOLDER[props.initialKind as Exclude<MyResourceKind, '练习册'>]) {
       setFolder(KIND_FOLDER[props.initialKind as Exclude<MyResourceKind, '练习册'>])
     }
@@ -147,10 +140,9 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
   })), [props.histories])
 
   const resources = space === 'created' ? [...historyResources, ...ownedResources] : favoriteResources
-  const hasFiles = ownedResources.some((item) => item.kind === '文件')
   const rootFolder = space === 'created' ? '全部资源' : '全部收藏'
   const folderNames = space === 'created'
-    ? hasFiles ? ['试卷', '题单', '题目', '墨水屏作业'] : ['试卷', '题单', '题目']
+    ? ['试卷', '题单', '题目']
     : ['常用练习册', '期中复习', '未分类收藏']
   const folders = [
     { name: rootFolder, root: true },
@@ -158,12 +150,13 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
     ...customFolders.map((name) => ({ name, root: false })),
   ]
   const kinds: ResourceKind[] = space === 'created'
-    ? hasFiles ? ['全部', '试卷', '题单', '题目', '文件'] : ['全部', '试卷', '题单', '题目']
-    : ['全部', '题目', '练习册', '试卷']
+    ? ['试卷', '题单', '题目']
+    : ['题目', '练习册', '试卷']
   const visible = useMemo(() => {
     const query = keyword.trim().toLowerCase()
     return resources.filter((item) => (
       (folder === rootFolder || item.folder === folder)
+      && item.kind !== '文件'
       && (kind === '全部' || item.kind === kind)
       && (!query || `${item.title}${item.kind}${item.detail}`.toLowerCase().includes(query))
     ))
@@ -174,7 +167,6 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
     setFolder(next === 'created' ? '全部资源' : '全部收藏')
     setKind('全部')
     setSelectedIds(new Set())
-    setShowRecords(false)
   }
   const toggleSelected = (id: string) => setSelectedIds((current) => {
     const next = new Set(current)
@@ -182,10 +174,9 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
     return next
   })
   useEffect(() => {
-    if (hasFiles) return
     if (kind === '文件') setKind('全部')
     if (folder === '墨水屏作业') setFolder('全部资源')
-  }, [folder, hasFiles, kind])
+  }, [folder, kind])
 
   const enqueueFiles = (fileList: FileList | File[]) => {
     const next: PendingUpload[] = []
@@ -324,6 +315,7 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
           ><MoreHorizontal size={16} />更多</button>
           {moreMenuId === resource.id ? createPortal(
             <div className="resource-more-menu is-portal" role="menu" style={{ top: menuPos.top, right: menuPos.right }}>
+              <button type="button" role="menuitem" onClick={() => { setMoreMenuId(null); MetisMessage.success('已发布') }}>发布</button>
               <button type="button" role="menuitem" onClick={() => openMove(resource)}>移动</button>
               {resource.kind === '文件' ? (
                 <button type="button" role="menuitem" onClick={() => toggleFavorite(resource.id)}><Star size={14} fill={favorited ? 'currentColor' : 'none'} />{favorited ? '取消收藏' : '收藏'}</button>
@@ -348,7 +340,6 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
       MetisMessage.error('请选择学生')
       return
     }
-    setPublishRecords((current) => [{ id: `pub-${Date.now()}`, title: publishTarget.title, at: formatToday() }, ...current])
     setPublishTarget(null)
     setPublishSubject('')
     setPublishStudents('')
@@ -363,7 +354,7 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
       </div>
       <div className="resource-directory-head"><strong>{space === 'created' ? '资源目录' : '收藏目录'}</strong><button type="button" aria-label="新建文件夹" title="新建文件夹" onClick={addFolder}><FolderPlus size={16} /></button></div>
       <nav className="resource-folder-tree" aria-label="文件夹目录">
-        {folders.map((item) => <button key={item.name} type="button" className={folder === item.name ? 'is-active' : ''} onClick={() => { setFolder(item.name); setKind(FOLDER_KIND[item.name] ?? '全部'); setShowRecords(false) }}>
+        {folders.map((item) => <button key={item.name} type="button" className={folder === item.name ? 'is-active' : ''} onClick={() => { setFolder(item.name); setKind(FOLDER_KIND[item.name] ?? '全部') }}>
           {item.root ? <ChevronDown size={14} /> : <span className="resource-folder-indent" />}<Folder size={16} /><span>{item.name}</span>
         </button>)}
       </nav>
@@ -371,32 +362,19 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
     <div className="resource-workbench-main">
       <div className="resource-content-toolbar">
         <div className="resource-kind-tabs" role="tablist" aria-label="资源类型">
-          {kinds.map((item) => <button key={item} type="button" role="tab" aria-selected={!showRecords && kind === item} onClick={() => { setKind(item); setShowRecords(false); if (space === 'created') setFolder(item === '全部' ? '全部资源' : KIND_FOLDER[item as Exclude<MyResourceKind, '练习册'>] ?? '全部资源') }}>{item}</button>)}
+          {kinds.map((item) => <button key={item} type="button" role="tab" aria-selected={kind === item} onClick={() => { setKind(item); if (space === 'created') setFolder(item === '全部' ? '全部资源' : KIND_FOLDER[item as Exclude<MyResourceKind, '练习册'>] ?? '全部资源') }}>{item}</button>)}
           <label className="resource-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索资源" /></label>
         </div>
         {space === 'created' ? (
           <div className="resource-file-actions">
-            <button type="button" className={showRecords ? 'is-active' : ''} onClick={() => setShowRecords((open) => !open)}>发布记录</button>
-            <button type="button" className="is-primary" onClick={() => { setUploadOpen(true); setShowRecords(false) }}><Upload size={14} />上传文件</button>
+            <button type="button" className="is-primary" onClick={() => setUploadOpen(true)}><Upload size={14} />上传文件</button>
           </div>
         ) : (
           <div className="resource-batch-actions">{selectedIds.size > 0 ? <><span>已选 {selectedIds.size} 项</span><button type="button" onClick={() => MetisMessage.info('已下载所选资源')}>下载</button><button type="button" onClick={() => MetisMessage.info('已移动所选资源')}>移动</button></> : null}</div>
         )}
       </div>
 
-      {showRecords ? (
-        <section className="resource-manage-list" aria-label="发布记录">
-          {publishRecords.length ? publishRecords.map((record) => (
-            <article key={record.id}>
-              <span className="resource-type-icon"><File size={21} /></span>
-              <div className="resource-item-copy"><strong>{record.title}</strong><span>已发布到墨水屏</span><small>{record.at}</small></div>
-            </article>
-          )) : (
-            <div className="resource-manage-empty"><File size={34} /><strong>暂无发布记录</strong><span>文件发布到墨水屏后会出现在这里</span></div>
-          )}
-        </section>
-      ) : (
-        <section className={`resource-manage-list${kind === '文件' ? ' is-file-list' : ''}`} aria-label="资源列表">
+      <section className={`resource-manage-list${kind === '文件' ? ' is-file-list' : ''}`} aria-label="资源列表">
           {visible.length ? visible.map((resource) => {
             const { id, title, kind: itemKind, detail, updatedAt } = resource
             const Icon = iconMap[itemKind]
@@ -418,7 +396,6 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
             </div>
           )}
         </section>
-      )}
     </div>
 
     {uploadOpen ? (
