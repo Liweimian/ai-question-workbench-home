@@ -298,7 +298,7 @@ export function WorkspaceHeader({
             icon={<Plus size={18} />}
             aria-label="新建题单"
             title="新建题单"
-            disabled={contentBusy || syncState === 'saving' || saveBeforeNewPending}
+            disabled={!hasQuestions || contentBusy || syncState === 'saving' || saveBeforeNewPending}
             onClick={handleCreateNewClick}
             data-track="/click/aiQuestionHome/createBlank | 新建空白题单 | 无"
           >
@@ -374,6 +374,7 @@ export function WorkspaceHeader({
               icon={<MoreHorizontal size={18} />}
               aria-label="更多"
               title="更多"
+              disabled={!hasQuestions || syncState === 'saving' || contentBusy}
               aria-expanded={moreOpen}
               onClick={() => {
                 setMoreOpen((open) => !open)

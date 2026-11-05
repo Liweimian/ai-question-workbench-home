@@ -198,7 +198,7 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
         </span>
       ) : null}
       <span className="document-action-item is-more" ref={moreRef}>
-        <MetisButton type="borderless" icon={<MoreHorizontal size={17} />} aria-label="更多" aria-expanded={moreOpen} onClick={() => { setMoreOpen((open) => !open); setAssignOpen(false) }}>更多</MetisButton>
+        <MetisButton type="borderless" icon={<MoreHorizontal size={17} />} aria-label="更多" aria-expanded={moreOpen} disabled={!hasQuestions || saving || contentBusy} onClick={() => { setMoreOpen((open) => !open); setAssignOpen(false) }}>更多</MetisButton>
         {moreOpen ? (
           <div className="document-action-popover document-action-more-menu" role="menu" aria-label="更多题单操作">
             <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { downloadDocument(); setMoreOpen(false) }}><Download size={16} />下载</button>

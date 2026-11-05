@@ -12,9 +12,7 @@ import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { DocumentCenter } from '../components/DocumentCenter'
 import { ElephantIcon, FeixiangAiLibraryLogo } from '../components/ElephantIcon'
-import { isDefaultDocumentTitle } from '../data/workbenchData'
 import { useWorkbench } from '../hooks/useWorkbench'
-import { defaultDocumentFormat } from '../prototype/types'
 import type { AddQuestionMode, Difficulty, MyResourceKind, MyResourceSummary, Question, QuestionType, SourceRecord } from '../prototype/types'
 import { BrainCircuit, ChevronRight, File, FileText, House, PanelLeftClose, PanelRightOpen, RefreshCw, X } from 'lucide-react'
 import { EditorStudioShell } from '../components/EditorStudioShell'
@@ -512,14 +510,10 @@ export function WorkbenchHomePage() {
   const shellClassName = sidePanelOpen
     ? `workspace-shell is-split-source${draftCollapsed ? ' is-draft-collapsed' : ''}`
     : `workspace-shell is-focus-editor is-studio${sortCollapsed ? ' is-sort-collapsed' : ''}${hasQuestions ? '' : ' is-empty'}`
-  const documentFormat = { ...defaultDocumentFormat, ...workbench.document.format }
-  const hasCustomDocumentFormat = Object.entries(defaultDocumentFormat).some(
-    ([key, value]) => documentFormat[key as keyof typeof documentFormat] !== value,
-  )
-  const canSaveDocument = workbench.document.questions.length > 0
-    || Boolean(workbench.document.intro?.trim())
-    || hasCustomDocumentFormat
-    || (!['未命名组题', '未命名题单'].includes(workbench.document.title.trim()) && !isDefaultDocumentTitle(workbench.document.title))
+  const hasUnsavedDocumentChanges = workbench.documentSyncState === 'dirty'
+    || workbench.documentSyncState === 'error'
+    || workbench.assignmentOutdated
+  const canSaveDocument = workbench.document.questions.length > 0 && hasUnsavedDocumentChanges
   const requiresSaveKind = !workbench.historyDocuments.some((item) => item.id === workbench.document.id)
   const finalizeNewDocument = (rememberCurrent = true) => {
     if (!workbench.createNewDocument({
@@ -535,8 +529,6 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(true)
     setDraftCollapsed(false)
   }
-
-  const hasUnsavedDocumentChanges = workbench.documentSyncState === 'dirty' || workbench.assignmentOutdated
 
   const expandEditorForScores = () => {
     setDraftCollapsed(false)
@@ -822,7 +814,7 @@ export function WorkbenchHomePage() {
               workbench.undo()
             }}
             onCreateNew={finalizeNewDocument}
-            hasUnsavedChanges={hasUnsavedDocumentChanges || hasQuestions}
+            hasUnsavedChanges={hasUnsavedDocumentChanges}
             onSaveAndCreateNew={(kind) => trySaveDocument(kind, true)}
             onSave={(kind) => trySaveDocument(kind)}
             onAssign={tryAssignDocument}
