@@ -27,6 +27,11 @@ import type { AsyncStatus, LibraryInitialView, Question, ResourceType, SourceRec
 import { workbenchRepository } from '../services/workbenchRepository'
 import { animateQuestionToDraft } from '../utils/animateQuestionToDraft'
 import { ContextualAiPopover } from './ContextualAiPopover'
+import {
+  ImageQuestionSearchPanel,
+  useImageQuestionSearch,
+  validateQuestionImage,
+} from './ImageQuestionSearchPanel'
 
 interface LibraryPickerProps {
   variant?: 'dialog' | 'home'
@@ -547,6 +552,9 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set(['paper-2']))
   const [pinned, setPinned] = useState<Set<string>>(new Set())
   const chapterImageInputRef = useRef<HTMLInputElement>(null)
+  const { imageSearch: chapterImageSearch, startRecognition: startChapterImageRecognition, retry: retryChapterImageSearch, clear: clearChapterImageSearch } = useImageQuestionSearch(() => {
+    setKeyword('一次函数')
+  })
   const detailControlled = props.detailRecord !== undefined
   const detailRecord = detailControlled ? props.detailRecord ?? null : internalDetailRecord
   const chapterGroups = chapterKnowledgeTree.filter((group) => group.title !== '知识点选题')
@@ -875,7 +883,27 @@ export function LibraryPicker(props: LibraryPickerProps) {
             ))}
           </aside>
           <main className="chapter-picker-results">
-            <div className="chapter-picker-heading"><div><h3>{chapterNode}</h3><p>按教材章节或知识点逐题选择</p></div><div className="library-search has-image-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索题目关键词" /><button type="button" className="library-image-search" aria-label="图片搜题" title="图片搜题" onClick={() => chapterImageInputRef.current?.click()}><ImagePlus size={16} /></button><input ref={chapterImageInputRef} className="global-resource-search-image-input" type="file" accept="image/*" aria-label="选择题目图片" onChange={(event) => { if (event.target.files?.[0]) { setKeyword('一次函数'); MetisMessage.success('题目图片已识别，已显示相似题') } event.currentTarget.value = '' }} /></div></div>
+            <div className="chapter-picker-heading"><div><h3>{chapterNode}</h3><p>按教材章节或知识点逐题选择</p></div><div className="library-search has-image-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索题目关键词" /><button type="button" className="library-image-search" aria-label="图片搜题" title="图片搜题" onClick={() => chapterImageInputRef.current?.click()}><ImagePlus size={16} /></button><input ref={chapterImageInputRef} className="global-resource-search-image-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="选择题目图片" onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) {
+                const validationMessage = validateQuestionImage(file)
+                if (validationMessage) MetisMessage.error(validationMessage)
+                else startChapterImageRecognition(file)
+              }
+              event.currentTarget.value = ''
+            }} /></div></div>
+            {chapterImageSearch ? (
+              <ImageQuestionSearchPanel
+                value={chapterImageSearch}
+                compact
+                onRetry={retryChapterImageSearch}
+                onReplace={() => chapterImageInputRef.current?.click()}
+                onRemove={() => {
+                  clearChapterImageSearch()
+                  setKeyword('')
+                }}
+              />
+            ) : null}
             <div className="chapter-question-list">
               {visibleChapterQuestions.map((question, index) => {
                 const added = selectedQuestionIds.has(question.id)

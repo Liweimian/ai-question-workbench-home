@@ -32,6 +32,12 @@ import type {
   ParsedGlobalResourceSearchQuery,
   ParsedGlobalSearchCondition,
 } from '../services/globalResourceSearchRepository'
+import {
+  ImageQuestionSearchPanel,
+  useImageQuestionSearch,
+  validateQuestionImage,
+} from './ImageQuestionSearchPanel'
+import type { ImageQuestionSearchState } from './ImageQuestionSearchPanel'
 
 const RECENT_SEARCH_STORAGE_KEY = 'ai-question-global-resource-searches'
 const MAX_RECENT_SEARCHES = 10
@@ -192,6 +198,10 @@ export interface GlobalResourceSearchWorkspaceProps {
   onRemoveCondition?: (condition: ParsedGlobalSearchCondition) => void
   onClose: () => void
   onViewAllGroup?: (type: GlobalSearchGroupType, result: GlobalResourceSearchResult) => void
+  imageSearch?: ImageQuestionSearchState | null
+  onRetryImageSearch?: () => void
+  onReplaceImage?: () => void
+  onRemoveImage?: () => void
 }
 
 function SearchConditions({
@@ -423,6 +433,10 @@ export function GlobalResourceSearchWorkspace({
   onRemoveCondition,
   onClose,
   onViewAllGroup,
+  imageSearch,
+  onRetryImageSearch,
+  onReplaceImage,
+  onRemoveImage,
 }: GlobalResourceSearchWorkspaceProps) {
   const [visibleGroupCounts, setVisibleGroupCounts] = useState<Partial<Record<GlobalSearchGroupType, number>>>({})
 
@@ -481,7 +495,16 @@ export function GlobalResourceSearchWorkspace({
         </nav>
       ) : null}
 
-      {status === 'idle' ? (
+      {imageSearch && onRetryImageSearch && onReplaceImage && onRemoveImage ? (
+        <ImageQuestionSearchPanel
+          value={imageSearch}
+          onRetry={onRetryImageSearch}
+          onReplace={onReplaceImage}
+          onRemove={onRemoveImage}
+        />
+      ) : null}
+
+      {status === 'idle' && !imageSearch ? (
         <SuggestionWorkspace query={query} recentSearches={recentSearches} onSelect={onSuggestionSelect} />
       ) : null}
 
@@ -513,22 +536,24 @@ export function GlobalResourceSearchWorkspace({
       {status === 'success' && result && result.parsed.intent !== 'compose' && result.total === 0 ? (
         <div className="global-resource-search-state is-empty">
           <Search size={28} />
-          <strong>没有找到完全匹配的资源</strong>
-          <p>试试减少条件，或换一个章节名称。</p>
+          <strong>{result.parsed.intent === 'question' ? '没有找到相关题目' : '没有找到相关资源'}</strong>
+          <p>{result.parsed.intent === 'question'
+            ? '换一张更清晰的图片，或调整章节、题型和难度后再试。'
+            : '试试减少条件，或换一个章节名称。'}</p>
           <SearchConditions parsed={result.parsed} onRemove={onRemoveCondition} />
-          <MetisButton type="bordered" onClick={() => onOpenCompose(submittedQuery)}>没有现成资源？前往 AI 组题</MetisButton>
+          {result.parsed.intent === 'question' ? (
+            <MetisButton type="bordered" onClick={onRetry}>重新搜索</MetisButton>
+          ) : (
+            <MetisButton type="bordered" onClick={() => onOpenCompose(submittedQuery)}>没有现成资源？前往 AI 组题</MetisButton>
+          )}
         </div>
       ) : null}
 
       {status === 'success' && result && result.total > 0 ? (
         <div className="global-resource-search-results">
           <header className="global-resource-search-results-heading">
-            <div>
-              <strong>找到 {result.matchedTypeCount} 类 {result.total} 条相关资源</strong>
-              <small>结果来自现有题库，点击后进入对应选题流程</small>
-            </div>
+            <strong>已为您找到 {result.total} 条资源</strong>
           </header>
-          <SearchConditions parsed={result.parsed} onRemove={onRemoveCondition} />
 
           <div className="global-resource-search-group-list">
             {result.groups.map((group) => {
@@ -741,6 +766,10 @@ export function GlobalResourceSearch({
     }
   }
 
+  const { imageSearch, startRecognition, retry: retryImageSearch, clear: clearImageSearch } = useImageQuestionSearch(() => {
+    void runSearch('找一道一次函数单题')
+  })
+
   const resetSearch = () => {
     requestRef.current?.abort()
     setQuery('')
@@ -774,8 +803,21 @@ export function GlobalResourceSearch({
 
   const selectQuestionImage = (file?: File) => {
     if (!file) return
-    MetisMessage.success('题目图片已识别，正在搜索相似题')
-    void runSearch('找一道一次函数单题')
+    const validationMessage = validateQuestionImage(file)
+    if (validationMessage) {
+      MetisMessage.error(validationMessage)
+      return
+    }
+    if (onActivateWorkspace) {
+      setPopoverOpen(false)
+      onActivateWorkspace()
+    } else {
+      setPopoverOpen(true)
+    }
+    setStatus('idle')
+    setResult(null)
+    setParsed(null)
+    startRecognition(file)
   }
 
   return (
@@ -787,7 +829,7 @@ export function GlobalResourceSearch({
         ref={imageInputRef}
         className="global-resource-search-image-input"
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         aria-label="选择题目图片"
         onChange={(event) => {
           selectQuestionImage(event.target.files?.[0])
@@ -838,6 +880,13 @@ export function GlobalResourceSearch({
           }}
           onSearchExisting={(value) => { void runSearch(value, 'resource') }}
           onRemoveCondition={removeCondition}
+          imageSearch={imageSearch}
+          onRetryImageSearch={retryImageSearch}
+          onReplaceImage={() => imageInputRef.current?.click()}
+          onRemoveImage={() => {
+            clearImageSearch()
+            resetSearch()
+          }}
           onClose={() => {
             if (workspaceActive) onRequestCloseWorkspace?.()
             else setPopoverOpen(false)

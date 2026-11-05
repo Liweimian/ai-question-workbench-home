@@ -13326,6 +13326,72 @@
   white-space: nowrap;
 }
 
+.image-question-search-panel {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  width: min(100%, 1080px);
+  margin: 18px auto 0;
+  padding: 14px;
+  border: 1px solid var(--fx-line-subtle);
+  border-radius: var(--fx-radius-card);
+  background: var(--fx-surface-card);
+}
+
+.image-question-search-preview {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.image-question-search-preview img {
+  width: 112px;
+  height: 72px;
+  border-radius: var(--fx-radius-control);
+  object-fit: cover;
+  background: var(--fx-surface-muted);
+}
+
+.image-question-search-preview span {
+  overflow: hidden;
+  color: var(--fx-text-tertiary);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-question-search-progress {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.image-question-search-progress > svg { flex: 0 0 auto; color: var(--fx-primary); }
+.image-question-search-progress > svg.is-spinning { animation: global-resource-search-spin 1s linear infinite; }
+.image-question-search-progress > div { display: grid; min-width: 0; gap: 5px; }
+.image-question-search-progress strong { color: var(--fx-text-primary); font-size: 14px; }
+.image-question-search-progress small { overflow: hidden; color: var(--fx-text-secondary); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+
+.image-question-search-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.image-question-search-panel.is-compact {
+  grid-template-columns: 88px minmax(0, 1fr) auto;
+  width: auto;
+  margin: 0 20px 12px;
+  padding: 10px 12px;
+}
+
+.image-question-search-panel.is-compact .image-question-search-preview img {
+  width: 88px;
+  height: 58px;
+}
+
 .global-resource-search-submit {
   color: var(--common_bg2_color) !important;
   background: var(--fx-primary) !important;
@@ -13610,9 +13676,8 @@ button.global-resource-search-condition:hover { color: var(--fx-primary); border
   justify-content: space-between;
 }
 
-.global-resource-search-results-heading > div { display: grid; gap: 5px; }
 .global-resource-search-results-heading strong { font-size: 18px; line-height: 27px; }
-.global-resource-search-results-heading small { color: var(--fx-text-tertiary); font-size: 12px; }
+.global-resource-search-results-heading { margin-bottom: 16px; }
 .global-resource-search-group-list { display: grid; gap: 14px; }
 
 .global-resource-search-group {
