@@ -8,6 +8,7 @@ import type { CreateQuestionRequest, Difficulty, DocumentStatus, MyResourceSumma
 
 const delay = (duration: number) => new Promise((resolve) => window.setTimeout(resolve, duration))
 const localDocumentStorageKey = 'feixiang-ai-question-workbench-documents-v1'
+const activeDocumentStorageKey = 'feixiang-ai-question-workbench-active-v1'
 
 interface StoredDocumentEntry {
   document: WorkbenchDocument
@@ -31,9 +32,31 @@ export function readStoredDocument(documentId: string): WorkbenchDocument | null
   return readStoredDocuments().find((entry) => entry.document.id === documentId)?.document ?? null
 }
 
+export function getActiveDraftDocument(): WorkbenchDocument | null {
+  try {
+    const raw = window.localStorage.getItem(activeDocumentStorageKey)
+    if (!raw) return null
+    const active = JSON.parse(raw) as { draft?: WorkbenchDocument; unsaved?: boolean }
+    return active.unsaved && active.draft ? active.draft : null
+  } catch {
+    return null
+  }
+}
+
+export function rememberActiveDraftDocument(document: WorkbenchDocument) {
+  window.localStorage.setItem(activeDocumentStorageKey, JSON.stringify({
+    draft: document,
+    unsaved: true,
+  }))
+}
+
+export function clearActiveDraftDocument() {
+  window.localStorage.removeItem(activeDocumentStorageKey)
+}
+
 export function persistDocumentNow(document: WorkbenchDocument) {
   const existing = readStoredDocuments().find((entry) => entry.document.id === document.id)
-  return writeStoredDocument(document, existing?.status ?? '草稿', existing?.assignmentOutdated)
+  return writeStoredDocument(document, existing?.status === '已布置' ? '已布置' : '已保存', existing?.assignmentOutdated)
 }
 
 function writeStoredDocument(document: WorkbenchDocument, status: DocumentStatus, assignmentOutdated = false) {
@@ -336,6 +359,9 @@ export const workbenchRepository: WorkbenchRepository = {
         status,
         assignmentOutdated,
         origin: '手工组题' as const,
+        kind: document.kind,
+        answerMode: document.answerMode,
+        answerSheet: document.answerSheet,
       })),
       ...historySummaries.filter((summary) => !storedIds.has(summary.id)).map((summary) => ({ ...summary })),
     ]

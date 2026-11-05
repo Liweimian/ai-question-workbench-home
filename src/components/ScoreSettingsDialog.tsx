@@ -76,7 +76,7 @@ export function ScoreSettingsDialog({ questions, onClose, onSave }: ScoreSetting
               onSave(parsedScores)
             }}
           >
-            保存分值
+            确定
           </button>
         </footer>
       </section>

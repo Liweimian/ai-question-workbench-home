@@ -8,12 +8,15 @@ import {
   BookOpenCheck,
   ChevronDown,
   Clock3,
+  Download,
   Eye,
   FileText,
+  ImagePlus,
   ListTree,
   SquarePen,
   ListChecks,
   MoreHorizontal,
+  Pin,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -21,12 +24,20 @@ import {
 } from 'lucide-react'
 import { baseQuestions, sourceOptions, sourceRecords as allSourceRecords } from '../data/workbenchData'
 import type { AsyncStatus, LibraryInitialView, Question, ResourceType, SourceRecord } from '../prototype/types'
+import { workbenchRepository } from '../services/workbenchRepository'
 import { animateQuestionToDraft } from '../utils/animateQuestionToDraft'
+import { ContextualAiPopover } from './ContextualAiPopover'
 
 interface LibraryPickerProps {
   variant?: 'dialog' | 'home'
   libraryKind: 'fly' | 'school'
   initialView?: LibraryInitialView
+  initialSearchKeyword?: string
+  initialChapterNode?: string
+  initialQuestionId?: string
+  initialQuestionType?: Question['type']
+  initialDifficulty?: Question['difficulty']
+  initialMatchedPath?: string
   resourceType: ResourceType
   records: SourceRecord[]
   listStatus: AsyncStatus
@@ -37,15 +48,17 @@ interface LibraryPickerProps {
   onShowAllChange?: (showAll: boolean) => void
   onDetailChange?: (open: boolean) => void
   onOpenDetail?: (record: SourceRecord) => void
+  onWorkbookDirectoryChange?: (record: SourceRecord, matchedPath: string) => void
   onResourceTypeChange: (type: ResourceType) => void
   onAddSource: (type: ResourceType, sourceId: string, count: number, selectedQuestions?: Question[]) => Promise<boolean>
   currentDocumentHasContent?: boolean
+  currentDocumentHasUnsavedChanges?: boolean
   onCompleteEditWholeVolume?: (
     type: ResourceType,
     sourceId: string,
     count: number,
     selectedQuestions: Question[],
-    mode: 'plain' | 'discard' | 'save-first',
+    mode: 'plain' | 'save-first' | 'discard-first',
   ) => Promise<'success' | 'failed'>
 }
 
@@ -77,8 +90,8 @@ const categoryGroups: Record<Exclude<ResourceType, 'workbook'>, Array<{ title?: 
 const filterLabels: Record<ResourceType, string[]> = {
   workbook: ['八年级', '类型', '教材版本', '练习册系列'],
   paper: ['八年级上', '北京市朝阳区', '年份', '来源'],
-  sync: ['来自', '难度', '资源库'],
-  special: ['来自', '难度'],
+  sync: ['难度', '来源'],
+  special: ['难度', '来源'],
 }
 
 const listHeadings: Record<ResourceType, string> = {
@@ -109,8 +122,16 @@ function getResourceCardTags(record: SourceRecord) {
   return [record.highlight || resourceTypeLabels[record.sourceType], secondaryTag].slice(0, 2)
 }
 
+function getPaperRecordingType(record: SourceRecord) {
+  if (record.sourceType !== 'paper') return 'none'
+  if (record.tags?.includes('委托录题')) return 'delegated'
+  if (record.tags?.includes('AI录题')) return 'ai'
+  return 'none'
+}
+
 interface LegacyResourceDetailProps {
   record: SourceRecord
+  initialMatchedPath?: string
   embedded?: boolean
   questions: Question[]
   selectedQuestionIds: Set<string>
@@ -122,20 +143,24 @@ interface LegacyResourceDetailProps {
   onReturnHome: () => void
   onToggleAnswers: () => void
   onToggleQuestion: (question: Question) => Promise<void>
+  onAddQuestionGroup: (questions: Question[]) => Promise<void>
   onUseAll: () => Promise<void>
+  onWorkbookDirectoryChange?: (matchedPath: string) => void
   currentDocumentHasContent?: boolean
+  currentDocumentHasUnsavedChanges?: boolean
   onCompleteEditWholeVolume?: (
     type: ResourceType,
     sourceId: string,
     count: number,
     selectedQuestions: Question[],
-    mode: 'plain' | 'discard' | 'save-first',
+    mode: 'plain' | 'save-first' | 'discard-first',
   ) => Promise<'success' | 'failed'>
   schoolLibrary?: boolean
 }
 
 function QuestionMoreMenu(props: { showUnpublish: boolean }) {
   const [open, setOpen] = useState(false)
+  const [favorited, setFavorited] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!open) return undefined
@@ -152,11 +177,65 @@ function QuestionMoreMenu(props: { showUnpublish: boolean }) {
       </button>
       {open ? (
         <div className="legacy-question-more-menu" role="menu">
+          <button type="button" role="menuitem" onClick={() => { setFavorited((current) => !current); MetisMessage.success(favorited ? '已取消收藏' : '已收藏'); setOpen(false) }}>{favorited ? '取消收藏' : '收藏'}</button>
           <button type="button" role="menuitem" onClick={() => { MetisMessage.info('已提交纠错'); setOpen(false) }}>纠错</button>
           {props.showUnpublish ? <button type="button" role="menuitem" onClick={() => { MetisMessage.success('已下架'); setOpen(false) }}>下架</button> : null}
         </div>
       ) : null}
     </div>
+  )
+}
+
+function LibraryQuestionAiRewrite(props: { question: Question; onAdd: (question: Question) => void | Promise<void> }) {
+  const [open, setOpen] = useState(false)
+  const [prompt, setPrompt] = useState('')
+  const [status, setStatus] = useState<AsyncStatus>('idle')
+  const [preview, setPreview] = useState<Question | null>(null)
+
+  const generate = async (instruction: '自定义要求' | '优化题干' | '换生活情境' | '降低难度' | '同考点换题', customPrompt?: string) => {
+    setStatus('loading')
+    setPreview(null)
+    try {
+      const result = await workbenchRepository.rewrite(props.question, {
+        questionId: props.question.id,
+        instruction,
+        prompt: customPrompt,
+      })
+      setPreview({ ...result, id: `library-rewrite-${Date.now()}` })
+      setStatus('success')
+    } catch {
+      setStatus('error')
+    }
+  }
+
+  const quickActions = [
+    { label: '润色表达', instruction: '优化题干' as const },
+    { label: '降低难度', instruction: '降低难度' as const },
+    { label: '增加情境', instruction: '换生活情境' as const },
+    { label: '同考点变式', instruction: '同考点换题' as const },
+  ]
+
+  return (
+    <>
+      <button type="button" className="is-ai-rewrite" onClick={() => { setOpen(true); setStatus('idle'); setPreview(null) }}><Sparkles size={14} />AI改编</button>
+      {open ? (
+        <ContextualAiPopover
+          title="AI改编"
+          prompt={prompt}
+          placeholder="描述如何修改这道题…"
+          status={status}
+          error={status === 'error' ? 'AI 改编失败，请重试' : undefined}
+          resultText={preview?.stem}
+          resultMeta="已生成改编结果"
+          quickActions={quickActions.map((action) => ({ label: action.label, onSelect: () => { setPrompt(action.label); void generate(action.instruction) } }))}
+          onPromptChange={setPrompt}
+          onSubmit={() => { if (prompt.trim()) void generate('自定义要求', prompt.trim()) }}
+          onClose={() => setOpen(false)}
+          onAppend={preview ? () => { void props.onAdd(preview); setOpen(false) } : undefined}
+          appendLabel="添加"
+        />
+      ) : null}
+    </>
   )
 }
 
@@ -168,6 +247,7 @@ function LegacyUseWholeVolumeMenu(props: {
   onEdit: () => void
   onFavorite: () => void
   favorited: boolean
+  showFavorite?: boolean
   showUnpublish?: boolean
 }) {
   const [open, setOpen] = useState(false)
@@ -200,19 +280,19 @@ function LegacyUseWholeVolumeMenu(props: {
         <div className="legacy-use-whole-menu" role="menu" aria-label="使用整卷">
           <button type="button" role="menuitem" disabled={props.contentBusy} onClick={() => { props.onAddToDraft(); setOpen(false) }}>
             <FileText size={16} />
-            加入当前编辑
+            当前编辑
           </button>
           {props.showEdit ? (
             <button type="button" role="menuitem" onClick={() => { props.onEdit(); setOpen(false) }}>
               <SquarePen size={16} />
-              编辑
+              新建并编辑
             </button>
           ) : null}
-          <div className="legacy-use-whole-menu-divider" role="separator" />
-          <button type="button" role="menuitem" onClick={() => { props.onFavorite(); setOpen(false) }}>
+          {props.showFavorite !== false || props.showUnpublish ? <div className="legacy-use-whole-menu-divider" role="separator" /> : null}
+          {props.showFavorite !== false ? <button type="button" role="menuitem" onClick={() => { props.onFavorite(); setOpen(false) }}>
             <Star size={16} />
             {props.favorited ? '取消收藏' : '收藏'}
-          </button>
+          </button> : null}
           {props.showUnpublish ? (
             <button type="button" role="menuitem" onClick={() => { MetisMessage.success('已下架'); setOpen(false) }}>
               <ArchiveX size={16} />
@@ -238,14 +318,31 @@ const workbookDirectory = [
   { title: '第四章 整式的加减', groups: [{ title: '学习过程', items: ['4.1 整式'] }] },
   { title: '第五章 一元一次方程', groups: [{ title: '学习过程', items: ['5.1 方程'] }] },
   { title: '第六章 几何图形初步', groups: [{ title: '学习过程', items: ['6.1 立体图形与平面图形'] }] },
+  {
+    title: '第四章 一次函数',
+    groups: [
+      { title: '学习过程', items: ['4.1 函数', '4.2 一次函数与正比例函数', '4.3 一次函数的图象', '4.4 一次函数的应用'] },
+      { title: '学业评价', items: ['一次函数单元检测'] },
+    ],
+  },
 ]
 
-function LegacyResourceDetail(props: LegacyResourceDetailProps) {
+export function LegacyResourceDetail(props: LegacyResourceDetailProps) {
   const isWorkbook = props.record.sourceType === 'workbook'
-  const [directoryNode, setDirectoryNode] = useState('第1课时 相反意义的量')
+  const paperRecordingType = getPaperRecordingType(props.record)
+  const matchedPathParts = props.initialMatchedPath?.split('>').map((item) => item.trim()).filter(Boolean) ?? []
+  const matchedChapterTitle = matchedPathParts.find((item) => item.includes('章'))
+    ?? matchedPathParts[matchedPathParts.length - 1]
+  const knownDirectoryItems = workbookDirectory.flatMap((chapter) => chapter.groups.flatMap((group) => group.items))
+  const exactMatchedDirectoryNode = [...matchedPathParts].reverse().find((item) => knownDirectoryItems.includes(item))
+  const matchedDirectoryNode = exactMatchedDirectoryNode
+    ?? (props.initialMatchedPath?.includes('一次函数') ? '4.1 函数' : undefined)
+  const [directoryNode, setDirectoryNode] = useState(matchedDirectoryNode ?? '第1课时 相反意义的量')
+  const directoryRef = useRef<HTMLElement>(null)
+  const [paperView, setPaperView] = useState<'original' | 'question'>('question')
   const [volumeFavorited, setVolumeFavorited] = useState(false)
-  const [editConfirmOpen, setEditConfirmOpen] = useState(false)
-  const [editConfirmPending, setEditConfirmPending] = useState(false)
+  const [newEditConfirmOpen, setNewEditConfirmOpen] = useState(false)
+  const [newEditPending, setNewEditPending] = useState(false)
   const sectionOrder = ['选择题', '填空题', '解答题']
   const sectionNames = ['一、单项选择题', '二、填空题', '三、解答题']
   const groupedQuestions = sectionOrder.map((type, index) => ({
@@ -253,36 +350,38 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
     questions: props.questions.filter((question) => question.type === type),
   })).filter((section) => section.questions.length > 0)
 
-  const handleEditWholeVolume = async () => {
-    if (!props.onCompleteEditWholeVolume || props.contentBusy) return
-    if (props.currentDocumentHasContent) {
-      setEditConfirmOpen(true)
-      return
-    }
-    await props.onCompleteEditWholeVolume(
+  useEffect(() => {
+    if (matchedDirectoryNode) setDirectoryNode(matchedDirectoryNode)
+    if (!matchedChapterTitle) return undefined
+    const frame = window.requestAnimationFrame(() => {
+      const target = Array.from(directoryRef.current?.querySelectorAll<HTMLElement>('[data-directory-chapter]') ?? [])
+        .find((item) => item.dataset.directoryChapter === matchedChapterTitle)
+      target?.scrollIntoView({ block: 'start' })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [matchedChapterTitle, matchedDirectoryNode])
+
+  const completeEditWholeVolume = async (mode: 'plain' | 'save-first' | 'discard-first') => {
+    if (!props.onCompleteEditWholeVolume || newEditPending) return
+    setNewEditPending(true)
+    const result = await props.onCompleteEditWholeVolume(
       props.record.sourceType,
       props.record.id,
       props.questions.length,
       props.questions,
-      'plain',
+      mode,
     )
+    setNewEditPending(false)
+    if (result === 'success') setNewEditConfirmOpen(false)
   }
 
-  const handleCompleteEditWholeVolume = async (mode: 'discard' | 'save-first') => {
-    if (!props.onCompleteEditWholeVolume || editConfirmPending) return
-    setEditConfirmPending(true)
-    try {
-      await props.onCompleteEditWholeVolume(
-        props.record.sourceType,
-        props.record.id,
-        props.questions.length,
-        props.questions,
-        mode,
-      )
-      setEditConfirmOpen(false)
-    } finally {
-      setEditConfirmPending(false)
+  const handleEditWholeVolume = () => {
+    if (!props.onCompleteEditWholeVolume || props.contentBusy) return
+    if (props.currentDocumentHasContent && props.currentDocumentHasUnsavedChanges) {
+      setNewEditConfirmOpen(true)
+      return
     }
+    void completeEditWholeVolume('plain')
   }
 
   return (
@@ -303,10 +402,10 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
       </header> : null}
       <div className={`legacy-detail-stage${isWorkbook ? ' has-directory' : ''}`}>
         {isWorkbook ? (
-          <aside className="legacy-workbook-directory has-no-back" aria-label="练习册章节">
+          <aside ref={directoryRef} className="legacy-workbook-directory has-no-back" aria-label="练习册章节">
             <nav className="legacy-directory-tree">
               {workbookDirectory.map((chapter) => (
-                <section key={chapter.title}>
+                <section key={chapter.title} data-directory-chapter={chapter.title}>
                   <h3><ChevronDown size={13} />{chapter.title}</h3>
                   {chapter.groups.map((group) => (
                     <div key={group.title}>
@@ -316,7 +415,10 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                           type="button"
                           key={item}
                           className={directoryNode === item ? 'is-active' : ''}
-                          onClick={() => setDirectoryNode(item)}
+                          onClick={() => {
+                            setDirectoryNode(item)
+                            props.onWorkbookDirectoryChange?.(`${chapter.title} > ${group.title} > ${item}`)
+                          }}
                         >{item}</button>
                       ))}
                     </div>
@@ -328,23 +430,54 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
         ) : null}
         <main className="legacy-detail-panel">
           <div className="legacy-detail-scroll">
-            {groupedQuestions.map((section, sectionIndex) => (
-              <section className="legacy-question-section" key={section.title} aria-label={section.title}>
+            {props.initialMatchedPath ? (
+              <div className="legacy-search-match-banner" role="status">
+                <Search size={15} />
+                <span><strong>已定位到匹配内容</strong>{props.initialMatchedPath}</span>
+              </div>
+            ) : null}
+            {props.record.sourceType === 'paper' && paperRecordingType === 'ai' ? (
+              <div className="legacy-paper-view-switch" role="tablist" aria-label="试卷查看方式">
+                <button type="button" role="tab" aria-selected={paperView === 'original'} className={paperView === 'original' ? 'is-active' : ''} onClick={() => setPaperView('original')}>原卷</button>
+                <button type="button" role="tab" aria-selected={paperView === 'question'} className={paperView === 'question' ? 'is-active' : ''} onClick={() => setPaperView('question')}>题目</button>
+              </div>
+            ) : null}
+            {props.record.sourceType === 'paper' && paperView === 'original' ? (
+              <section className="legacy-original-paper-preview" aria-label="原卷预览">
+                <div><FileText size={38} /><strong>{props.record.title}</strong><span>原卷预览 · PDF</span></div>
+                <p>原卷版式、页码和图片按线上试卷预览展示。</p>
+                <MetisButton type="bordered" icon={<Download size={15} />} onClick={() => MetisMessage.success('试卷已开始下载（原型演示）')}>下载</MetisButton>
+              </section>
+            ) : <>
+              <div className="legacy-question-global-actions">
+                <button type="button" onClick={props.onToggleAnswers}><Eye size={15} />{props.showAnswers ? '隐藏答案' : '显示答案'}</button>
+                <LegacyUseWholeVolumeMenu
+                  embedded={props.embedded}
+                  contentBusy={props.contentBusy}
+                  showEdit={Boolean(props.embedded && props.onCompleteEditWholeVolume)}
+                  favorited={volumeFavorited}
+                  showFavorite={!isWorkbook}
+                  showUnpublish={Boolean(props.schoolLibrary && props.record.sourceType === 'paper')}
+                  onAddToDraft={() => void props.onUseAll()}
+                  onEdit={() => void handleEditWholeVolume()}
+                  onFavorite={() => setVolumeFavorited((current) => !current)}
+                />
+              </div>
+              {groupedQuestions.map((section) => {
+              const unaddedGroupQuestions = section.questions.filter((question) => !props.selectedQuestionIds.has(question.id))
+              const groupPending = section.questions.some((question) => props.pendingQuestionIds.has(question.id))
+              const groupAdded = unaddedGroupQuestions.length === 0
+              return <section className="legacy-question-section" key={section.title} aria-label={section.title}>
                 <div className="legacy-question-section-heading">
                   <h3>{section.title}</h3>
-                  {sectionIndex === 0 ? <div className="legacy-question-section-actions">
-                    <button type="button" onClick={props.onToggleAnswers}><Eye size={15} />{props.showAnswers ? '隐藏答案' : '显示答案'}</button>
-                    <LegacyUseWholeVolumeMenu
-                      embedded={props.embedded}
-                      contentBusy={props.contentBusy}
-                      showEdit={Boolean(props.embedded && props.onCompleteEditWholeVolume)}
-                      favorited={volumeFavorited}
-                      showUnpublish={Boolean(props.schoolLibrary && props.record.sourceType === 'paper')}
-                      onAddToDraft={() => void props.onUseAll()}
-                      onEdit={() => void handleEditWholeVolume()}
-                      onFavorite={() => setVolumeFavorited((current) => !current)}
-                    />
-                  </div> : null}
+                  <div className="legacy-question-section-actions">
+                    {props.embedded ? <button
+                      type="button"
+                      className="is-primary"
+                      disabled={groupAdded || groupPending || props.contentBusy}
+                      onClick={() => void props.onAddQuestionGroup(unaddedGroupQuestions)}
+                    >{groupAdded ? '已添加题组' : groupPending ? '添加中…' : '＋ 添加题组'}</button> : null}
+                  </div>
                 </div>
                 {section.questions.map((question) => {
                   const selected = props.selectedQuestionIds.has(question.id)
@@ -363,7 +496,7 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                         <span>知识点：{question.knowledgePoint}</span>
                         <div>
                           <QuestionMoreMenu showUnpublish={Boolean(props.schoolLibrary)} />
-                          <button type="button"><Star size={14} />收藏</button><button type="button">解析</button><button type="button">相似题</button>
+                          <LibraryQuestionAiRewrite question={question} onAdd={props.onToggleQuestion} /><button type="button">解析</button><button type="button">相似题</button>
                           {props.embedded ? <button type="button" className={`is-add${selected ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={selected || pending} onClick={(event) => { animateQuestionToDraft(event.currentTarget); void props.onToggleQuestion(question) }}>{selected ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button> : null}
                         </div>
                       </footer>
@@ -371,37 +504,25 @@ function LegacyResourceDetail(props: LegacyResourceDetailProps) {
                   )
                 })}
               </section>
-            ))}
+              })}
+            </>}
           </div>
         </main>
       </div>
-      {props.addStatus === 'loading' ? <div className="legacy-detail-loading">正在加入当前组题…</div> : null}
-      {editConfirmOpen ? (
-        <div className="workspace-confirm-overlay" role="presentation" onClick={() => { if (!editConfirmPending) setEditConfirmOpen(false) }}>
-          <div
-            className="workspace-confirm-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="legacy-whole-volume-unsaved-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <strong id="legacy-whole-volume-unsaved-title">当前题单尚未保存</strong>
-            <span>右侧正在编辑的题单还有内容。请先保存后再新建并载入整卷；或不保存，直接用整卷覆盖当前题单。</span>
+      {newEditConfirmOpen ? (
+        <div className="workspace-confirm-overlay" role="presentation" onClick={() => { if (!newEditPending) setNewEditConfirmOpen(false) }}>
+          <div className="workspace-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="resource-new-edit-title" onClick={(event) => event.stopPropagation()}>
+            <strong id="resource-new-edit-title">新建并编辑</strong>
+            <span>当前编辑有未保存的修改。保存后新建，可在「我的资源」中继续编辑；不保存则放弃本次修改，直接以当前整卷新建。</span>
             <div>
-              <button type="button" disabled={editConfirmPending} onClick={() => setEditConfirmOpen(false)}>取消</button>
-              <button type="button" disabled={editConfirmPending} onClick={() => void handleCompleteEditWholeVolume('discard')}>不保存，直接覆盖</button>
-              <button
-                type="button"
-                className="is-primary"
-                disabled={editConfirmPending}
-                onClick={() => void handleCompleteEditWholeVolume('save-first')}
-              >
-                {editConfirmPending ? '处理中…' : '先保存再新建'}
-              </button>
+              <button type="button" disabled={newEditPending} onClick={() => setNewEditConfirmOpen(false)}>取消</button>
+              <button type="button" disabled={newEditPending} onClick={() => { void completeEditWholeVolume('discard-first') }}>不保存，直接新建</button>
+              <button type="button" className="is-primary" disabled={newEditPending} onClick={() => { void completeEditWholeVolume('save-first') }}>{newEditPending ? '保存中…' : '保存并新建'}</button>
             </div>
           </div>
         </div>
       ) : null}
+      {props.addStatus === 'loading' ? <div className="legacy-detail-loading">正在加入当前组题…</div> : null}
     </section>
   )
 }
@@ -411,10 +532,11 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const [dialogChapter, setDialogChapter] = useState(props.initialView === 'chapter')
   const isAll = variant === 'home' && props.showAll === true
   const detailResourceId = variant === 'home' ? new URLSearchParams(window.location.search).get('resource') : null
-  const [keyword, setKeyword] = useState('')
+  const [keyword, setKeyword] = useState(props.initialSearchKeyword ?? '')
   const [sort, setSort] = useState<'recommended' | 'latest'>('recommended')
   const [category, setCategory] = useState('全部资源')
-  const [chapterNode, setChapterNode] = useState('4.1 函数')
+  const [chapterNode, setChapterNode] = useState(props.initialChapterNode ?? '4.1 函数')
+  const [chapterBrowseMode, setChapterBrowseMode] = useState<'chapter' | 'knowledge'>('chapter')
   const [internalDetailRecord, setInternalDetailRecord] = useState<SourceRecord | null>(() => (
     detailResourceId ? allSourceRecords.find((record) => record.id === detailResourceId) ?? null : null
   ))
@@ -424,21 +546,46 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const [pickerDetailNavHost, setPickerDetailNavHost] = useState<HTMLElement | null>(null)
   const [favorites, setFavorites] = useState<Set<string>>(new Set(['paper-2']))
   const [pinned, setPinned] = useState<Set<string>>(new Set())
+  const chapterImageInputRef = useRef<HTMLInputElement>(null)
   const detailControlled = props.detailRecord !== undefined
   const detailRecord = detailControlled ? props.detailRecord ?? null : internalDetailRecord
+  const chapterGroups = chapterKnowledgeTree.filter((group) => group.title !== '知识点选题')
+  const knowledgeGroups = chapterKnowledgeTree.filter((group) => group.title === '知识点选题')
+  const chapterItems = chapterGroups.flatMap((group) => group.items)
+
+  const selectChapterNode = (item: string) => {
+    setChapterNode(item)
+    setCategory(item)
+  }
+
+  const selectChapterBrowseMode = (mode: 'chapter' | 'knowledge') => {
+    setChapterBrowseMode(mode)
+    if (mode === 'chapter') {
+      setChapterNode(chapterItems.includes(category) ? category : chapterItems[0])
+      return
+    }
+    setChapterNode(knowledgeGroups[0]?.items[0] ?? '一次函数概念')
+  }
 
   useEffect(() => {
-    setKeyword('')
-    setCategory('全部资源')
+    setKeyword(props.initialSearchKeyword ?? '')
+    setCategory(
+      props.resourceType === 'sync' && chapterItems.includes(chapterNode)
+        ? chapterNode
+        : '全部资源'
+    )
     if (!detailControlled) {
       setInternalDetailRecord(detailResourceId ? allSourceRecords.find((record) => record.id === detailResourceId) ?? null : null)
     }
     setShowAnswers(false)
-  }, [detailControlled, detailResourceId, isAll, props.libraryKind, props.resourceType])
+  }, [detailControlled, detailResourceId, isAll, props.initialSearchKeyword, props.libraryKind, props.resourceType])
 
   useEffect(() => {
     if (variant === 'dialog') {
       setDialogChapter(props.initialView === 'chapter')
+      setKeyword(props.initialSearchKeyword ?? '')
+      setChapterNode((current) => props.initialChapterNode ?? current)
+      if (props.initialView === 'chapter') setChapterBrowseMode('chapter')
       setSelectedQuestionIds(new Set())
       setPendingQuestionIds(new Set())
       if (
@@ -450,7 +597,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
         props.onResourceTypeChange('paper')
       }
     }
-  }, [props.initialView, props.libraryKind, variant])
+  }, [props.initialChapterNode, props.initialSearchKeyword, props.initialView, props.libraryKind, variant])
 
   useEffect(() => {
     if (variant !== 'home' || !detailRecord) return undefined
@@ -490,13 +637,40 @@ export function LibraryPicker(props: LibraryPickerProps) {
     ))
     const sortByLaunchTime = props.resourceType === 'sync' || props.resourceType === 'special'
     return [...filtered].sort((a, b) => {
-      if (pinned.has(a.id) !== pinned.has(b.id)) return pinned.has(a.id) ? -1 : 1
+      if (normalized) {
+        const relevance = (record: SourceRecord) => {
+          if (record.title.toLowerCase().includes(normalized)) return 3
+          if (record.meta.toLowerCase().includes(normalized)) return 2
+          if (record.sourceName?.toLowerCase().includes(normalized)) return 1
+          return 0
+        }
+        const relevanceDiff = relevance(b) - relevance(a)
+        if (relevanceDiff !== 0) return relevanceDiff
+      } else if (pinned.has(a.id) !== pinned.has(b.id)) {
+        return pinned.has(a.id) ? -1 : 1
+      }
       if (sortByLaunchTime || sort === 'latest') {
         return (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '')
       }
       return (b.usageCount ?? 0) - (a.usageCount ?? 0)
     })
   }, [category, isAll, keyword, pinned, props.records, props.resourceType, sort])
+
+  const togglePinnedRecord = (recordId: string) => {
+    setPinned((current) => {
+      const next = new Set(current)
+      if (next.has(recordId)) {
+        next.delete(recordId)
+        return next
+      }
+      if (next.size >= 3) {
+        MetisMessage.info('最多置顶 3 本练习册')
+        return current
+      }
+      next.add(recordId)
+      return next
+    })
+  }
 
   const openRecord = (record: SourceRecord) => {
     if (variant === 'dialog') {
@@ -517,10 +691,28 @@ export function LibraryPicker(props: LibraryPickerProps) {
     id: `${detailRecord?.id ?? 'preview'}-${index}`,
   })), [detailRecord])
 
-  const chapterQuestions = useMemo(() => Array.from({ length: 8 }, (_, index) => ({
-    ...baseQuestions[index % baseQuestions.length],
-    id: `chapter-${chapterNode}-${index}`,
-  })), [chapterNode])
+  const chapterQuestions = useMemo(() => {
+    const exactQuestion = props.initialQuestionId
+      ? baseQuestions.find((question) => question.id === props.initialQuestionId)
+      : undefined
+    const questionPool = exactQuestion
+      ? [exactQuestion, ...baseQuestions.filter((question) => question.id !== exactQuestion.id)]
+      : baseQuestions
+    return Array.from({ length: 8 }, (_, index) => ({
+      ...questionPool[index % questionPool.length],
+      id: index === 0 && exactQuestion ? exactQuestion.id : `chapter-${chapterNode}-${index}`,
+    }))
+  }, [chapterNode, props.initialQuestionId])
+
+  const visibleChapterQuestions = useMemo(() => {
+    const normalizedKeyword = keyword.trim().toLowerCase()
+    return chapterQuestions.filter((question) => {
+      const searchableText = `${question.stem} ${question.knowledgePoint} ${question.sourceLabel} ${question.sourceDetail ?? ''}`.toLowerCase()
+      return (!normalizedKeyword || searchableText.includes(normalizedKeyword))
+        && (!props.initialQuestionType || question.type === props.initialQuestionType)
+        && (!props.initialDifficulty || question.difficulty === props.initialDifficulty)
+    })
+  }, [chapterQuestions, keyword, props.initialDifficulty, props.initialQuestionType])
 
   const toggleSetValue = (setter: Dispatch<SetStateAction<Set<string>>>, value: string) => {
     setter((current) => {
@@ -568,6 +760,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
       <LegacyResourceDetail
         key={detailRecord.id}
         record={detailRecord}
+        initialMatchedPath={props.initialMatchedPath}
         embedded={variant === 'dialog'}
         questions={previewQuestions}
         selectedQuestionIds={selectedQuestionIds}
@@ -588,7 +781,16 @@ export function LibraryPicker(props: LibraryPickerProps) {
           }
         }}
         onToggleAnswers={() => setShowAnswers((current) => !current)}
+        onWorkbookDirectoryChange={(matchedPath) => props.onWorkbookDirectoryChange?.(detailRecord, matchedPath)}
         onToggleQuestion={addQuestionImmediately}
+        onAddQuestionGroup={async (questions) => {
+          if (variant !== 'dialog' || questions.length === 0 || pendingQuestionIds.size > 0 || props.contentBusy) return
+          const pendingIds = questions.map((question) => question.id)
+          setPendingQuestionIds(new Set(pendingIds))
+          const added = await props.onAddSource(detailRecord.sourceType, detailRecord.id, questions.length, questions)
+          if (added) setSelectedQuestionIds((current) => new Set([...current, ...pendingIds]))
+          setPendingQuestionIds(new Set())
+        }}
         onUseAll={async () => {
           if (variant === 'dialog') {
             const unaddedQuestions = previewQuestions.filter((question) => !selectedQuestionIds.has(question.id))
@@ -605,6 +807,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
           await props.onAddSource(detailRecord.sourceType, detailRecord.id, previewQuestions.length)
         }}
         currentDocumentHasContent={props.currentDocumentHasContent}
+        currentDocumentHasUnsavedChanges={props.currentDocumentHasUnsavedChanges}
         onCompleteEditWholeVolume={props.onCompleteEditWholeVolume}
       />
     </>
@@ -628,6 +831,9 @@ export function LibraryPicker(props: LibraryPickerProps) {
               disabled={props.contentBusy}
               onClick={() => {
                 setDialogChapter(false)
+                if (option.type === 'sync') {
+                  setCategory(chapterBrowseMode === 'chapter' && chapterItems.includes(chapterNode) ? chapterNode : '全部资源')
+                }
                 props.onResourceTypeChange(option.type)
               }}
               data-track="/click/aiQuestionHome/switchResourceTab | 切换题库资源类型 | resourceType#STRING"
@@ -656,18 +862,22 @@ export function LibraryPicker(props: LibraryPickerProps) {
       {dialogChapter ? (
         <div className="chapter-picker-browser">
           <aside className="chapter-picker-tree" aria-label="教材章节与知识点">
+            <div className="chapter-picker-tree-tabs" role="tablist" aria-label="章节或知识点选题">
+              <button type="button" role="tab" aria-selected={chapterBrowseMode === 'chapter'} className={chapterBrowseMode === 'chapter' ? 'is-active' : ''} onClick={() => selectChapterBrowseMode('chapter')}>教材章节</button>
+              <button type="button" role="tab" aria-selected={chapterBrowseMode === 'knowledge'} className={chapterBrowseMode === 'knowledge' ? 'is-active' : ''} onClick={() => selectChapterBrowseMode('knowledge')}>知识点</button>
+            </div>
             <div className="library-textbook-switch"><BookOpenCheck size={15} /><span>人教版 / 八年级上册</span><ChevronDown size={14} /></div>
-            {chapterKnowledgeTree.map((group) => (
+            {(chapterBrowseMode === 'chapter' ? chapterGroups : knowledgeGroups).map((group) => (
               <section key={group.title}>
                 <h4><ChevronDown size={13} />{group.title}</h4>
-                {group.items.map((item) => <button type="button" key={item} className={chapterNode === item ? 'is-active' : ''} onClick={() => setChapterNode(item)}>{item}</button>)}
+                {group.items.map((item) => <button type="button" key={item} className={chapterNode === item ? 'is-active' : ''} onClick={() => chapterBrowseMode === 'chapter' ? selectChapterNode(item) : setChapterNode(item)}>{item}</button>)}
               </section>
             ))}
           </aside>
           <main className="chapter-picker-results">
-            <div className="chapter-picker-heading"><div><h3>{chapterNode}</h3><p>按教材章节或知识点逐题选择</p></div><div className="library-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索题目关键词" /></div></div>
+            <div className="chapter-picker-heading"><div><h3>{chapterNode}</h3><p>按教材章节或知识点逐题选择</p></div><div className="library-search has-image-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索题目关键词" /><button type="button" className="library-image-search" aria-label="图片搜题" title="图片搜题" onClick={() => chapterImageInputRef.current?.click()}><ImagePlus size={16} /></button><input ref={chapterImageInputRef} className="global-resource-search-image-input" type="file" accept="image/*" aria-label="选择题目图片" onChange={(event) => { if (event.target.files?.[0]) { setKeyword('一次函数'); MetisMessage.success('题目图片已识别，已显示相似题') } event.currentTarget.value = '' }} /></div></div>
             <div className="chapter-question-list">
-              {chapterQuestions.filter((question) => !keyword.trim() || question.stem.includes(keyword.trim())).map((question, index) => {
+              {visibleChapterQuestions.map((question, index) => {
                 const added = selectedQuestionIds.has(question.id)
                 const pending = pendingQuestionIds.has(question.id)
                 return (
@@ -675,7 +885,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
                     <div className="chapter-question-meta"><span>{question.type} / {question.difficulty} / {question.estimatedMinutes}分钟</span></div>
                     <div className="chapter-question-stem"><b>{index + 1}.</b><p>{question.stem}</p></div>
                     {question.options ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
-                    <footer><span>知识点：{question.knowledgePoint}</span><div><QuestionMoreMenu showUnpublish={props.libraryKind === 'school'} /><button type="button">收藏</button><button type="button">解析</button><button type="button">相似题</button><button type="button" className={`is-add${added ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={added || pending} onClick={(event) => { animateQuestionToDraft(event.currentTarget); void addQuestionImmediately(question) }}>{added ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button></div></footer>
+                    <footer><span>知识点：{question.knowledgePoint}</span><div><QuestionMoreMenu showUnpublish={props.libraryKind === 'school'} /><LibraryQuestionAiRewrite question={question} onAdd={addQuestionImmediately} /><button type="button">解析</button><button type="button">相似题</button><button type="button" className={`is-add${added ? ' is-added' : ''}${pending ? ' is-pending' : ''}`} disabled={added || pending} onClick={(event) => { animateQuestionToDraft(event.currentTarget); void addQuestionImmediately(question) }}>{added ? '已添加' : pending ? '添加中…' : '＋ 添加'}</button></div></footer>
                   </article>
                 )
               })}
@@ -690,7 +900,13 @@ export function LibraryPicker(props: LibraryPickerProps) {
               <section key={`${group.title ?? 'root'}-${groupIndex}`}>
                 {group.title ? <h4><ChevronDown size={13} />{group.title}</h4> : null}
                 {group.items.map((item) => (
-                  <button type="button" key={item} className={category === item ? 'is-active' : ''} onClick={() => setCategory(item)}>{item}</button>
+                  <button type="button" key={item} className={category === item ? 'is-active' : ''} onClick={() => {
+                    setCategory(item)
+                    if (props.resourceType === 'sync' && item !== '全部资源') {
+                      setChapterBrowseMode('chapter')
+                      setChapterNode(item)
+                    }
+                  }}>{item}</button>
                 ))}
               </section>
             ))}
@@ -701,7 +917,9 @@ export function LibraryPicker(props: LibraryPickerProps) {
           <div className="library-filter-row" aria-label="题库筛选">
             <div className="library-filter-chips">
               {(isAll ? ['八年级上', '资源类型', '教材版本', '来源'] : filterLabels[props.resourceType]).map((label) => <button type="button" key={label}>{label}<ChevronDown size={13} /></button>)}
-              <button type="button"><SlidersHorizontal size={14} />其他</button>
+              {props.resourceType !== 'sync' && props.resourceType !== 'special' ? (
+                <button type="button"><SlidersHorizontal size={14} />其他</button>
+              ) : null}
             </div>
             <div className="library-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder={isAll ? '搜索全部资源名称或关键词' : `搜索${visibleSourceOptions.find((item) => item.type === props.resourceType)?.title ?? '资源'}名称或关键词`} /></div>
           </div>
@@ -723,19 +941,24 @@ export function LibraryPicker(props: LibraryPickerProps) {
             {props.listStatus === 'success' ? (
               <div className={`library-record-grid library-record-grid--${isAll ? 'all' : props.resourceType}`}>
                 {visibleRecords.map((record) => (
-                  <article className="library-resource-card" key={record.id}>
+                  <article className={`library-resource-card${record.sourceType === 'workbook' ? ' is-workbook-card' : ''}`} key={record.id}>
                     <button
                       type="button"
                       className="library-card-main"
                       onClick={() => openRecord(record)}
                       data-track="/click/aiQuestionHome/openResourceDetail | 打开资源详情 | resourceId#STRING"
                     >
-                      <span className="library-card-copy">
-                        <span className="library-card-tags">
-                          {getResourceCardTags(record).map((tag) => <em key={tag}>{tag}</em>)}
+                      {record.sourceType === 'workbook' ? (
+                        <span className={`library-workbook-cover library-workbook-cover--${(Number(record.id.split('-').slice(-1)[0]) || 1) % 6}`} aria-hidden="true">
+                          <small>同步练习</small>
+                          <strong>{record.title.slice(0, 6)}</strong>
+                          <em>数学</em>
                         </span>
-                        <strong>{record.title}</strong>
-                        <small className="library-card-date"><Clock3 size={13} />{record.updatedAt ?? '最近更新'}</small>
+                      ) : null}
+                      <span className="library-card-copy">
+                        {record.sourceType === 'workbook' ? <span className="library-workbook-type">{record.highlight || '同步练习'}</span> : <span className="library-card-tags">{getResourceCardTags(record).map((tag) => <em className={tag === 'AI录题' ? 'is-ai-recording' : tag === '委托录题' ? 'is-delegated-recording' : undefined} key={tag}>{tag}</em>)}</span>}
+                        <strong>{record.title}{record.sourceType === 'workbook' ? <span className="library-workbook-year">2025-2026学年</span> : null}</strong>
+                        {record.sourceType === 'workbook' ? <small className="library-workbook-meta">{record.meta.replace(/·/g, ' ')}</small> : <small className="library-card-date"><Clock3 size={13} />{record.updatedAt ?? '最近更新'}</small>}
                       </span>
                     </button>
                     <button
@@ -744,8 +967,19 @@ export function LibraryPicker(props: LibraryPickerProps) {
                       onClick={() => toggleSetValue(setFavorites, record.id)}
                       className={`library-card-favorite${favorites.has(record.id) ? ' is-active' : ''}`}
                     >
-                      <Star size={15} />收藏
+                      <Star size={record.sourceType === 'workbook' ? 18 : 15} />{record.sourceType === 'workbook' ? null : '收藏'}
                     </button>
+                    {props.resourceType === 'workbook' ? (
+                      <button
+                        type="button"
+                        aria-label={pinned.has(record.id) ? '取消置顶' : '置顶'}
+                        title={pinned.has(record.id) ? '取消置顶' : '置顶'}
+                        onClick={() => togglePinnedRecord(record.id)}
+                        className={`library-card-pin${pinned.has(record.id) ? ' is-active' : ''}`}
+                      >
+                        <Pin size={15} />
+                      </button>
+                    ) : null}
                   </article>
                 ))}
               </div>

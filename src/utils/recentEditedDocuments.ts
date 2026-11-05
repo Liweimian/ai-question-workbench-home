@@ -78,6 +78,5 @@ function resolveStageSubject(item: HistoryDocumentSummary): { stage: string; sub
 
 export function formatRecentEditedMeta(item: HistoryDocumentSummary): string {
   const { stage, subject } = resolveStageSubject(item)
-  const minutes = item.estimatedMinutes ?? Math.max(item.questionCount * 3, 6)
-  return `${stage} / ${subject} / 共${item.questionCount}题 / 预计${minutes}分钟`
+  return `${stage} / ${subject} / 共${item.questionCount}题`
 }

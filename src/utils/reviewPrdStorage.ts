@@ -1,7 +1,15 @@
 const PREFIX = 'prd:'
+const PAGE_REVISIONS: Record<string, string> = {
+  组题编辑: '371',
+  资源详情: '372',
+  同步练习: '372',
+  专题: '372',
+  我的资源: '381',
+}
 
 export function reviewPrdStorageKey(pageTitle: string): string {
-  return `${PREFIX}${pageTitle}`
+  const revision = PAGE_REVISIONS[pageTitle]
+  return revision ? `${PREFIX}${pageTitle}:v${revision}` : `${PREFIX}${pageTitle}`
 }
 
 export function readStoredPrdMarkdown(pageTitle: string, defaultMarkdown: string): string {

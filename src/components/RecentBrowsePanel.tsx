@@ -7,6 +7,13 @@ interface RecentBrowsePanelProps {
 }
 
 export function RecentBrowsePanel({ entries, onOpenEntry }: RecentBrowsePanelProps) {
+  const getDisplayName = (entry: RecentBrowseEntry) => {
+    if (!entry.matchedPath) return entry.title
+    const pathParts = entry.matchedPath.split('>').map((item) => item.trim()).filter(Boolean)
+    const lastChapter = pathParts[pathParts.length - 1]
+    return lastChapter ? `${entry.title} · ${lastChapter}` : entry.title
+  }
+
   return (
     <section className="recent-browse-panel" aria-label="最近浏览">
       <header className="recent-browse-panel-header">
@@ -25,7 +32,6 @@ export function RecentBrowsePanel({ entries, onOpenEntry }: RecentBrowsePanelPro
           <table className="recent-browse-table">
             <thead>
               <tr>
-                <th scope="col">类型</th>
                 <th scope="col">名称</th>
                 <th scope="col">时间</th>
               </tr>
@@ -33,7 +39,6 @@ export function RecentBrowsePanel({ entries, onOpenEntry }: RecentBrowsePanelPro
             <tbody>
               {entries.map((entry) => (
                 <tr key={entry.id}>
-                  <td><span className="recent-browse-type">{entry.typeLabel}</span></td>
                   <td>
                     <button
                       type="button"
@@ -41,7 +46,7 @@ export function RecentBrowsePanel({ entries, onOpenEntry }: RecentBrowsePanelPro
                       onClick={() => onOpenEntry(entry)}
                       data-track="/click/aiQuestionHome/openRecentBrowseItem | 打开最近浏览资源 | resourceId#STRING"
                     >
-                      {entry.title}
+                      {getDisplayName(entry)}
                     </button>
                   </td>
                   <td>
@@ -58,7 +63,7 @@ export function RecentBrowsePanel({ entries, onOpenEntry }: RecentBrowsePanelPro
       ) : (
         <div className="recent-browse-empty" role="status">
           <strong>还没有浏览记录</strong>
-          <p>近 3 天内从飞象题库或校本题库打开过的练习册、试卷会出现在这里。</p>
+          <p>近 7 天内从飞象题库或校本题库打开过的练习册、试卷会出现在这里。</p>
         </div>
       )}
     </section>

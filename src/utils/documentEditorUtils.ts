@@ -9,11 +9,11 @@ export function getPaperAnswerMode(document: WorkbenchDocument): PaperAnswerMode
 }
 
 export function canSwitchDocumentKind(document: WorkbenchDocument) {
-  return (document.outputLocks ?? []).every((lock) => lock === 'answer-sheet')
+  return (document.outputLocks ?? []).length === 0
 }
 
-export function canSwitchAnswerMode(document: WorkbenchDocument) {
-  return !(document.answerSheet?.generatedAt && getPaperAnswerMode(document) === '答题卡作答')
+export function canSwitchAnswerMode(_document: WorkbenchDocument) {
+  return true
 }
 
 export function sumQuestionScores(questions: Question[]) {

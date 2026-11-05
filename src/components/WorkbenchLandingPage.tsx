@@ -35,7 +35,7 @@ const toCurrentSummary = (document: WorkbenchDocument): HistoryDocumentSummary =
   gradeSubject: document.gradeSubject,
   questionCount: document.questions.length,
   updatedAt: document.updatedAt,
-  status: '草稿',
+  status: '已保存',
   origin: '手工组题',
 })
 

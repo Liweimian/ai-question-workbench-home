@@ -1,15 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
 import {
-  FileText,
   FolderHeart,
   GripVertical,
-  Heading2,
-  Heading3,
-  Heading4,
   Plus,
   RefreshCw,
-  Rows2,
 } from 'lucide-react'
 import type { AddQuestionMode, OpenAddOptions } from '../prototype/types'
 import { aiQuestionEntries, libraryQuestionEntries } from '../data/addQuestionEntries'
@@ -24,21 +19,11 @@ interface BlockAddMenuProps {
   onOpenMyResources?: () => void
 }
 
-const optionGroups = [
-  { title: '基础内容', items: [
-    { id: 'heading-2', utility: 'heading-2', title: '二级标题', description: '题型或大题分组', icon: Heading2 },
-    { id: 'heading-3', utility: 'heading-3', title: '三级标题', description: '分组下的内容层级', icon: Heading3 },
-    { id: 'heading-4', utility: 'heading-4', title: '四级标题', description: '更细一级的内容层级', icon: Heading4 },
-    { id: 'note', utility: 'note', title: '说明文字', description: '插入考试说明、作答要求或导语', icon: FileText },
-    { id: 'blank-line', utility: 'blank-line', title: '空行', description: '插入一行空白', icon: Rows2 },
-  ] },
-] as const
-
 function isAiEntry(mode: AddQuestionMode) {
   return mode === 'create' || mode === 'compose'
 }
 
-export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInsertUtility, onOpenMyResources }: BlockAddMenuProps) {
+export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onOpenMyResources }: BlockAddMenuProps) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -60,12 +45,6 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
     return () => { window.removeEventListener('mousedown', closeOnOutside); window.removeEventListener('keydown', handleKeyboard) }
   }, [open])
 
-  const chooseUtility = (action: UtilityAction) => {
-    setOpen(false)
-    if (onInsertUtility) return onInsertUtility(action)
-    MetisMessage.success('已插入内容')
-  }
-
   const openQuestionEntry = (mode: AddQuestionMode, view?: OpenAddOptions['libraryView']) => {
     setOpen(false)
     onOpenAdd(mode, view ? { libraryView: view } : undefined)
@@ -86,18 +65,6 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
           <span><strong>{label}</strong></span>
         </button>
       ))}
-    </section>
-  )
-
-  const renderFlatGroup = (group: (typeof optionGroups)[number]) => (
-    <section className="block-command-group" key={group.title}>
-      <h4>{group.title}</h4>
-      {group.items.map(({ id, title, icon: Icon, ...item }) => {
-        const utility = 'utility' in item ? item.utility : undefined
-        return <button type="button" role="menuitem" key={id} onClick={() => {
-          if (utility) chooseUtility(utility)
-        }}><span className="block-command-icon"><Icon size={16} /></span><span><strong>{title}</strong></span></button>
-      })}
     </section>
   )
 
@@ -139,7 +106,6 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onInse
                 <span><strong>继续最近浏览</strong></span>
               </button>
             </section>
-            {renderFlatGroup(optionGroups[0])}
           </div>
         </div>
       ) : null}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
-import { AlertCircle, BrainCircuit, Check, Circle, Download, FileText, LoaderCircle, Plus, SquarePlus } from 'lucide-react'
+import { AlertCircle, BrainCircuit, Check, Circle, Download, FileText, LoaderCircle, SquarePlus } from 'lucide-react'
 import type { AiAssistantRun, AsyncStatus, Question } from '../prototype/types'
 import { animateQuestionToDraft } from '../utils/animateQuestionToDraft'
 import { AiComposer } from './AiComposer'
@@ -139,7 +139,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
                         onClick={(event) => addQuestions(unaddedQuestions, event)}
                       >
                         <SquarePlus size={15} />
-                        {unaddedQuestions.length === 0 ? '已全部添加' : `全部添加（${unaddedQuestions.length}）`}
+                        {unaddedQuestions.length === 0 ? '已添加整卷' : `添加整卷（${unaddedQuestions.length}）`}
                       </button>
                     </header>
 
@@ -153,15 +153,18 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
                               <p><b>{index + 1}.</b> {question.stem}</p>
                               {question.options ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
                             </div>
-                            <button
-                              type="button"
-                              className={`ai-compose-add${added ? ' is-added' : ''}`}
-                              disabled={added || props.contentBusy}
-                              aria-label={added ? '已添加' : `添加第 ${index + 1} 题`}
-                              onClick={(event) => addQuestions([question], event)}
-                            >
-                              {added ? <Check size={16} /> : <Plus size={16} />}
-                            </button>
+                            <footer className="ai-compose-question-footer">
+                              <span>{question.knowledgePoint ? `知识点：${question.knowledgePoint}` : ''}</span>
+                              <button
+                                type="button"
+                                className={`ai-compose-add${added ? ' is-added' : ''}`}
+                                disabled={added || props.contentBusy}
+                                aria-label={added ? '已添加' : `添加第 ${index + 1} 题`}
+                                onClick={(event) => addQuestions([question], event)}
+                              >
+                                {added ? '已添加' : '＋ 添加'}
+                              </button>
+                            </footer>
                           </article>
                         )
                       })}

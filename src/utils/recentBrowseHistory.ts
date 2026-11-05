@@ -1,12 +1,11 @@
-import { sourceOptions } from '../data/workbenchData'
-import type { ResourceType, SourceRecord } from '../prototype/types'
+import type { SourceRecord } from '../prototype/types'
 
 const STORAGE_KEY = 'feixiang-ai-question-workbench-recent-browse-v2'
 const MAX_ENTRIES = 30
-const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
 
-function isWithinThreeDays(viewedAtMs: number, now = Date.now()) {
-  return now - viewedAtMs <= THREE_DAYS_MS
+function isWithinSevenDays(viewedAtMs: number, now = Date.now()) {
+  return now - viewedAtMs <= SEVEN_DAYS_MS
 }
 
 export type RecentBrowseLibraryMode = 'resource' | 'school'
@@ -14,40 +13,39 @@ export type RecentBrowseLibraryMode = 'resource' | 'school'
 export interface RecentBrowseEntry {
   id: string
   libraryMode: RecentBrowseLibraryMode
-  typeLabel: string
   title: string
   viewedAt: string
   viewedAtMs: number
   record: SourceRecord
+  matchedPath?: string
 }
 
-const resourceTypeLabels = Object.fromEntries(
-  sourceOptions.map((option) => [option.type, option.title]),
-) as Record<ResourceType, string>
-
-function formatViewedAt(ms: number) {
+function formatViewedAt(ms: number, nowMs = Date.now()) {
   const date = new Date(ms)
-  const now = new Date()
-  const sameDay = date.getFullYear() === now.getFullYear()
-    && date.getMonth() === now.getMonth()
-    && date.getDate() === now.getDate()
+  const now = new Date(nowMs)
+  if (nowMs - ms < 60 * 1000) return '刚刚'
   const hours = String(date.getHours()).padStart(2, '0')
   const minutes = String(date.getMinutes()).padStart(2, '0')
-  if (sameDay) return `今天 ${hours}:${minutes}`
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+  const dayDiff = Math.round((startOfToday - startOfDate) / (24 * 60 * 60 * 1000))
+  if (dayDiff === 0) return `今天 ${hours}:${minutes}`
+  if (dayDiff === 1) return `昨天 ${hours}:${minutes}`
+  if (dayDiff === 2) return `前天 ${hours}:${minutes}`
   const month = date.getMonth() + 1
   const day = date.getDate()
-  return `${month}月${day}日 ${hours}:${minutes}`
+  return `${month}月${day}日`
 }
 
-function toEntry(libraryMode: RecentBrowseLibraryMode, record: SourceRecord, viewedAtMs: number): RecentBrowseEntry {
+function toEntry(libraryMode: RecentBrowseLibraryMode, record: SourceRecord, viewedAtMs: number, matchedPath?: string): RecentBrowseEntry {
   return {
     id: `${libraryMode}:${record.id}`,
     libraryMode,
-    typeLabel: resourceTypeLabels[record.sourceType] ?? record.sourceType,
     title: record.title,
     viewedAt: formatViewedAt(viewedAtMs),
     viewedAtMs,
     record,
+    matchedPath,
   }
 }
 
@@ -60,8 +58,9 @@ export function readRecentBrowseEntries(): RecentBrowseEntry[] {
     if (!Array.isArray(parsed)) return []
     const now = Date.now()
     const visible = parsed
-      .filter((item) => typeof item?.viewedAtMs === 'number' && isWithinThreeDays(item.viewedAtMs, now))
+      .filter((item) => typeof item?.viewedAtMs === 'number' && isWithinSevenDays(item.viewedAtMs, now))
       .sort((a, b) => b.viewedAtMs - a.viewedAtMs)
+      .map((item) => ({ ...item, viewedAt: formatViewedAt(item.viewedAtMs, now) }))
     if (visible.length !== parsed.length) writeRecentBrowseEntries(visible)
     return visible
   } catch {
@@ -73,10 +72,10 @@ function writeRecentBrowseEntries(entries: RecentBrowseEntry[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, MAX_ENTRIES)))
 }
 
-export function recordRecentBrowse(libraryMode: RecentBrowseLibraryMode, record: SourceRecord) {
+export function recordRecentBrowse(libraryMode: RecentBrowseLibraryMode, record: SourceRecord, matchedPath?: string) {
   if (typeof window === 'undefined') return
   const viewedAtMs = Date.now()
-  const nextEntry = toEntry(libraryMode, record, viewedAtMs)
+  const nextEntry = toEntry(libraryMode, record, viewedAtMs, matchedPath)
   const current = readRecentBrowseEntries().filter((item) => item.id !== nextEntry.id)
   writeRecentBrowseEntries([nextEntry, ...current])
 }

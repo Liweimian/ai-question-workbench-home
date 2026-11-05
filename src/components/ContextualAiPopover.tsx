@@ -11,13 +11,13 @@ interface ContextualAiPopoverProps {
   resultText?: string
   resultVariants?: string[]
   resultMeta?: string
-  originalText?: string
   quickActions?: Array<{ label: string; onSelect: () => void }>
   onPromptChange: (value: string) => void
   onSubmit: () => void
   onClose: () => void
   onReplace?: () => void
   onAppend?: (variantIndex?: number) => void
+  appendLabel?: string
 }
 
 export function ContextualAiPopover(props: ContextualAiPopoverProps) {
@@ -32,11 +32,8 @@ export function ContextualAiPopover(props: ContextualAiPopoverProps) {
           <span><Check size={15} /></span>
           <div>
             <div className="contextual-ai-result-heading"><strong>{props.resultMeta ?? '已生成结果'}</strong><button type="button" onClick={props.onSubmit}>重新生成</button></div>
-            {props.resultVariants?.length ? <div className="contextual-ai-variants">{props.resultVariants.map((variant, index) => <section key={`${index}-${variant.slice(0, 16)}`}><small>方案 {index + 1}</small><p>{variant}</p>{props.onAppend ? <button type="button" onClick={(event) => { animateQuestionToDraft(event.currentTarget); props.onAppend?.(index) }}>添加到题单</button> : null}</section>)}</div> : <div className="contextual-ai-compare">
-              {props.originalText ? <section><small>原题</small><p>{props.originalText}</p></section> : null}
-              <section className="is-new"><small>新题</small><p>{props.resultText}</p></section>
-            </div>}
-            {!props.resultVariants?.length && (props.onReplace || props.onAppend) ? <footer>{props.onAppend ? <button type="button" className="is-primary" onClick={(event) => { animateQuestionToDraft(event.currentTarget); props.onAppend?.() }}>添加</button> : null}{props.onReplace ? <button type="button" className="is-primary" onClick={props.onReplace}>替换原题</button> : null}</footer> : null}
+            {props.resultVariants?.length ? <div className="contextual-ai-variants">{props.resultVariants.map((variant, index) => <section key={`${index}-${variant.slice(0, 16)}`}><small>方案 {index + 1}</small><p>{variant}</p>{props.onAppend ? <button type="button" onClick={(event) => { animateQuestionToDraft(event.currentTarget); props.onAppend?.(index) }}>添加到题单</button> : null}</section>)}</div> : <div className="contextual-ai-compare"><section className="is-new"><small>新题</small><p>{props.resultText}</p></section></div>}
+            {!props.resultVariants?.length && (props.onReplace || props.onAppend) ? <footer>{props.onReplace ? <button type="button" onClick={props.onReplace}>替换原题</button> : null}{props.onAppend ? <button type="button" className="is-primary" onClick={(event) => { animateQuestionToDraft(event.currentTarget); props.onAppend?.() }}>{props.appendLabel ?? '添加'}</button> : null}</footer> : null}
           </div>
         </div>
       ) : (

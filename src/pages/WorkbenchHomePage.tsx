@@ -6,6 +6,7 @@ import { QuestionSortPanel } from '../components/QuestionSortPanel'
 import { DocumentCanvas } from '../components/DocumentCanvas'
 import { EmptyCanvas } from '../components/EmptyCanvas'
 import { MyResourcesPanel, RESOURCE_CREATED_FOLDERS } from '../components/MyResourcesPanel'
+import { MyResourceQuestionDetail } from '../components/MyResourceQuestionDetail'
 import { ResourceFileDetail } from '../components/ResourceFileDetail'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
@@ -14,15 +15,19 @@ import { ElephantIcon, FeixiangAiLibraryLogo } from '../components/ElephantIcon'
 import { isDefaultDocumentTitle } from '../data/workbenchData'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { defaultDocumentFormat } from '../prototype/types'
-import type { AddQuestionMode, MyResourceKind, MyResourceSummary, SourceRecord } from '../prototype/types'
-import { BrainCircuit, File, FileText, House, PanelLeftClose, PanelRightOpen, RefreshCw, X } from 'lucide-react'
+import type { AddQuestionMode, Difficulty, MyResourceKind, MyResourceSummary, Question, QuestionType, SourceRecord } from '../prototype/types'
+import { BrainCircuit, ChevronRight, File, FileText, House, PanelLeftClose, PanelRightOpen, RefreshCw, X } from 'lucide-react'
 import { EditorStudioShell } from '../components/EditorStudioShell'
 import { ScoreSettingsDialog } from '../components/ScoreSettingsDialog'
 import { getDocumentKind, needsPaperScoreSettings } from '../utils/documentEditorUtils'
-import { openAnswerSheetTab } from '../utils/answerSheetRoute'
+import { AnswerSheetPanel } from '../components/AnswerSheetPanel'
 import { RecentBrowsePanel } from '../components/RecentBrowsePanel'
 import { RequirementSpecControls } from '../components/RequirementSpecControls'
+import { GlobalResourceSearch } from '../components/GlobalResourceSearch'
 import { readRecentBrowseEntries, recordRecentBrowse, type RecentBrowseEntry } from '../utils/recentBrowseHistory'
+import type { GlobalResourceSearchHit } from '../services/globalResourceSearchRepository'
+import { sourceRecords as allSourceRecords } from '../data/workbenchData'
+import { persistDocumentNow, readStoredDocument } from '../services/workbenchRepository'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
@@ -31,6 +36,7 @@ interface LibraryDetailTab {
   key: string
   libraryMode: LibraryTabMode
   record: SourceRecord
+  matchedPath?: string
 }
 
 const addTabLabels: Record<AddTabMode, string> = {
@@ -45,12 +51,23 @@ function isLibraryTabMode(mode: AddTabMode): mode is LibraryTabMode {
   return mode === 'resource' || mode === 'school'
 }
 
+function resolveChapterNode(hit: GlobalResourceSearchHit) {
+  const anchor = hit.target.anchorLabel ?? ''
+  if (anchor.includes('待定系数')) return '待定系数法'
+  if (anchor.includes('二元一次方程')) return '5.1 认识二元一次方程组'
+  if (anchor.includes('实际应用')) return '实际应用'
+  if (anchor.includes('图象') || anchor.includes('性质') || anchor.includes('平移')) return '图象与性质'
+  if (anchor.includes('一次函数') || hit.title.includes('一次函数')) return '一次函数概念'
+  return '4.1 函数'
+}
+
 export function WorkbenchHomePage() {
   const workbench = useWorkbench()
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const previousDocumentId = useRef(workbench.document.id)
   const highlightTimerRef = useRef<number | null>(null)
   const assistantTabRef = useRef<HTMLButtonElement>(null)
+  const aiSearchTabRef = useRef<HTMLButtonElement>(null)
   const [sortCollapsed, setSortCollapsed] = useState(false)
   const [sidePanelOpen, setSidePanelOpen] = useState(true)
   const [draftCollapsed, setDraftCollapsed] = useState(false)
@@ -59,8 +76,11 @@ export function WorkbenchHomePage() {
   const [activeLibraryDetailKey, setActiveLibraryDetailKey] = useState<string | null>(null)
   const [assistantTabOpen, setAssistantTabOpen] = useState(false)
   const [assistantActive, setAssistantActive] = useState(false)
-  const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(false)
-  const [myResourcesActive, setMyResourcesActive] = useState(false)
+  const [aiSearchTabOpen, setAiSearchTabOpen] = useState(false)
+  const [aiSearchActive, setAiSearchActive] = useState(false)
+  const opensHomeworkResources = new URLSearchParams(window.location.search).get('view') === 'homework-resources'
+  const [myResourcesTabOpen, setMyResourcesTabOpen] = useState(opensHomeworkResources)
+  const [myResourcesActive, setMyResourcesActive] = useState(opensHomeworkResources)
   const [myResourcesInitialKind, setMyResourcesInitialKind] = useState<MyResourceKind | '全部'>('全部')
   const [fileDetailTabs, setFileDetailTabs] = useState<MyResourceSummary[]>([])
   const [activeFileDetailId, setActiveFileDetailId] = useState<string | null>(null)
@@ -69,7 +89,11 @@ export function WorkbenchHomePage() {
   const [recentBrowseEntries, setRecentBrowseEntries] = useState<RecentBrowseEntry[]>(() => readRecentBrowseEntries())
   const [recentlyAddedQuestionId, setRecentlyAddedQuestionId] = useState<string | null>(null)
   const [scoreDialogOpen, setScoreDialogOpen] = useState(false)
-  const [scoreDialogNext, setScoreDialogNext] = useState<'save' | 'generate' | 'assign' | 'download' | 'print' | null>(null)
+  const [scoreDialogNext, setScoreDialogNext] = useState<'save-paper' | 'save-paper-new' | 'generate' | 'preview' | 'assign' | 'download' | 'print' | 'share' | null>(null)
+  const [answerSheetActive, setAnswerSheetActive] = useState(false)
+  const [resourceAnswerSheetDocument, setResourceAnswerSheetDocument] = useState<ReturnType<typeof readStoredDocument>>(null)
+  const [resourceAnswerSheetSaveState, setResourceAnswerSheetSaveState] = useState<'dirty' | 'saving' | 'saved' | 'error'>('saved')
+  const [gradeSubject, setGradeSubject] = useState('初中数学')
   const hasQuestions = workbench.document.questions.length > 0
   const activeLibraryDetail = libraryDetailTabs.find((tab) => tab.key === activeLibraryDetailKey) ?? null
 
@@ -98,6 +122,8 @@ export function WorkbenchHomePage() {
     setRecentlyAddedQuestionId(null)
     setAssistantTabOpen(false)
     setAssistantActive(false)
+    setAiSearchTabOpen(false)
+    setAiSearchActive(false)
     setMyResourcesTabOpen(false)
     setMyResourcesActive(false)
     setFileDetailTabs([])
@@ -112,6 +138,14 @@ export function WorkbenchHomePage() {
     })
   }, [assistantActive, assistantTabOpen])
 
+  useEffect(() => {
+    if (!aiSearchTabOpen || !aiSearchActive) return
+    window.requestAnimationFrame(() => {
+      aiSearchTabRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      aiSearchTabRef.current?.focus()
+    })
+  }, [aiSearchActive, aiSearchTabOpen])
+
   const questionNumber = workbench.selectedQuestion
     ? workbench.document.questions.findIndex((question) => question.id === workbench.selectedQuestion?.id) + 1
     : 0
@@ -121,6 +155,7 @@ export function WorkbenchHomePage() {
     setActiveLibraryDetailKey(null)
     setMyResourcesActive(false)
     setActiveFileDetailId(null)
+    setAiSearchActive(false)
     if (prompt === undefined && workbench.assistantRun) {
       workbench.closeAdd()
       setAssistantTabOpen(true)
@@ -154,11 +189,22 @@ export function WorkbenchHomePage() {
     setMyResourcesActive(false)
     setRecentBrowseActive(false)
     setActiveFileDetailId(null)
+    setAiSearchActive(false)
     if (mode !== 'menu') {
       setOpenAddTabs((current) => current.includes(mode) ? current : [...current, mode])
     }
     workbench.openAdd(mode, options)
   }
+
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    if (url.searchParams.get('open') !== 'ai-recording') return
+    url.searchParams.delete('open')
+    window.history.replaceState(null, '', url.toString())
+    openAdd('upload')
+    // Only consumes the one-time navigation instruction from 作业首页.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const activateAddTab = (mode: AddTabMode) => {
     setSidePanelOpen(true)
@@ -167,6 +213,7 @@ export function WorkbenchHomePage() {
     setMyResourcesActive(false)
     setRecentBrowseActive(false)
     setActiveFileDetailId(null)
+    setAiSearchActive(false)
     if (!workbench.isAddOpen || workbench.addMode !== mode) workbench.openAdd(mode)
   }
 
@@ -180,6 +227,7 @@ export function WorkbenchHomePage() {
     setAssistantActive(false)
     setMyResourcesActive(false)
     setActiveFileDetailId(null)
+    setAiSearchActive(false)
     workbench.closeAdd()
     setRecentBrowseTabOpen(true)
     setRecentBrowseActive(true)
@@ -197,24 +245,26 @@ export function WorkbenchHomePage() {
     setAssistantActive(false)
     setMyResourcesActive(false)
     setActiveFileDetailId(null)
+    setAiSearchActive(false)
     workbench.closeAdd()
     setRecentBrowseActive(true)
     refreshRecentBrowseEntries()
   }
 
-  const openLibraryDetail = (libraryMode: LibraryTabMode, record: SourceRecord) => {
+  const openLibraryDetail = (libraryMode: LibraryTabMode, record: SourceRecord, matchedPath?: string) => {
     const key = `${libraryMode}:${record.id}`
     setSidePanelOpen(true)
     setAssistantActive(false)
     setMyResourcesActive(false)
     setActiveFileDetailId(null)
+    setAiSearchActive(false)
     setOpenAddTabs((current) => current.includes(libraryMode) ? current : [...current, libraryMode])
     setLibraryDetailTabs((current) => current.some((tab) => tab.key === key)
-      ? current
-      : [...current, { key, libraryMode, record }])
+      ? current.map((tab) => tab.key === key ? { ...tab, matchedPath: matchedPath ?? tab.matchedPath } : tab)
+      : [...current, { key, libraryMode, record, matchedPath }])
     setActiveLibraryDetailKey(key)
     setRecentBrowseActive(false)
-    recordRecentBrowse(libraryMode, record)
+    recordRecentBrowse(libraryMode, record, matchedPath)
     refreshRecentBrowseEntries()
     if (!workbench.isAddOpen || workbench.addMode !== libraryMode) {
       workbench.openAdd(libraryMode, { libraryView: record.sourceType })
@@ -225,14 +275,52 @@ export function WorkbenchHomePage() {
   }
 
   const openRecentBrowseEntry = (entry: RecentBrowseEntry) => {
-    openLibraryDetail(entry.libraryMode, entry.record)
+    const activeRecord = allSourceRecords.find((record) => record.id === entry.record.id)
+    if (!activeRecord) {
+      MetisMessage.error('资源不存在')
+      return
+    }
+    openLibraryDetail(entry.libraryMode, activeRecord, entry.matchedPath)
   }
+
+  const updateWorkbookBrowsePath = (record: SourceRecord, matchedPath: string) => {
+    if (!activeLibraryDetail || activeLibraryDetail.record.id !== record.id) return
+    recordRecentBrowse(activeLibraryDetail.libraryMode, record, matchedPath)
+    refreshRecentBrowseEntries()
+  }
+
+  const openGlobalSearchResult = (hit: GlobalResourceSearchHit) => {
+    if (hit.target.view === 'chapter' || hit.groupType === 'question') {
+      openAdd(hit.target.mode, {
+        libraryView: 'chapter',
+        searchKeyword: hit.target.keyword,
+        chapterNode: resolveChapterNode(hit),
+        questionId: hit.target.questionId,
+        questionType: hit.target.questionType as QuestionType | undefined,
+        difficulty: hit.target.difficulty as Difficulty | undefined,
+      })
+      MetisMessage.success(`已定位到“${hit.target.anchorLabel ?? '章节知识点'}”的单题结果`)
+      return
+    }
+
+    const record = allSourceRecords.find((item) => item.id === hit.target.resourceId)
+    if (record) {
+      openLibraryDetail(hit.target.mode, record, hit.target.anchorLabel)
+      MetisMessage.success(`已进入“${record.title}”的命中位置`)
+      return
+    }
+
+    openAdd(hit.target.mode, { libraryView: hit.target.view })
+  }
+
+  const addGlobalSearchQuestion = (question: Question) => workbench.addSource('workbook', undefined, undefined, [question])
 
   const activateLibraryDetail = (tab: LibraryDetailTab) => {
     setSidePanelOpen(true)
     setAssistantActive(false)
     setMyResourcesActive(false)
     setActiveFileDetailId(null)
+    setAiSearchActive(false)
     setActiveLibraryDetailKey(tab.key)
     if (!workbench.isAddOpen || workbench.addMode !== tab.libraryMode) {
       workbench.openAdd(tab.libraryMode, { libraryView: tab.record.sourceType })
@@ -246,7 +334,25 @@ export function WorkbenchHomePage() {
     setMyResourcesActive(false)
     setRecentBrowseActive(false)
     setActiveFileDetailId(null)
+    setAiSearchActive(false)
     workbench.closeAdd()
+  }
+
+  const activateAiSearch = () => {
+    setSidePanelOpen(true)
+    setActiveLibraryDetailKey(null)
+    setAssistantActive(false)
+    setMyResourcesActive(false)
+    setRecentBrowseActive(false)
+    setActiveFileDetailId(null)
+    workbench.closeAdd()
+    setAiSearchTabOpen(true)
+    setAiSearchActive(true)
+  }
+
+  const closeAiSearchTab = () => {
+    setAiSearchTabOpen(false)
+    setAiSearchActive(false)
   }
 
   const submitAssistant = () => {
@@ -259,6 +365,7 @@ export function WorkbenchHomePage() {
     workbench.closeAdd()
     setAssistantTabOpen(true)
     setAssistantActive(true)
+    setAiSearchActive(false)
     void workbench.composeFromBank()
   }
 
@@ -267,6 +374,7 @@ export function WorkbenchHomePage() {
     setActiveLibraryDetailKey(null)
     setMyResourcesActive(false)
     setActiveFileDetailId(null)
+    setAiSearchActive(false)
     workbench.closeAdd()
     setAssistantActive(true)
   }
@@ -282,16 +390,42 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
+    setAiSearchActive(false)
     workbench.closeAdd()
     setMyResourcesTabOpen(true)
     setMyResourcesActive(true)
     setActiveFileDetailId(null)
   }
 
+  const openHomeworkHome = () => {
+    const url = new URL(window.location.href)
+    url.searchParams.set('view', 'homework-resources')
+    window.open(url.toString(), '_blank')
+  }
+
+  const leaveHomeworkResources = (target?: 'ai-recording') => {
+    const url = new URL(window.location.href)
+    url.searchParams.delete('view')
+    if (target) url.searchParams.set('open', target)
+    else url.searchParams.delete('open')
+    window.location.assign(url.toString())
+  }
+
+  const openManagedResource = async (resource: MyResourceSummary) => {
+    if ((resource.kind === '题单' || resource.kind === '试卷') && resource.documentId) {
+      await workbench.openHistoryDocument(resource.documentId)
+      setSidePanelOpen(false)
+      setDraftCollapsed(false)
+      return
+    }
+    openFileDetail(resource)
+  }
+
   const openFileDetail = (resource: MyResourceSummary) => {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
+    setAiSearchActive(false)
     setRecentBrowseActive(false)
     workbench.closeAdd()
     setMyResourcesActive(false)
@@ -299,10 +433,23 @@ export function WorkbenchHomePage() {
     setActiveFileDetailId(resource.id)
   }
 
+  const openResourceAnswerSheet = (resource: MyResourceSummary) => {
+    const storedDocument = resource.documentId ? readStoredDocument(resource.documentId) : null
+    if (!storedDocument) {
+      MetisMessage.info('未找到这份试卷')
+      return
+    }
+    openFileDetail(resource)
+    setResourceAnswerSheetDocument(storedDocument)
+    setResourceAnswerSheetSaveState('saved')
+    setAnswerSheetActive(true)
+  }
+
   const activateFileDetail = (id: string) => {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
     setAssistantActive(false)
+    setAiSearchActive(false)
     setRecentBrowseActive(false)
     workbench.closeAdd()
     setMyResourcesActive(false)
@@ -344,11 +491,20 @@ export function WorkbenchHomePage() {
 
   const collapseSidePanel = () => {
     setDraftCollapsed(false)
+    setAiSearchActive(false)
     setSidePanelOpen(false)
   }
 
-  const isAddHome = !workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive && !recentBrowseActive
-  const alternateHomeLayout = sidePanelOpen && isAddHome && !draftCollapsed
+  const isAddHome = !workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !aiSearchActive && !myResourcesActive && !recentBrowseActive && !activeFileDetailId
+  const hasOpenTaskTabs = openAddTabs.length > 0
+    || libraryDetailTabs.length > 0
+    || assistantTabOpen
+    || aiSearchTabOpen
+    || myResourcesTabOpen
+    || recentBrowseTabOpen
+    || fileDetailTabs.length > 0
+  const showHomeAiSearch = isAddHome && !hasOpenTaskTabs
+  const alternateHomeLayout = sidePanelOpen && (isAddHome || aiSearchActive) && !draftCollapsed
   const studioEditorOpen = !sidePanelOpen
   const documentCenterVisible = sidePanelOpen && isAddHome
   const reviewMode = new URLSearchParams(window.location.search).get('mode') === 'review'
@@ -364,11 +520,18 @@ export function WorkbenchHomePage() {
     || Boolean(workbench.document.intro?.trim())
     || hasCustomDocumentFormat
     || (!['未命名组题', '未命名题单'].includes(workbench.document.title.trim()) && !isDefaultDocumentTitle(workbench.document.title))
-  const finalizeNewDocument = () => {
-    if (!workbench.createNewDocument({ preserveAddWorkspace: sidePanelOpen })) return
+  const requiresSaveKind = !workbench.historyDocuments.some((item) => item.id === workbench.document.id)
+  const finalizeNewDocument = (rememberCurrent = true) => {
+    if (!workbench.createNewDocument({
+      preserveAddWorkspace: sidePanelOpen,
+      rememberCurrent,
+      successMessage: rememberCurrent ? undefined : '已新建空白题单',
+    })) return
     setActiveLibraryDetailKey(null)
     setAssistantTabOpen(false)
     setAssistantActive(false)
+    setAiSearchTabOpen(false)
+    setAiSearchActive(false)
     setSidePanelOpen(true)
     setDraftCollapsed(false)
   }
@@ -380,13 +543,13 @@ export function WorkbenchHomePage() {
     setSidePanelOpen(false)
   }
 
-  const openScoreDialog = (next: 'save' | 'generate' | 'assign' | 'download' | 'print') => {
+  const openScoreDialog = (next: typeof scoreDialogNext) => {
     if (sidePanelOpen) expandEditorForScores()
     setScoreDialogNext(next)
     setScoreDialogOpen(true)
   }
 
-  const requirePaperScores = (next: 'save' | 'generate' | 'assign' | 'download' | 'print', kind = getDocumentKind(workbench.document)) => {
+  const requirePaperScores = (next: 'generate' | 'preview' | 'assign' | 'download' | 'print' | 'share', kind = getDocumentKind(workbench.document)) => {
     if (!needsPaperScoreSettings(workbench.document, kind)) return true
     MetisMessage.error('试题分值不能为空')
     if (kind === '试卷' && getDocumentKind(workbench.document) !== '试卷') {
@@ -416,12 +579,22 @@ export function WorkbenchHomePage() {
   }
 
   const finishScoreDialogAction = (next: typeof scoreDialogNext) => {
-    if (next === 'generate') {
-      if (workbench.generateAnswerSheet()) openAnswerSheetTab(workbench.document.id)
+    if (next === 'save-paper') {
+      void workbench.saveDocument(true, '试卷')
       return
     }
-    if (next === 'save') {
-      void workbench.saveDocument(true, '试卷')
+    if (next === 'save-paper-new') {
+      void workbench.saveDocument(true, '试卷').then((saved) => {
+        if (saved) finalizeNewDocument(true)
+      })
+      return
+    }
+    if (next === 'generate') {
+      if (workbench.generateAnswerSheet()) setAnswerSheetActive(true)
+      return
+    }
+    if (next === 'preview') {
+      MetisMessage.info('预览面板已打开（原型演示）')
       return
     }
     if (next === 'assign') {
@@ -433,11 +606,32 @@ export function WorkbenchHomePage() {
       return
     }
     if (next === 'print') printCurrentDocument()
+    if (next === 'share') {
+      void workbench.saveDocument(true, getDocumentKind(workbench.document)).then((saved) => {
+        if (!saved) return
+        workbench.markDocumentOutput('share')
+        MetisMessage.success('共享到校本库面板已打开（原型演示）')
+      })
+    }
   }
 
-  const trySaveDocument = async (kind?: Parameters<typeof workbench.saveDocument>[1]) => {
-    const resolvedKind = kind ?? getDocumentKind(workbench.document)
-    if (!requirePaperScores('save', resolvedKind)) return false
+  const trySaveDocument = async (
+    kind?: Parameters<typeof workbench.saveDocument>[1],
+    createAfterSave = false,
+  ) => {
+    const targetKind = kind ?? getDocumentKind(workbench.document)
+    if (targetKind === '试卷') {
+      if (workbench.document.questions.length === 0) {
+        MetisMessage.error('请先添加题目再保存为试卷')
+        return false
+      }
+      if (needsPaperScoreSettings(workbench.document, '试卷')) {
+        if (getDocumentKind(workbench.document) !== '试卷') workbench.setDocumentKind('试卷')
+        MetisMessage.error('请先完成分值设置')
+        openScoreDialog(createAfterSave ? 'save-paper-new' : 'save-paper')
+        return false
+      }
+    }
     return workbench.saveDocument(true, kind)
   }
 
@@ -459,7 +653,7 @@ export function WorkbenchHomePage() {
   const tryGenerateAnswerSheet = () => {
     if (workbench.document.questions.length === 0) return
     if (!requirePaperScores('generate')) return
-    if (workbench.generateAnswerSheet()) openAnswerSheetTab(workbench.document.id)
+    if (workbench.generateAnswerSheet()) setAnswerSheetActive(true)
   }
 
   const renderDraftContent = (hideActionToolbar = false, studioLayout = false) => {
@@ -475,10 +669,14 @@ export function WorkbenchHomePage() {
         contentBusy={workbench.isContentBusy}
         syncState={workbench.documentSyncState}
         assignmentOutdated={workbench.assignmentOutdated}
-        onSave={() => { void trySaveDocument() }}
+        onSave={(kind) => trySaveDocument(kind)}
+        requiresSaveKind={requiresSaveKind}
         onAssign={tryAssignDocument}
+        onMarkOutput={workbench.markDocumentOutput}
         onRequirePaperScores={requirePaperScores}
         onExpand={sidePanelOpen ? () => { setSidePanelOpen(false); setDraftCollapsed(false) } : undefined}
+        onCreateNew={finalizeNewDocument}
+        onSaveAndCreateNew={(kind) => trySaveDocument(kind, true)}
         onOpenAssistant={openAssistant}
         onOpenAdd={openAdd}
         onOpenMyResources={() => openMyResources('全部')}
@@ -507,11 +705,16 @@ export function WorkbenchHomePage() {
         contentBusy={workbench.isContentBusy}
         syncState={workbench.documentSyncState}
         assignmentOutdated={workbench.assignmentOutdated}
-        onSave={() => { void trySaveDocument() }}
+        onSave={(kind) => trySaveDocument(kind)}
+        requiresSaveKind={requiresSaveKind}
         onAssign={tryAssignDocument}
+        onMarkOutput={workbench.markDocumentOutput}
         onRequirePaperScores={requirePaperScores}
         onExpand={sidePanelOpen ? () => { setSidePanelOpen(false); setDraftCollapsed(false) } : undefined}
+        onCreateNew={finalizeNewDocument}
+        onSaveAndCreateNew={(kind) => trySaveDocument(kind, true)}
         onSectionTitleChange={workbench.setSectionTitle}
+        onInsertUtility={workbench.insertUtility}
         onAdd={openAdd}
         onOpenMyResources={() => openMyResources('全部')}
         onKindChange={workbench.setDocumentKind}
@@ -528,6 +731,75 @@ export function WorkbenchHomePage() {
     )
   }
 
+  if (answerSheetActive) {
+    const answerSheetDocument = resourceAnswerSheetDocument ?? workbench.document
+    const answerSheetSaveState = resourceAnswerSheetDocument
+      ? resourceAnswerSheetSaveState
+      : workbench.documentSyncState === 'clean' ? 'saved' : workbench.documentSyncState
+    return (
+      <div className="fx-app metis-theme-aiq answer-sheet-standalone">
+        <AnswerSheetPanel
+          document={answerSheetDocument}
+          saveState={answerSheetSaveState}
+          onSave={() => {
+            if (!resourceAnswerSheetDocument) {
+              void workbench.saveDocument(true, '试卷')
+              return
+            }
+            setResourceAnswerSheetSaveState('saving')
+            try {
+              persistDocumentNow(resourceAnswerSheetDocument)
+              setResourceAnswerSheetSaveState('saved')
+            } catch {
+              setResourceAnswerSheetSaveState('error')
+            }
+          }}
+          onChange={(patch) => {
+            if (!resourceAnswerSheetDocument) {
+              workbench.updateAnswerSheet(patch)
+              return
+            }
+            setResourceAnswerSheetDocument((current) => current ? {
+              ...current,
+              answerSheet: { ...current.answerSheet, ...patch, updatedAt: new Date().toISOString() },
+            } : current)
+            setResourceAnswerSheetSaveState('dirty')
+          }}
+          onMarkOutput={resourceAnswerSheetDocument ? () => persistDocumentNow(resourceAnswerSheetDocument) : workbench.markDocumentOutput}
+          onShare={async () => {
+            if (resourceAnswerSheetDocument) {
+              if (resourceAnswerSheetSaveState !== 'saved') {
+                persistDocumentNow(resourceAnswerSheetDocument)
+                setResourceAnswerSheetSaveState('saved')
+              }
+              MetisMessage.info('共享到校本库面板已打开（原型演示）')
+              return
+            }
+            if (workbench.documentSyncState !== 'saved' && workbench.documentSyncState !== 'clean') {
+              const saved = await workbench.saveDocument(true, '试卷')
+              if (!saved) return
+            }
+            MetisMessage.info('共享到校本库面板已打开（原型演示）')
+          }}
+          onBackToPaper={() => {
+            const returnDocumentId = resourceAnswerSheetDocument?.id
+            if (opensHomeworkResources && returnDocumentId) {
+              void workbench.openHistoryDocument(returnDocumentId).then(() => {
+                setSidePanelOpen(false)
+                setDraftCollapsed(false)
+                setAnswerSheetActive(false)
+                setResourceAnswerSheetDocument(null)
+              })
+              return
+            }
+            setAnswerSheetActive(false)
+            setResourceAnswerSheetDocument(null)
+          }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="fx-app metis-theme-aiq">
       <main className="fx-content workbench-page">
@@ -540,6 +812,7 @@ export function WorkbenchHomePage() {
             canUndo={workbench.canUndo && !workbench.isContentBusy}
             contentBusy={workbench.isContentBusy}
             documentStatus={workbench.documentStatus}
+            documentKind={getDocumentKind(workbench.document)}
             syncState={workbench.documentSyncState}
             assignmentOutdated={workbench.assignmentOutdated}
             hasPersistedDraft={workbench.historyDocuments.some((item) => item.id === workbench.document.id)}
@@ -549,8 +822,8 @@ export function WorkbenchHomePage() {
               workbench.undo()
             }}
             onCreateNew={finalizeNewDocument}
-            hasUnsavedChanges={hasUnsavedDocumentChanges}
-            onSaveAndCreateNew={() => workbench.saveDocument(true, '题单')}
+            hasUnsavedChanges={hasUnsavedDocumentChanges || hasQuestions}
+            onSaveAndCreateNew={(kind) => trySaveDocument(kind, true)}
             onSave={(kind) => trySaveDocument(kind)}
             onAssign={tryAssignDocument}
             onMarkOutput={workbench.markDocumentOutput}
@@ -565,7 +838,8 @@ export function WorkbenchHomePage() {
             }}
             studioEditorOpen={studioEditorOpen}
             studioDocument={studioEditorOpen ? workbench.document : undefined}
-            onStudioSave={() => { void trySaveDocument() }}
+            onStudioSave={(kind) => trySaveDocument(kind)}
+            studioRequiresSaveKind={requiresSaveKind}
             onStudioAssign={tryAssignDocument}
             onStudioGenerateAnswerSheet={tryGenerateAnswerSheet}
             onRequirePaperScores={requirePaperScores}
@@ -581,7 +855,7 @@ export function WorkbenchHomePage() {
                 onDocumentFormatChange={workbench.setDocumentFormat}
                 onKindChange={workbench.setDocumentKind}
                 onAnswerModeChange={workbench.setAnswerMode}
-                onOpenScoreSettings={() => openScoreDialog('save')}
+                onOpenScoreSettings={() => openScoreDialog(null)}
                 sortPanel={(
                   <QuestionSortPanel
                     questions={workbench.document.questions}
@@ -620,33 +894,50 @@ export function WorkbenchHomePage() {
 
             {sidePanelOpen ? (
               <div className="add-workspace" aria-label="添加题目多任务工作区">
-                <div className="add-workspace-brand" aria-label="选择学段科目">
-                  <FeixiangAiLibraryLogo />
-                  <span className="add-workspace-subject">
-                    <select aria-label="学段科目" defaultValue="初中数学">
-                      <option>小学数学</option>
-                      <option>初中数学</option>
-                      <option>高中数学</option>
-                    </select>
-                  </span>
-                </div>
-                <nav className="add-workspace-tabs" aria-label="已打开的添加方式" role="tablist">
+                <header className={`add-workspace-topbar${opensHomeworkResources ? ' is-homework-resource' : ''}`}>
+                  {opensHomeworkResources ? (
+                    <nav className="homework-resource-breadcrumb" aria-label="我的资源面包屑">
+                      <span><House size={15} />作业首页</span>
+                      <ChevronRight size={14} />
+                      <strong>我的资源</strong>
+                    </nav>
+                  ) : null}
+                  <div className="add-workspace-brand" aria-label="选择学段科目">
+                    <FeixiangAiLibraryLogo />
+                    <span className="add-workspace-subject">
+                      <select aria-label="学段科目" value={gradeSubject} onChange={(event) => setGradeSubject(event.target.value)}>
+                        <option>小学数学</option>
+                        <option>初中数学</option>
+                        <option>高中数学</option>
+                      </select>
+                    </span>
+                  </div>
                   <button
                     type="button"
-                    role="tab"
                     aria-label="添加题目首页"
                     title="添加题目首页"
-                    aria-selected={!workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive && !recentBrowseActive && !activeFileDetailId}
-                    className={`add-workspace-home${!workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !myResourcesActive && !recentBrowseActive ? ' is-active' : ''}`}
+                    aria-current={isAddHome ? 'page' : undefined}
+                    className={`add-workspace-home${isAddHome ? ' is-active' : ''}`}
                     onClick={activateAddHome}
                   ><House size={17} /></button>
+                  <GlobalResourceSearch
+                    className={showHomeAiSearch ? 'is-full-workspace is-home-aligned' : alternateHomeLayout ? 'is-full-workspace' : 'is-split-workspace'}
+                    currentScope={gradeSubject}
+                    workspaceActive={aiSearchActive}
+                    showTopBar={showHomeAiSearch}
+                    onActivateWorkspace={activateAiSearch}
+                    onRequestCloseWorkspace={closeAiSearchTab}
+                    onSelectResult={openGlobalSearchResult}
+                    onAddQuestion={addGlobalSearchQuestion}
+                    onOpenCompose={openAssistant}
+                  />
+                  <nav className="add-workspace-tabs" aria-label="已打开的任务">
                   {openAddTabs.map((mode) => (
                     <Fragment key={mode}>
                       <span className={`add-workspace-tab${workbench.isAddOpen && workbench.addMode === mode && !activeLibraryDetail ? ' is-active' : ''}`}>
                         <button
                           type="button"
-                          role="tab"
-                          aria-selected={workbench.isAddOpen && workbench.addMode === mode && !activeLibraryDetail}
+                          aria-current={workbench.isAddOpen && workbench.addMode === mode && !activeLibraryDetail ? 'page' : undefined}
                           data-add-tab-mode={mode}
                           onClick={() => activateAddTab(mode)}
                         >{addTabLabels[mode]}</button>
@@ -658,9 +949,8 @@ export function WorkbenchHomePage() {
                         <span className={`add-workspace-tab is-detail${activeLibraryDetailKey === tab.key ? ' is-active' : ''}`} key={tab.key}>
                           <button
                             type="button"
-                            role="tab"
                             title={tab.record.title}
-                            aria-selected={activeLibraryDetailKey === tab.key}
+                            aria-current={activeLibraryDetailKey === tab.key ? 'page' : undefined}
                             data-detail-tab-key={tab.key}
                             onClick={() => activateLibraryDetail(tab)}
                             data-track="/click/aiQuestionHome/switchResourceDetailTab | 切换资源详情 | resourceId#STRING"
@@ -676,9 +966,8 @@ export function WorkbenchHomePage() {
                     <span className={`add-workspace-tab is-assistant${assistantActive ? ' is-active' : ''}`}>
                       <button
                         type="button"
-                        role="tab"
                         ref={assistantTabRef}
-                        aria-selected={assistantActive}
+                        aria-current={assistantActive ? 'page' : undefined}
                         onClick={activateAssistantTab}
                         data-track="/click/aiQuestionHome/switchAssistantTab | 切换AI助手任务 | 无"
                       ><BrainCircuit size={14} /><span>AI 组题</span></button>
@@ -693,12 +982,30 @@ export function WorkbenchHomePage() {
                       </button>
                     </span>
                   ) : null}
+                  {aiSearchTabOpen ? (
+                    <span className={`add-workspace-tab is-ai-search${aiSearchActive ? ' is-active' : ''}`}>
+                      <button
+                        type="button"
+                        ref={aiSearchTabRef}
+                        aria-current={aiSearchActive ? 'page' : undefined}
+                        onClick={activateAiSearch}
+                        data-track="/click/aiQuestionHome/switchAiSearchTab | 切换AI智搜任务 | 无"
+                      ><span>AI智搜</span></button>
+                      <button
+                        type="button"
+                        className="add-workspace-tab-close"
+                        aria-label="关闭 AI智搜"
+                        onClick={closeAiSearchTab}
+                      >
+                        <X size={13} />
+                      </button>
+                    </span>
+                  ) : null}
                   {myResourcesTabOpen ? (
                     <span className={`add-workspace-tab is-my-resources${myResourcesActive ? ' is-active' : ''}`}>
                       <button
                         type="button"
-                        role="tab"
-                        aria-selected={myResourcesActive}
+                        aria-current={myResourcesActive ? 'page' : undefined}
                         onClick={() => openMyResources(myResourcesInitialKind)}
                         data-track="/click/aiQuestionHome/switchMyResourcesTab | 切换我的资源任务 | 无"
                       ><span>我的资源</span></button>
@@ -711,8 +1018,7 @@ export function WorkbenchHomePage() {
                     <span key={tab.id} className={`add-workspace-tab is-file-detail${activeFileDetailId === tab.id ? ' is-active' : ''}`}>
                       <button
                         type="button"
-                        role="tab"
-                        aria-selected={activeFileDetailId === tab.id}
+                        aria-current={activeFileDetailId === tab.id ? 'page' : undefined}
                         onClick={() => activateFileDetail(tab.id)}
                       ><File size={14} /><span>{tab.title}</span></button>
                       <button type="button" className="add-workspace-tab-close" aria-label={`关闭${tab.title}`} onClick={() => closeFileDetailTab(tab.id)}>
@@ -724,8 +1030,7 @@ export function WorkbenchHomePage() {
                     <span className={`add-workspace-tab is-recent-browse${recentBrowseActive ? ' is-active' : ''}`}>
                       <button
                         type="button"
-                        role="tab"
-                        aria-selected={recentBrowseActive}
+                        aria-current={recentBrowseActive ? 'page' : undefined}
                         onClick={activateRecentBrowseTab}
                         data-track="/click/aiQuestionHome/switchRecentBrowseTab | 切换最近浏览 | 无"
                       ><RefreshCw size={14} /><span>最近浏览</span></button>
@@ -734,6 +1039,7 @@ export function WorkbenchHomePage() {
                       </button>
                     </span>
                   ) : null}
+                  </nav>
                   {isAddHome ? null : (
                     <button
                       type="button"
@@ -743,26 +1049,30 @@ export function WorkbenchHomePage() {
                       onClick={collapseSidePanel}
                     ><PanelLeftClose size={17} /></button>
                   )}
-                </nav>
+                </header>
                 {activeFileDetailId && fileDetailTabs.some((tab) => tab.id === activeFileDetailId) ? (
-                  <ResourceFileDetail
-                    resource={fileDetailTabs.find((tab) => tab.id === activeFileDetailId)!}
-                    folders={RESOURCE_CREATED_FOLDERS}
-                    onBack={() => { setActiveFileDetailId(null); setMyResourcesActive(true) }}
-                    onResourceChange={(next) => setFileDetailTabs((current) => current.map((item) => item.id === next.id ? next : item))}
-                    onDeleted={closeFileDetailTab}
-                  />
+                  fileDetailTabs.find((tab) => tab.id === activeFileDetailId)!.kind === '文件' ? <ResourceFileDetail
+                      resource={fileDetailTabs.find((tab) => tab.id === activeFileDetailId)!}
+                      folders={RESOURCE_CREATED_FOLDERS}
+                      onBack={() => { setActiveFileDetailId(null); setMyResourcesActive(true) }}
+                      onResourceChange={(next) => setFileDetailTabs((current) => current.map((item) => item.id === next.id ? next : item))}
+                      onDeleted={closeFileDetailTab}
+                    /> : <MyResourceQuestionDetail
+                      resource={fileDetailTabs.find((tab) => tab.id === activeFileDetailId)!}
+                      contentBusy={workbench.isContentBusy}
+                      onAddSource={(type, sourceId, count, selectedQuestions) => workbench.addSource(type, sourceId, count, selectedQuestions)}
+                    />
                 ) : myResourcesActive && myResourcesTabOpen ? (
                   <MyResourcesPanel
+                    mode={opensHomeworkResources ? 'manage' : 'picker'}
                     initialKind={myResourcesInitialKind}
                     histories={workbench.historyDocuments}
                     currentDocumentId={workbench.document.id}
-                    contentBusy={workbench.isContentBusy || workbench.documentSyncState === 'dirty' || workbench.documentSyncState === 'saving'}
-                    pendingResourceId={workbench.myResourcePendingId}
-                    addedResourceIds={workbench.myResourceAddedIds}
-                    onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
-                    onAddResource={(resource) => { void workbench.addMyResource(resource) }}
-                    onOpenFile={openFileDetail}
+                    onOpenFile={opensHomeworkResources ? openManagedResource : openFileDetail}
+                    onOpenAnswerSheet={openResourceAnswerSheet}
+                    onOpenHomeworkHome={openHomeworkHome}
+                    onOpenAiRecording={opensHomeworkResources ? () => leaveHomeworkResources('ai-recording') : undefined}
+                    onOpenWorkbench={opensHomeworkResources ? () => leaveHomeworkResources() : undefined}
                   />
                 ) : recentBrowseActive && recentBrowseTabOpen ? (
                   <RecentBrowsePanel
@@ -787,11 +1097,19 @@ export function WorkbenchHomePage() {
                     presentation="docked"
                     mode={workbench.addMode}
                     libraryInitialView={workbench.libraryInitialView}
+                    librarySearchKeyword={workbench.librarySearchKeyword}
+                    libraryChapterNode={workbench.libraryChapterNode}
+                    libraryQuestionId={workbench.libraryQuestionId}
+                    libraryQuestionType={workbench.libraryQuestionType}
+                    libraryDifficulty={workbench.libraryDifficulty}
+                    libraryMatchedPath={activeLibraryDetail?.matchedPath}
                     resourceType={workbench.resourceType}
                     records={workbench.sourceRecords}
                     listStatus={workbench.sourceListStatus}
                     addStatus={workbench.sourceAddStatus}
                     contentBusy={workbench.isContentBusy}
+                    compactUploadDetail={!draftCollapsed}
+                    onViewUploadOriginal={() => setDraftCollapsed(true)}
                     createConfig={workbench.createConfig}
                     createError={workbench.createError}
                     createStatus={workbench.createStatus}
@@ -801,12 +1119,16 @@ export function WorkbenchHomePage() {
                     onResourceTypeChange={(type) => void workbench.loadSources(type)}
                     onAddSource={(type, sourceId, count, selectedQuestions) => workbench.addSource(type, sourceId, count, selectedQuestions)}
                     currentDocumentHasContent={workbench.currentDocumentHasContent}
+                    currentDocumentHasUnsavedChanges={hasUnsavedDocumentChanges}
                     onCompleteEditWholeVolume={(type, sourceId, count, selectedQuestions, mode) => workbench.completeEditWholeVolumeAsNewDocument(type, sourceId, count, selectedQuestions, mode)}
                     onOpenLibraryDetail={(record) => {
                       if (workbench.addMode === 'resource' || workbench.addMode === 'school') {
                         openLibraryDetail(workbench.addMode, record)
+                      } else if (workbench.addMode === 'upload') {
+                        openLibraryDetail('resource', record)
                       }
                     }}
+                    onWorkbookDirectoryChange={updateWorkbookBrowsePath}
                     onCreateConfigChange={workbench.setCreateConfig}
                     onCreate={(requestOverride) => void workbench.createQuestions(requestOverride)}
                     onAddCreated={workbench.addCreatedQuestions}
@@ -824,6 +1146,7 @@ export function WorkbenchHomePage() {
                     onOpenDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
                     onOpenMyResources={() => openMyResources('全部')}
                     onOpenSource={(mode, options) => openAdd(mode, options)}
+                    onOpenAiSearch={activateAiSearch}
                     onOpenRecentBrowse={openRecentBrowse}
                     onReload={() => { void workbench.reloadHistory() }}
                   />
@@ -845,6 +1168,7 @@ export function WorkbenchHomePage() {
           myResourcesTabOpen: myResourcesActive,
           recentBrowseTabOpen: recentBrowseActive,
           assistantTabOpen: assistantActive,
+          aiSearchTabOpen: aiSearchActive,
         }}
       />
       {scoreDialogOpen ? (

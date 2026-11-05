@@ -69,16 +69,6 @@ export function QuestionInspector(props: QuestionInspectorProps) {
         >
           题目信息
         </button>
-        <button
-          type="button"
-          className={props.view === 'ai' ? 'is-active' : ''}
-          onClick={() => props.onViewChange('ai')}
-          role="tab"
-          aria-selected={props.view === 'ai'}
-          disabled={!props.question}
-        >
-          <Sparkles size={15} />AI 辅助
-        </button>
       </div>
 
       {props.document.questions.length === 0 ? (

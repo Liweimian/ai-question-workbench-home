@@ -11,6 +11,7 @@ import {
   Layers3,
   LoaderCircle,
   RefreshCw,
+  Search,
   School,
   Sparkles,
   Target,
@@ -31,6 +32,7 @@ interface DocumentCenterProps {
   onOpenDocument: (documentId: string) => void
   onOpenMyResources: () => void
   onOpenSource: (mode: AddQuestionMode, options?: OpenAddOptions) => void
+  onOpenAiSearch: () => void
   onOpenRecentBrowse: () => void
   onReload: () => void
 }
@@ -41,7 +43,7 @@ const aiTaskEntries: Array<{ mode: AddQuestionMode; label: string; description: 
   { mode: 'compose', label: 'AI 组题', description: '直接说作业或试卷要求，从题库配题组卷', icon: BrainCircuit },
 ]
 
-export function DocumentCenter({ embedded = false, draftContent, histories, currentDocumentId, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onOpenRecentBrowse, onReload }: DocumentCenterProps) {
+export function DocumentCenter({ embedded = false, draftContent, histories, currentDocumentId, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse, onReload }: DocumentCenterProps) {
   const [recentPanelClosed, setRecentPanelClosed] = useState(() => isRecentEditedPanelClosed())
 
   useEffect(() => {
@@ -116,6 +118,7 @@ export function DocumentCenter({ embedded = false, draftContent, histories, curr
           {aiTaskEntries.map(({ mode, label, description, icon: Icon }) => (
             <button type="button" className="is-ai-task" key={mode} title={description} aria-label={label} onClick={() => onOpenSource(mode)}><Icon size={17} /><span>{label}</span></button>
           ))}
+          <button type="button" className="is-ai-task" title="用一句话查找全站已有题目、练习和试卷" aria-label="AI智搜" onClick={onOpenAiSearch} data-track="/click/aiQuestionHome/openAiSearch | 打开AI智搜 | 无"><Search size={17} /><span>AI智搜</span></button>
           <button type="button" className="is-personal-task" onClick={onOpenMyResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><FolderHeart size={17} /><span>从我的资源选题</span></button>
           <button type="button" className="is-personal-task" onClick={onOpenRecentBrowse} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><RefreshCw size={17} /><span>继续最近浏览</span></button>
           {hasRecentContent && panelDismissed ? (

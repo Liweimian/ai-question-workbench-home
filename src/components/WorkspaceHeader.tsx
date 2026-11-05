@@ -12,7 +12,6 @@ import {
   Save,
   Send,
   Share2,
-  Undo2,
 } from 'lucide-react'
 import { formatDefaultDocumentTitle } from '../data/workbenchData'
 import type { DocumentOutputLock, DocumentStatus, DocumentSyncState, WorkbenchDocumentKind } from '../prototype/types'
@@ -29,25 +28,27 @@ interface WorkspaceHeaderProps {
   canUndo: boolean
   contentBusy: boolean
   documentStatus: DocumentStatus
+  documentKind: WorkbenchDocumentKind
   syncState: DocumentSyncState
   assignmentOutdated: boolean
   hasPersistedDraft: boolean
   onUndo: () => void
-  onCreateNew: () => void
+  onCreateNew: (rememberCurrent?: boolean) => void
   onSave: (kind?: WorkbenchDocumentKind) => void | Promise<boolean | void>
-  onSaveAndCreateNew?: () => Promise<boolean>
+  onSaveAndCreateNew?: (kind?: WorkbenchDocumentKind) => Promise<boolean>
   hasUnsavedChanges?: boolean
   onAssign: () => void
-  onMarkOutput?: (lock: DocumentOutputLock) => void
+  onMarkOutput: (lock: DocumentOutputLock) => void
   sidePanelOpen: boolean
   onSidePanelOpen: () => void
   onEnterEdit: () => void
   studioEditorOpen?: boolean
   studioDocument?: WorkbenchDocument
-  onStudioSave?: () => void
+  onStudioSave?: (kind?: WorkbenchDocumentKind) => void | Promise<boolean | void>
+  studioRequiresSaveKind?: boolean
   onStudioAssign?: () => void
   onStudioGenerateAnswerSheet?: () => void
-  onRequirePaperScores?: (action: 'assign' | 'download' | 'print') => boolean
+  onRequirePaperScores?: (action: 'preview' | 'assign' | 'download' | 'print' | 'share') => boolean
   draftCollapsed: boolean
   onDraftCollapse: () => void
   onDraftExpand: () => void
@@ -58,13 +59,12 @@ export function WorkspaceHeader({
   documentUpdatedAt,
   questionCount,
   canSave,
-  canUndo,
   contentBusy,
   documentStatus,
+  documentKind,
   syncState,
   assignmentOutdated,
   hasPersistedDraft,
-  onUndo,
   onCreateNew,
   onSave,
   onSaveAndCreateNew,
@@ -77,6 +77,7 @@ export function WorkspaceHeader({
   studioEditorOpen = false,
   studioDocument,
   onStudioSave,
+  studioRequiresSaveKind = false,
   onStudioAssign,
   onStudioGenerateAnswerSheet,
   onRequirePaperScores,
@@ -99,18 +100,18 @@ export function WorkspaceHeader({
   const syncLabel = syncState === 'saving'
     ? '正在保存…'
     : syncState === 'dirty'
-      ? '有未保存修改'
+      ? '草稿已记录，尚未保存'
       : syncState === 'error'
         ? '保存失败'
         : documentStatus === '已布置'
           ? assignmentOutdated ? '已布置 · 有新修改' : '已布置'
           : documentStatus === '已保存'
-            ? '题单已保存'
+            ? '已保存'
             : syncState === 'saved'
-              ? '草稿已自动保存'
+              ? '已保存'
               : hasPersistedDraft
-                ? '草稿已保存'
-                : '尚未保存'
+                ? '已保存'
+                : '草稿已记录'
 
   useEffect(() => {
     if (syncState !== 'saved') return
@@ -120,12 +121,12 @@ export function WorkspaceHeader({
   const saveSummary = syncState === 'saving'
     ? '保存中…'
     : syncState === 'dirty'
-      ? hasPersistedDraft ? `未保存 · 最后保存 ${lastSavedAt ?? documentUpdatedAt}` : '未保存'
+      ? `草稿已记录 · 上次保存 ${lastSavedAt ?? documentUpdatedAt}`
       : lastSavedAt
         ? `最后保存 ${lastSavedAt}`
         : hasPersistedDraft
           ? `最后保存 ${documentUpdatedAt}`
-          : '未保存'
+          : '草稿已记录'
 
   useEffect(() => {
     if (!assignOpen && !moreOpen && !saveAsDialogOpen) return
@@ -158,7 +159,7 @@ export function WorkspaceHeader({
     return () => document.removeEventListener('keydown', closeOnEscape)
   }, [newDocumentDialogOpen, saveBeforeNewPending])
 
-  const shouldConfirmBeforeNew = sidePanelOpen && hasUnsavedChanges
+  const shouldConfirmBeforeNew = hasUnsavedChanges
 
   const handleCreateNewClick = () => {
     if (contentBusy || syncState === 'saving') return
@@ -168,15 +169,15 @@ export function WorkspaceHeader({
       setNewDocumentDialogOpen(true)
       return
     }
-    onCreateNew()
+    onCreateNew(true)
   }
 
   const handleCreateNewDirectly = () => {
     setNewDocumentDialogOpen(false)
-    onCreateNew()
+    onCreateNew(false)
   }
 
-  const shouldChooseSaveKind = sidePanelOpen && hasQuestions
+  const shouldChooseSaveKind = !hasPersistedDraft
 
   const handleSaveClick = () => {
     if (!canSave || syncState === 'saving' || contentBusy || saveAsPending) return
@@ -200,17 +201,20 @@ export function WorkspaceHeader({
     }
   }
 
-  const handleSaveAndCreateNew = async () => {
+  const handleSaveAndCreateNew = async (kind?: WorkbenchDocumentKind) => {
     if (!onSaveAndCreateNew) {
       handleCreateNewDirectly()
       return
     }
     setSaveBeforeNewPending(true)
     try {
-      const saved = await onSaveAndCreateNew()
-      if (!saved) return
+      const saved = await onSaveAndCreateNew(kind)
+      if (!saved) {
+        setNewDocumentDialogOpen(false)
+        return
+      }
       setNewDocumentDialogOpen(false)
-      onCreateNew()
+      onCreateNew(true)
     } finally {
       setSaveBeforeNewPending(false)
     }
@@ -223,7 +227,7 @@ export function WorkspaceHeader({
     }
     if (onRequirePaperScores && !onRequirePaperScores('print')) return
     onMarkOutput?.('print')
-    MetisMessage.success('已生成打印 / PDF 预览（原型演示）')
+    MetisMessage.success('已生成打印预览（原型演示）')
   }
 
   const downloadWord = () => {
@@ -243,13 +247,16 @@ export function WorkspaceHeader({
 
   const shareDocument = async () => {
     if (!hasQuestions) return MetisMessage.error('请先添加题目')
+    if (onRequirePaperScores && !onRequirePaperScores('share')) return
+    const saved = await onSave(documentKind)
+    if (saved === false) return
     const shareText = `${documentTitle?.trim() || fallbackTitle}（共 ${questionCount} 道题）`
     try {
       onMarkOutput?.('share')
       await navigator.clipboard.writeText(shareText)
-      MetisMessage.success('题单分享信息已复制')
+      MetisMessage.success('已共享到校本库')
     } catch {
-      MetisMessage.info('分享面板已打开（原型演示）')
+      MetisMessage.info('共享到校本库面板已打开（原型演示）')
     }
   }
 
@@ -299,24 +306,26 @@ export function WorkspaceHeader({
           </MetisButton>
         </span>
         {!studioEditorOpen ? (
+          <span className="header-save header-icon-action" data-tooltip={syncState === 'saving' ? '保存中' : '保存'} ref={saveRef}>
+            <MetisButton
+              type="borderless"
+              icon={syncState === 'saving' ? <LoaderCircle className="is-spinning" size={17} /> : <Save size={17} />}
+              aria-label={syncState === 'saving' ? '保存中' : '保存'}
+              aria-expanded={saveAsDialogOpen}
+              disabled={!canSave || syncState === 'saving' || contentBusy || saveAsPending}
+              onClick={handleSaveClick}
+              data-track="/click/aiQuestionHome/save | 保存当前草稿 | 无"
+            />
+            <SaveAsDialog
+              open={saveAsDialogOpen}
+              pending={saveAsPending || syncState === 'saving'}
+              onClose={() => { if (!saveAsPending && syncState !== 'saving') setSaveAsDialogOpen(false) }}
+              onSelect={(kind) => { void handleSaveAsSelect(kind) }}
+            />
+          </span>
+        ) : null}
+        {!studioEditorOpen ? (
           <>
-            <span className="header-save header-icon-action" data-tooltip={syncState === 'saving' ? '保存中' : '保存题单'} ref={saveRef}>
-              <MetisButton
-                type="borderless"
-                icon={syncState === 'saving' ? <LoaderCircle className="is-spinning" size={17} /> : <Save size={17} />}
-                aria-label={syncState === 'saving' ? '保存中' : '保存题单'}
-                aria-expanded={saveAsDialogOpen}
-                disabled={!canSave || syncState === 'saving' || contentBusy || saveAsPending}
-                onClick={handleSaveClick}
-                data-track="/click/aiQuestionHome/save | 保存当前草稿 | 无"
-              />
-              <SaveAsDialog
-                open={saveAsDialogOpen}
-                pending={saveAsPending || syncState === 'saving'}
-                onClose={() => { if (!saveAsPending && syncState !== 'saving') setSaveAsDialogOpen(false) }}
-                onSelect={(kind) => { void handleSaveAsSelect(kind) }}
-              />
-            </span>
             <div className="header-assign header-icon-action" data-tooltip={assignmentOutdated ? '更新布置' : '布置题单'} ref={assignRef}>
               <MetisButton
                 type="borderless"
@@ -374,10 +383,9 @@ export function WorkspaceHeader({
             />
             {moreOpen ? (
               <div className="header-more-menu" role="menu" aria-label="更多题单操作">
-                <button type="button" role="menuitem" disabled={!canUndo} onClick={() => { onUndo(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/undo | 撤销上一步 | 无"><Undo2 size={16} /><span>撤销</span></button>
-                <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { downloadWord(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/downloadWord | 下载Word | 无"><Download size={16} /><span>下载 Word</span></button>
-                <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { void shareDocument(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/share | 分享题单 | 无"><Share2 size={16} /><span>分享</span></button>
-                <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { exportDocument(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/export | 打印或导出PDF | 无"><FileDown size={16} /><span>打印 / PDF</span></button>
+                <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { downloadWord(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/downloadWord | 下载 | 无"><Download size={16} /><span>下载</span></button>
+                <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { void shareDocument(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/share | 共享到校本库 | 无"><Share2 size={16} /><span>共享到校本库</span></button>
+                <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { exportDocument(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/export | 打印 | 无"><FileDown size={16} /><span>打印</span></button>
               </div>
             ) : null}
           </div>
@@ -391,7 +399,9 @@ export function WorkspaceHeader({
             syncState={syncState}
             assignmentOutdated={assignmentOutdated}
             onSave={onStudioSave}
+            requiresSaveKind={studioRequiresSaveKind}
             onAssign={onStudioAssign}
+            onMarkOutput={onMarkOutput}
             onGenerateAnswerSheet={onStudioGenerateAnswerSheet}
             onRequirePaperScores={onRequirePaperScores}
           />
@@ -417,19 +427,40 @@ export function WorkspaceHeader({
             aria-labelledby="workspace-new-document-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <strong id="workspace-new-document-title">当前题单尚未保存</strong>
-            <span>题单里的题目和修改还没保存。直接新建会丢失这些内容，你可以先保存再新建空白题单。</span>
+            <strong id="workspace-new-document-title">新建题单</strong>
+            <span>{hasPersistedDraft ? '当前题单已有内容。保存后新建，可在「我的资源」中继续编辑；不保存则直接放弃本次修改。' : '当前题单尚未保存。可先保存为题单或试卷，再新建空白题单。'}</span>
             <div>
               <button type="button" disabled={saveBeforeNewPending} onClick={() => setNewDocumentDialogOpen(false)}>取消</button>
-              <button type="button" disabled={saveBeforeNewPending} onClick={handleCreateNewDirectly}>直接新建</button>
-              <button
-                type="button"
-                className="is-primary"
-                disabled={saveBeforeNewPending || !canSave}
-                onClick={() => { void handleSaveAndCreateNew() }}
-              >
-                {saveBeforeNewPending ? '保存中…' : '先保存再新建'}
-              </button>
+              <button type="button" disabled={saveBeforeNewPending} onClick={handleCreateNewDirectly}>不保存，直接新建</button>
+              {hasPersistedDraft ? (
+                <button
+                  type="button"
+                  className="is-primary"
+                  disabled={saveBeforeNewPending || !canSave}
+                  onClick={() => { void handleSaveAndCreateNew() }}
+                >
+                  {saveBeforeNewPending ? '保存中…' : '保存并新建'}
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="is-primary"
+                    disabled={saveBeforeNewPending || !canSave}
+                    onClick={() => { void handleSaveAndCreateNew('题单') }}
+                  >
+                    {saveBeforeNewPending ? '保存中…' : '保存为题单并新建'}
+                  </button>
+                  <button
+                    type="button"
+                    className="is-primary"
+                    disabled={saveBeforeNewPending || !canSave}
+                    onClick={() => { void handleSaveAndCreateNew('试卷') }}
+                  >
+                    {saveBeforeNewPending ? '保存中…' : '保存为试卷并新建'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

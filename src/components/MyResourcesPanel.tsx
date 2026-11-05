@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { BookOpenCheck, ChevronDown, Download, File, FileQuestion, FileText, Folder, FolderPlus, ListChecks, MoreHorizontal, Search, Star, Upload } from 'lucide-react'
+import { BookOpenCheck, BrainCircuit, ChevronDown, ClipboardList, Download, File, FileQuestion, FileText, Folder, FolderPlus, House, ListChecks, MoreHorizontal, Search, Sparkles, Star } from 'lucide-react'
 import type { HistoryDocumentSummary, MyResourceKind, MyResourceSummary } from '../prototype/types'
 
 type SpaceTab = 'created' | 'favorites'
@@ -67,18 +67,19 @@ function formatToday() {
 }
 
 interface MyResourcesPanelProps {
+  mode?: 'picker' | 'manage'
   initialKind?: MyResourceKind | '全部'
   histories: HistoryDocumentSummary[]
   currentDocumentId: string
-  contentBusy: boolean
-  pendingResourceId: string | null
-  addedResourceIds: Set<string>
-  onOpenDocument: (documentId: string) => void
-  onAddResource: (resource: MyResourceSummary) => void
   onOpenFile: (resource: MyResourceSummary) => void
+  onOpenAnswerSheet: (resource: MyResourceSummary) => void
+  onOpenHomeworkHome?: () => void
+  onOpenAiRecording?: () => void
+  onOpenWorkbench?: () => void
 }
 
 export function MyResourcesPanel(props: MyResourcesPanelProps) {
+  const readOnlyPicker = props.mode !== 'manage'
   const [space, setSpace] = useState<SpaceTab>('created')
   const [folder, setFolder] = useState('全部资源')
   const [kind, setKind] = useState<ResourceKind>(props.initialKind ?? '全部')
@@ -98,6 +99,9 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
   const [renameValue, setRenameValue] = useState('')
   const [moveTarget, setMoveTarget] = useState<MyResourceSummary | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
+  const [shareTarget, setShareTarget] = useState<MyResourceSummary | null>(null)
+  const [shareLibrary, setShareLibrary] = useState('本校校本库')
+  const [sharedIds, setSharedIds] = useState<Set<string>>(new Set())
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
@@ -128,16 +132,22 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
     return () => document.removeEventListener('pointerdown', onPointerDown)
   }, [moreMenuId])
 
-  const historyResources = useMemo<MyResourceSummary[]>(() => props.histories.map((item) => ({
-    id: `history-${item.id}`,
-    title: item.title,
-    kind: '题单',
-    detail: `${item.questionCount} 道题 · ${item.status}`,
-    questionCount: item.questionCount,
-    updatedAt: item.updatedAt,
-    folder: '题单',
-    documentId: item.id,
-  })), [props.histories])
+  const historyResources = useMemo<MyResourceSummary[]>(() => props.histories.map((item) => {
+    const inferredKind = item.title.includes('试卷') ? '试卷' : (item.kind ?? '题单')
+    const inferredAnswerMode = item.title.includes('答题卡') ? '答题卡作答' : item.answerMode
+    return {
+      id: `history-${item.id}`,
+      title: item.title,
+      kind: inferredKind,
+      detail: `${item.questionCount} 道题 · ${item.status === '草稿' ? '已保存' : item.status}`,
+      questionCount: item.questionCount,
+      updatedAt: item.updatedAt,
+      folder: inferredKind,
+      documentId: item.id,
+      answerMode: inferredAnswerMode,
+      hasAnswerSheet: Boolean(item.answerSheet?.generatedAt) || inferredAnswerMode === '答题卡作答',
+    }
+  }), [props.histories])
 
   const resources = space === 'created' ? [...historyResources, ...ownedResources] : favoriteResources
   const rootFolder = space === 'created' ? '全部资源' : '全部收藏'
@@ -237,6 +247,19 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
     setMoreMenuId(null)
   }
 
+  const openShare = (resource: MyResourceSummary) => {
+    setShareTarget(resource)
+    setShareLibrary('本校校本库')
+    setMoreMenuId(null)
+  }
+
+  const confirmShare = () => {
+    if (!shareTarget || !shareLibrary) return
+    setSharedIds((current) => new Set(current).add(shareTarget.id))
+    setShareTarget(null)
+    MetisMessage.success('已共享到校本库')
+  }
+
   const openPublish = (resource: MyResourceSummary) => {
     setPublishTarget(resource)
     setPublishSubject('')
@@ -281,26 +304,34 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
   }
 
   const openResource = (resource: MyResourceSummary) => {
-    if (resource.kind === '文件') {
-      setMoreMenuId(null)
-      props.onOpenFile(resource)
-      return
-    }
-    if (resource.documentId) props.onOpenDocument(resource.documentId)
-    else props.onAddResource(resource)
+    setMoreMenuId(null)
+    props.onOpenFile(resource)
   }
 
   const renderRowActions = (resource: MyResourceSummary) => {
     const favorited = favoriteIds.has(resource.id) || space === 'favorites'
+    if (readOnlyPicker) {
+      return (
+        <div className="resource-online-actions is-picker-only">
+          <button
+            type="button"
+            className="resource-favorite-only"
+            aria-label={favorited ? `取消收藏：${resource.title}` : `收藏：${resource.title}`}
+            title={favorited ? '取消收藏' : '收藏'}
+            onClick={() => toggleFavorite(resource.id)}
+          ><Star size={19} fill={favorited ? 'currentColor' : 'none'} /></button>
+        </div>
+      )
+    }
     return (
       <div className="resource-online-actions">
         {resource.kind === '文件' ? (
           <button type="button" className="resource-pill is-publish" onClick={() => openPublish(resource)}>发布到墨水屏</button>
         ) : null}
+        {resource.kind === '试卷' && resource.answerMode === '答题卡作答' && resource.documentId ? (
+          <button type="button" className="resource-pill is-answer-sheet" onClick={() => props.onOpenAnswerSheet(resource)}><ClipboardList size={15} />答题卡</button>
+        ) : null}
         <button type="button" className="resource-pill" onClick={() => MetisMessage.info(`正在下载“${resource.title}”`)}><Download size={15} />下载</button>
-        {resource.kind === '文件' ? null : (
-          <button type="button" className={`resource-pill${favorited ? ' is-favorite' : ''}`} onClick={() => toggleFavorite(resource.id)}><Star size={15} fill={favorited ? 'currentColor' : 'none'} />收藏</button>
-        )}
         <div className="resource-more" ref={moreMenuId === resource.id ? moreMenuRef : undefined}>
           <button
             type="button"
@@ -315,11 +346,9 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
           ><MoreHorizontal size={16} />更多</button>
           {moreMenuId === resource.id ? createPortal(
             <div className="resource-more-menu is-portal" role="menu" style={{ top: menuPos.top, right: menuPos.right }}>
-              <button type="button" role="menuitem" onClick={() => { setMoreMenuId(null); MetisMessage.success('已发布') }}>发布</button>
+              <button type="button" role="menuitem" disabled={sharedIds.has(resource.id)} onClick={() => openShare(resource)}>{sharedIds.has(resource.id) ? '已共享到校本库' : '共享到校本库'}</button>
               <button type="button" role="menuitem" onClick={() => openMove(resource)}>移动</button>
-              {resource.kind === '文件' ? (
-                <button type="button" role="menuitem" onClick={() => toggleFavorite(resource.id)}><Star size={14} fill={favorited ? 'currentColor' : 'none'} />{favorited ? '取消收藏' : '收藏'}</button>
-              ) : null}
+              <button type="button" role="menuitem" onClick={() => toggleFavorite(resource.id)}><Star size={14} fill={favorited ? 'currentColor' : 'none'} />{favorited ? '取消收藏' : '收藏'}</button>
               <button type="button" role="menuitem" onClick={() => openRename(resource)}>编辑</button>
               <button type="button" role="menuitem" className="is-danger" onClick={() => removeResource(resource.id)}>删除</button>
             </div>,
@@ -352,12 +381,18 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
         <button type="button" role="tab" aria-selected={space === 'created'} onClick={() => switchSpace('created')}>我的创建</button>
         <button type="button" role="tab" aria-selected={space === 'favorites'} onClick={() => switchSpace('favorites')}>我的收藏</button>
       </div>
-      <div className="resource-directory-head"><strong>{space === 'created' ? '资源目录' : '收藏目录'}</strong><button type="button" aria-label="新建文件夹" title="新建文件夹" onClick={addFolder}><FolderPlus size={16} /></button></div>
+      <div className="resource-directory-head"><strong>{space === 'created' ? '资源目录' : '收藏目录'}</strong>{readOnlyPicker ? null : <button type="button" aria-label="新建文件夹" title="新建文件夹" onClick={addFolder}><FolderPlus size={16} /></button>}</div>
       <nav className="resource-folder-tree" aria-label="文件夹目录">
         {folders.map((item) => <button key={item.name} type="button" className={folder === item.name ? 'is-active' : ''} onClick={() => { setFolder(item.name); setKind(FOLDER_KIND[item.name] ?? '全部') }}>
           {item.root ? <ChevronDown size={14} /> : <span className="resource-folder-indent" />}<Folder size={16} /><span>{item.name}</span>
         </button>)}
       </nav>
+      {props.onOpenHomeworkHome ? (
+        <button type="button" className="resource-home-entry" onClick={props.onOpenHomeworkHome}>
+          <House size={16} />
+          <span>作业首页-点击我的资源</span>
+        </button>
+      ) : null}
     </aside>
     <div className="resource-workbench-main">
       <div className="resource-content-toolbar">
@@ -365,24 +400,24 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
           {kinds.map((item) => <button key={item} type="button" role="tab" aria-selected={kind === item} onClick={() => { setKind(item); if (space === 'created') setFolder(item === '全部' ? '全部资源' : KIND_FOLDER[item as Exclude<MyResourceKind, '练习册'>] ?? '全部资源') }}>{item}</button>)}
           <label className="resource-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索资源" /></label>
         </div>
-        {space === 'created' ? (
-          <div className="resource-file-actions">
-            <button type="button" className="is-primary" onClick={() => setUploadOpen(true)}><Upload size={14} />上传文件</button>
+        {readOnlyPicker ? <div className="resource-batch-actions" /> : (
+          <div className="resource-manage-toolbar-actions">
+            {selectedIds.size > 0 ? <div className="resource-batch-actions"><span>已选 {selectedIds.size} 项</span><button type="button" onClick={() => MetisMessage.info('已下载所选资源')}>下载</button><button type="button" onClick={() => MetisMessage.info('已移动所选资源')}>移动</button></div> : null}
+            <button type="button" className="is-primary" onClick={props.onOpenAiRecording}><Sparkles size={16} />AI 智能录题</button>
+            <button type="button" onClick={props.onOpenWorkbench}><BrainCircuit size={16} />组题工作台</button>
           </div>
-        ) : (
-          <div className="resource-batch-actions">{selectedIds.size > 0 ? <><span>已选 {selectedIds.size} 项</span><button type="button" onClick={() => MetisMessage.info('已下载所选资源')}>下载</button><button type="button" onClick={() => MetisMessage.info('已移动所选资源')}>移动</button></> : null}</div>
         )}
       </div>
 
-      <section className={`resource-manage-list${kind === '文件' ? ' is-file-list' : ''}`} aria-label="资源列表">
+      <section className={`resource-manage-list${kind === '文件' ? ' is-file-list' : ''}${readOnlyPicker ? ' is-picker' : ''}`} aria-label="资源列表">
           {visible.length ? visible.map((resource) => {
             const { id, title, kind: itemKind, detail, updatedAt } = resource
             const Icon = iconMap[itemKind]
             return <article key={id} className={selectedIds.has(id) ? 'is-selected' : ''}>
-              <label className="resource-select"><input type="checkbox" checked={selectedIds.has(id)} onChange={() => toggleSelected(id)} /><span /></label>
+              {readOnlyPicker ? null : <label className="resource-select"><input type="checkbox" checked={selectedIds.has(id)} onChange={() => toggleSelected(id)} /><span /></label>}
               <span className="resource-type-icon"><Icon size={21} /></span>
               <button type="button" className="resource-item-copy is-openable" onClick={() => openResource(resource)}>
-                <strong>{title}</strong>
+                <strong>{resource.kind === '试卷' && resource.answerMode === '答题卡作答' ? <em className="resource-answer-sheet-tag">答题卡</em> : null}{title}</strong>
                 <span>{itemKind} · {detail}</span>
                 <small>{itemKind === '文件' ? `上传于 ${updatedAt}` : `更新于 ${updatedAt}`}</small>
               </button>
@@ -461,6 +496,23 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
             </div>
           </label>
           <button type="button" className="is-primary" onClick={confirmPublish}>确定</button>
+        </div>
+      </div>
+    ) : null}
+
+    {shareTarget ? (
+      <div className="resource-modal-mask" role="presentation" onClick={() => setShareTarget(null)}>
+        <div className="resource-share-modal" role="dialog" aria-labelledby="resource-share-title" onClick={(event) => event.stopPropagation()}>
+          <header><strong id="resource-share-title">共享到校本库</strong><button type="button" aria-label="关闭" onClick={() => setShareTarget(null)}>×</button></header>
+          <p>共享后，校内老师可在校本库中查看和使用该资源。</p>
+          <div className="resource-share-file"><FileText size={18} /><span><strong>{shareTarget.title}</strong><small>{shareTarget.kind} · {shareTarget.detail}</small></span></div>
+          <label>共享到
+            <select value={shareLibrary} onChange={(event) => setShareLibrary(event.target.value)} aria-label="共享到校本库">
+              <option value="本校校本库">本校校本库</option>
+              <option value="初中数学教研组资源库">初中数学教研组资源库</option>
+            </select>
+          </label>
+          <footer><button type="button" onClick={() => setShareTarget(null)}>取消</button><button type="button" className="is-primary" onClick={confirmShare}>确认共享</button></footer>
         </div>
       </div>
     ) : null}

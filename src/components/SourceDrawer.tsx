@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { MetisButton } from '@yuanfudao/metis-web-component'
+import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
 import {
+  ArrowLeft,
   FilePenLine,
   FileText,
   FileUp,
@@ -8,10 +9,13 @@ import {
   Plus,
   School,
   Search,
+  SquarePen,
   Sparkles,
+  Trash2,
   UploadCloud,
   X,
 } from 'lucide-react'
+import { baseQuestions, sourceRecords } from '../data/workbenchData'
 import type {
   AddQuestionMode,
   AsyncStatus,
@@ -28,11 +32,19 @@ interface SourceDrawerProps {
   presentation?: 'modal' | 'docked'
   mode: AddQuestionMode
   libraryInitialView?: LibraryInitialView
+  librarySearchKeyword?: string
+  libraryChapterNode?: string
+  libraryQuestionId?: string
+  libraryQuestionType?: Question['type']
+  libraryDifficulty?: Question['difficulty']
+  libraryMatchedPath?: string
   resourceType: ResourceType
   records: SourceRecord[]
   listStatus: AsyncStatus
   addStatus: AsyncStatus
   contentBusy: boolean
+  compactUploadDetail?: boolean
+  onViewUploadOriginal?: () => void
   createConfig: CreateQuestionRequest
   createError: string
   createStatus: AsyncStatus
@@ -42,14 +54,16 @@ interface SourceDrawerProps {
   onResourceTypeChange: (type: ResourceType) => void
   onAddSource: (type: ResourceType, sourceId?: string, count?: number, selectedQuestions?: Question[]) => Promise<boolean>
   currentDocumentHasContent?: boolean
+  currentDocumentHasUnsavedChanges?: boolean
   onCompleteEditWholeVolume?: (
     type: ResourceType,
     sourceId: string,
     count: number,
     selectedQuestions: Question[],
-    mode: 'plain' | 'discard' | 'save-first',
+    mode: 'plain' | 'save-first' | 'discard-first',
   ) => Promise<'success' | 'failed'>
   onOpenLibraryDetail?: (record: SourceRecord) => void
+  onWorkbookDirectoryChange?: (record: SourceRecord, matchedPath: string) => void
   onCreateConfigChange: (value: CreateQuestionRequest) => void
   onCreate: (requestOverride?: CreateQuestionRequest) => void
   onAddCreated: () => void
@@ -116,13 +130,45 @@ const recognitionRecords = [
   },
 ]
 
+const delegatedRecognitionRecords = [
+  {
+    id: 'delegated-1',
+    title: '2026-2027学年北京市朝阳区八年级（上）期中数学试卷',
+    submittedAt: '2026-09-20 10:18',
+    completedAt: '2026-09-21 16:30',
+    size: '4.8MB',
+    questionCount: '25题',
+    paperId: 'paper-1',
+  },
+]
+
 export function SourceDrawer(props: SourceDrawerProps) {
   const [libraryDetailOpen, setLibraryDetailOpen] = useState(false)
   const [recognitionTab, setRecognitionTab] = useState<'ai' | 'manual'>('ai')
   const [recognitionKeyword, setRecognitionKeyword] = useState('')
+  const [createTool, setCreateTool] = useState<'oral' | 'chinese' | 'english'>('oral')
+  const [recognitionDetailId, setRecognitionDetailId] = useState<string | null>(null)
+  const [addedRecognitionQuestionIds, setAddedRecognitionQuestionIds] = useState<Set<string>>(new Set())
   const docked = props.presentation === 'docked'
   const createTotal = props.createConfig.allocations.reduce((sum, item) => sum + item.count, 0)
   const visibleRecognitionRecords = recognitionRecords.filter((record) => record.title.includes(recognitionKeyword.trim()))
+  const visibleDelegatedRecords = delegatedRecognitionRecords.filter((record) => record.title.includes(recognitionKeyword.trim()))
+  const recognitionDetailRecord = recognitionRecords.find((record) => record.id === recognitionDetailId)
+  const recognitionQuestions = baseQuestions.slice(0, 4).map((question, index) => ({
+    ...question,
+    id: `recognition-${recognitionDetailId ?? 'preview'}-${index}`,
+    sourceLabel: 'AI 录题',
+    sourceDetail: recognitionDetailRecord?.title,
+    origin: 'upload' as const,
+    verifyStatus: '待校验' as const,
+  }))
+
+  const addRecognitionQuestions = async (questions: Question[]) => {
+    const pending = questions.filter((question) => !addedRecognitionQuestionIds.has(question.id))
+    if (!pending.length) return
+    const added = await props.onAddSource('paper', recognitionDetailId ?? 'ai-recording', pending.length, pending)
+    if (added) setAddedRecognitionQuestionIds((current) => new Set([...current, ...pending.map((question) => question.id)]))
+  }
 
   const updateCreateCount = (id: string, delta: number) => {
     const nextAllocations = props.createConfig.allocations.map((item) => {
@@ -205,6 +251,12 @@ export function SourceDrawer(props: SourceDrawerProps) {
             <LibraryPicker
               libraryKind={props.mode === 'school' ? 'school' : 'fly'}
               initialView={props.libraryInitialView}
+              initialSearchKeyword={props.librarySearchKeyword}
+              initialChapterNode={props.libraryChapterNode}
+              initialQuestionId={props.libraryQuestionId}
+              initialQuestionType={props.libraryQuestionType}
+              initialDifficulty={props.libraryDifficulty}
+              initialMatchedPath={props.libraryMatchedPath}
               resourceType={props.resourceType}
               records={props.records}
               listStatus={props.listStatus}
@@ -213,9 +265,11 @@ export function SourceDrawer(props: SourceDrawerProps) {
               detailRecord={docked ? props.libraryDetail : undefined}
               onDetailChange={setLibraryDetailOpen}
               onOpenDetail={docked ? props.onOpenLibraryDetail : undefined}
+              onWorkbookDirectoryChange={props.onWorkbookDirectoryChange}
               onResourceTypeChange={props.onResourceTypeChange}
               onAddSource={(type, sourceId, count, selectedQuestions) => props.onAddSource(type, sourceId, count, selectedQuestions)}
               currentDocumentHasContent={props.currentDocumentHasContent}
+              currentDocumentHasUnsavedChanges={props.currentDocumentHasUnsavedChanges}
               onCompleteEditWholeVolume={props.onCompleteEditWholeVolume}
             />
           ) : null}
@@ -223,20 +277,35 @@ export function SourceDrawer(props: SourceDrawerProps) {
           {props.mode === 'create' ? (
             <div className="structured-create-tool">
               <aside className="structured-create-settings" aria-label="AI 出题设置">
-                <section>
-                  <h4>1. 选择教材及章节</h4>
-                  <label>教材<select value={props.createConfig.textbook} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, textbook: event.target.value })}><option>人教版 · 八年级上册</option><option>北师大版 · 八年级上册</option></select></label>
-                  <label>章节<select value={props.createConfig.chapter} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, chapter: event.target.value })}><option>第四章 一次函数</option><option>第五章 二元一次方程组</option></select></label>
-                  <div className="structured-chapter-tree">
-                    <strong>{props.createConfig.chapter}</strong>
-                    {props.createConfig.allocations.map((item) => <span key={item.id}>✓ {item.knowledgePoint}</span>)}
-                  </div>
-                </section>
-                <section>
-                  <h4>3. 设置出题方式</h4>
-                  <label>出题方式<select value={props.createConfig.method} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, method: event.target.value as CreateQuestionRequest['method'] })}><option>知识点组合出题</option><option>逐知识点出题</option><option>综合情境出题</option></select></label>
-                  <label>整体难度<select value={props.createConfig.difficulty} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, difficulty: event.target.value as CreateQuestionRequest['difficulty'] })}><option>基础</option><option>中等</option><option>提升</option></select></label>
-                </section>
+                <div className="structured-create-tool-tabs" role="tablist" aria-label="AI 出题工具">
+                  <button type="button" role="tab" aria-selected={createTool === 'oral'} className={createTool === 'oral' ? 'is-active' : ''} onClick={() => setCreateTool('oral')}>口算练习</button>
+                  <button type="button" role="tab" aria-selected={createTool === 'chinese'} className={createTool === 'chinese' ? 'is-active' : ''} onClick={() => setCreateTool('chinese')}>语文字词</button>
+                  <button type="button" role="tab" aria-selected={createTool === 'english'} className={createTool === 'english' ? 'is-active' : ''} onClick={() => setCreateTool('english')}>英汉互译</button>
+                </div>
+                {createTool === 'oral' ? (
+                  <>
+                    <section>
+                      <h4>设置出题条件</h4>
+                      <label>出题方式<select value={props.createConfig.method} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, method: event.target.value as CreateQuestionRequest['method'] })}><option value="知识点组合出题">知识点合并出题</option><option>逐知识点出题</option><option>综合情境出题</option></select></label>
+                      <label>知识点排序<select defaultValue="顺序"><option>顺序</option><option>随机</option></select></label>
+                    </section>
+                    <section>
+                      <h4>选择教材及章节</h4>
+                      <label>教材<select value={props.createConfig.textbook} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, textbook: event.target.value })}><option>人教版 · 八年级上册</option><option>北师大版 · 八年级上册</option></select></label>
+                      <label>章节<select value={props.createConfig.chapter} onChange={(event) => props.onCreateConfigChange({ ...props.createConfig, chapter: event.target.value })}><option>第四章 一次函数</option><option>第五章 二元一次方程组</option></select></label>
+                      <div className="structured-chapter-tree"><strong>{props.createConfig.chapter}</strong>{props.createConfig.allocations.map((item) => <span key={item.id}><input type="checkbox" defaultChecked /> {item.knowledgePoint}</span>)}</div>
+                    </section>
+                  </>
+                ) : (
+                  <section>
+                    <h4>{createTool === 'chinese' ? '选择教材及课文' : '选择教材及单元'}</h4>
+                    <label>教材<select defaultValue={createTool === 'chinese' ? '人教版 · 八年级上册' : '人教版 · 八年级上册英语'}><option>{createTool === 'chinese' ? '人教版 · 八年级上册' : '人教版 · 八年级上册英语'}</option></select></label>
+                    <div className="structured-chapter-tree">
+                      <strong>{createTool === 'chinese' ? '第一单元' : 'Unit 1'}</strong>
+                      {(createTool === 'chinese' ? ['读读写写', '重点字词', '课外扩展'] : ['Section A', 'Section B', 'Reading']).map((item) => <span key={item}><input type="checkbox" defaultChecked /> {item}</span>)}
+                    </div>
+                  </section>
+                )}
               </aside>
               <section className="structured-create-main" aria-label="AI 出题题量与预览">
                 <header><div><h3>2. 设置知识点题量</h3><p>每个知识点可单独调整，当前共 {createTotal} 道</p></div><span>AI 原创 · 待校验</span></header>
@@ -275,7 +344,56 @@ export function SourceDrawer(props: SourceDrawerProps) {
             </div>
           ) : null}
 
-          {props.mode === 'upload' ? (
+          {props.mode === 'upload' && recognitionDetailRecord ? (
+            <div className={`ai-recording-detail${props.compactUploadDetail ? ' is-compact' : ''}`}>
+              <header className="ai-recording-detail-header">
+                <button type="button" onClick={() => setRecognitionDetailId(null)}><ArrowLeft size={17} />返回解析记录</button>
+                <div><strong title={recognitionDetailRecord.title}>{recognitionDetailRecord.title}</strong><span>AI 录题内容（共 {recognitionQuestions.length} 道题）</span></div>
+                <div className="ai-recording-detail-actions">
+                  <span>效果不好？<button type="button" onClick={() => { setRecognitionDetailId(null); setRecognitionTab('manual') }}>人工委托录题</button></span>
+                  {props.compactUploadDetail ? <MetisButton type="bordered" onClick={props.onViewUploadOriginal}>查看原卷</MetisButton> : null}
+                  <MetisButton type="primary" icon={<Plus size={16} />} disabled={props.contentBusy || addedRecognitionQuestionIds.size === recognitionQuestions.length} onClick={(event) => { animateQuestionToDraft(event.currentTarget); void addRecognitionQuestions(recognitionQuestions) }}>
+                    {addedRecognitionQuestionIds.size === recognitionQuestions.length ? '已添加整卷' : '添加整卷'}
+                  </MetisButton>
+                </div>
+              </header>
+              <div className="ai-recording-detail-body">
+                <aside className="ai-recording-original" aria-label="原文件预览">
+                  <div className="ai-recording-original-toolbar"><strong>原文件</strong><span>1 / 3 页</span></div>
+                  <div className="ai-recording-paper-preview">
+                    <h3>期末项目评价作业</h3>
+                    {recognitionQuestions.map((question, index) => <p key={question.id}><b>{index + 1}.</b> {question.stem}</p>)}
+                  </div>
+                </aside>
+                <main className="ai-recording-question-pane" aria-label="AI 录题内容">
+                  {recognitionQuestions.map((question, index) => {
+                    const added = addedRecognitionQuestionIds.has(question.id)
+                    return (
+                      <article className="ai-recording-question-card" key={question.id}>
+                        <div className="ai-recording-question-toolbar">
+                          <span>飞象原题</span>
+                          <div>
+                            <button type="button" onClick={() => MetisMessage.info('已在当前题目后新建空白题（原型演示）')}><Plus size={15} />新建</button>
+                            <button type="button" onClick={() => MetisMessage.info('已进入题目编辑（原型演示）')}><SquarePen size={15} />编辑</button>
+                            <button type="button" aria-label="上移题目">↑</button>
+                            <button type="button" aria-label="下移题目">↓</button>
+                            <button type="button" aria-label="删除题目" onClick={() => MetisMessage.success('已删除当前识别题（原型演示）')}><Trash2 size={15} /></button>
+                          </div>
+                        </div>
+                        <div className="ai-recording-question-meta"><small>{question.type} · {question.difficulty}</small></div>
+                        <div className="ai-recording-question-stem"><b>{index + 1}.</b><p>{question.stem}</p></div>
+                        {question.options?.length ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
+                        <dl><dt>答案</dt><dd>{question.answer}</dd><dt>解析</dt><dd>{question.analysis}</dd></dl>
+                        <footer><span>知识点：{question.knowledgePoint}</span><MetisButton type={added ? 'bordered' : 'primary'} disabled={added || props.contentBusy} icon={<Plus size={15} />} onClick={(event) => { animateQuestionToDraft(event.currentTarget); void addRecognitionQuestions([question]) }}>{added ? '已添加' : '添加'}</MetisButton></footer>
+                      </article>
+                    )
+                  })}
+                </main>
+              </div>
+            </div>
+          ) : null}
+
+          {props.mode === 'upload' && !recognitionDetailRecord ? (
             <div className="add-mode-content upload-workbench">
               <section className="ai-recording-hero">
                 <div className="ai-recording-intro">
@@ -315,13 +433,28 @@ export function SourceDrawer(props: SourceDrawerProps) {
                           <div><span className="ai-recording-status">解析完成</span><strong>{record.title}</strong></div>
                           <p><span>提交时间：{record.submittedAt}</span><span>完成时间：{record.completedAt}</span><i /><span>{record.size}</span><i /><span>{record.questionCount}</span></p>
                         </div>
-                        <MetisButton type="bordered" onClick={props.onUpload}>查看</MetisButton>
+                        <MetisButton type="bordered" onClick={() => { setRecognitionDetailId(record.id); setAddedRecognitionQuestionIds(new Set()) }}>查看</MetisButton>
                       </article>
                     ))}
                     {visibleRecognitionRecords.length === 0 ? <div className="ai-recording-empty">暂无匹配的解析记录</div> : null}
                   </div>
                 ) : (
-                  <div className="ai-recording-empty">暂无委托录题记录</div>
+                  <div className="ai-recording-list">
+                    {visibleDelegatedRecords.map((record) => (
+                      <article className="ai-recording-row" key={record.id}>
+                        <span className="ai-recording-pdf"><FileText size={28} /><b>PDF</b></span>
+                        <div className="ai-recording-record">
+                          <div><span className="ai-recording-status">录题完成</span><strong>{record.title}</strong></div>
+                          <p><span>提交时间：{record.submittedAt}</span><span>完成时间：{record.completedAt}</span><i /><span>{record.size}</span><i /><span>{record.questionCount}</span></p>
+                        </div>
+                        <MetisButton type="bordered" onClick={() => {
+                          const paper = sourceRecords.find((item) => item.id === record.paperId)
+                          if (paper) props.onOpenLibraryDetail?.({ ...paper, id: `delegated-${paper.id}`, tags: [...(paper.tags ?? []), '委托录题'] })
+                        }}>查看</MetisButton>
+                      </article>
+                    ))}
+                    {visibleDelegatedRecords.length === 0 ? <div className="ai-recording-empty">暂无匹配的委托录题记录</div> : null}
+                  </div>
                 )}
               </section>
             </div>

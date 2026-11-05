@@ -1,13 +1,15 @@
-import { useState } from 'react'
-import { ChevronLeft, Download, Eye, Save, Settings2, X } from 'lucide-react'
+import { ChevronLeft, Download, Eye, Save, Settings2, Share2, X } from 'lucide-react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
 import type { WorkbenchDocument } from '../prototype/types'
 import { getDocumentKind } from '../utils/documentEditorUtils'
 
 interface AnswerSheetPanelProps {
   document: WorkbenchDocument
+  onChange: (patch: { layout?: 'a3-double' | 'a3-single' | 'a4-single'; infoOpen?: boolean }) => void
+  saveState: 'dirty' | 'saving' | 'saved' | 'error'
   onSave: () => void
   onMarkOutput: (kind: 'download' | 'print') => void
+  onShare: () => void | Promise<void>
   onBackToPaper?: () => void
 }
 
@@ -43,9 +45,9 @@ function AnswerSheetQr() {
   )
 }
 
-export function AnswerSheetPanel({ document, onSave, onMarkOutput, onBackToPaper }: AnswerSheetPanelProps) {
-  const [layout, setLayout] = useState('a3-double')
-  const [infoOpen, setInfoOpen] = useState(true)
+export function AnswerSheetPanel({ document, onChange, saveState, onSave, onMarkOutput, onShare, onBackToPaper }: AnswerSheetPanelProps) {
+  const layout = document.answerSheet?.layout ?? 'a3-double'
+  const infoOpen = document.answerSheet?.infoOpen ?? true
   if (getDocumentKind(document) !== '试卷') return null
 
   const paperTitle = document.title.trim() || '新建试卷'
@@ -70,13 +72,17 @@ export function AnswerSheetPanel({ document, onSave, onMarkOutput, onBackToPaper
             <Eye size={16} />
             预览答题卡
           </button>
-          <button type="button" onClick={onSave}>
+          <button type="button" disabled={saveState === 'saving'} onClick={onSave}>
             <Save size={16} />
-            保存
+            {saveState === 'saving' ? '保存中…' : '保存'}
           </button>
           <button type="button" onClick={() => { onMarkOutput('download'); MetisMessage.success('答题卡已开始下载') }}>
             <Download size={16} />
             下载
+          </button>
+          <button type="button" onClick={() => { void onShare() }}>
+            <Share2 size={16} />
+            共享到校本库
           </button>
         </div>
       </header>
@@ -85,7 +91,7 @@ export function AnswerSheetPanel({ document, onSave, onMarkOutput, onBackToPaper
         <label>
           <Settings2 size={15} />
           版面设置：
-          <select value={layout} aria-label="版面设置" onChange={(event) => setLayout(event.target.value)}>
+          <select value={layout} aria-label="版面设置" onChange={(event) => onChange({ layout: event.target.value as 'a3-double' | 'a3-single' | 'a4-single' })}>
             <option value="a3-double">A3-双栏</option>
             <option value="a3-single">A3-单栏</option>
             <option value="a4-single">A4-单栏</option>
@@ -102,7 +108,7 @@ export function AnswerSheetPanel({ document, onSave, onMarkOutput, onBackToPaper
           <aside className="answer-sheet-info" aria-label="试卷信息">
             <header>
               <strong>试卷信息</strong>
-              <button type="button" aria-label="关闭试卷信息" onClick={() => setInfoOpen(false)}><X size={16} /></button>
+              <button type="button" aria-label="关闭试卷信息" onClick={() => onChange({ infoOpen: false })}><X size={16} /></button>
             </header>
             <p className="answer-sheet-info-meta">学号＿＿＿＿＿　姓名＿＿＿＿＿　年级＿＿＿班</p>
             <h3>{paperTitle}</h3>
@@ -123,7 +129,7 @@ export function AnswerSheetPanel({ document, onSave, onMarkOutput, onBackToPaper
             </ol>
           </aside>
         ) : (
-          <button type="button" className="answer-sheet-info-collapsed" onClick={() => setInfoOpen(true)}>试卷信息</button>
+          <button type="button" className="answer-sheet-info-collapsed" onClick={() => onChange({ infoOpen: true })}>试卷信息</button>
         )}
 
         <div className="answer-sheet-canvas">

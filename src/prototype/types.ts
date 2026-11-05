@@ -4,6 +4,11 @@ export type ResourceType = 'workbook' | 'paper' | 'sync' | 'special'
 export type LibraryInitialView = ResourceType | 'chapter'
 export interface OpenAddOptions {
   libraryView?: LibraryInitialView
+  searchKeyword?: string
+  chapterNode?: string
+  questionId?: string
+  questionType?: QuestionType
+  difficulty?: Difficulty
 }
 export type AddQuestionMode = 'menu' | 'resource' | 'school' | 'compose' | 'create' | 'upload' | 'personalized' | 'manual'
 export type InspectorView = 'info' | 'ai'
@@ -20,6 +25,9 @@ export interface AnswerSheetState {
   generatedAt?: string
   sourceFingerprint?: string
   outdated?: boolean
+  layout?: 'a3-double' | 'a3-single' | 'a4-single'
+  infoOpen?: boolean
+  updatedAt?: string
 }
 export type QuestionType = '选择题' | '填空题' | '解答题'
 
@@ -112,6 +120,9 @@ export interface HistoryDocumentSummary {
   status: DocumentStatus
   assignmentOutdated?: boolean
   origin: 'AI 组题' | '手工组题' | '上传录题'
+  kind?: WorkbenchDocumentKind
+  answerMode?: PaperAnswerMode
+  answerSheet?: AnswerSheetState
 }
 
 export interface MyResourceSummary {
@@ -123,6 +134,8 @@ export interface MyResourceSummary {
   folder: string
   questionCount?: number
   documentId?: EntityId
+  answerMode?: PaperAnswerMode
+  hasAnswerSheet?: boolean
 }
 
 export interface SaveDocumentResult {

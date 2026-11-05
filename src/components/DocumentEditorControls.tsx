@@ -54,7 +54,7 @@ export function DocumentEditorControls({ document, variant, hideScoreHint = fals
 
   const trySwitchKind = (nextKind: WorkbenchDocumentKind) => {
     if (typeLocked && kind !== nextKind) {
-      MetisMessage.info('已下载或布置后，不能再切换题单 / 试卷类型')
+      MetisMessage.info('当前文档已输出或生成答题卡，不能再切换题单 / 试卷类型')
       return
     }
     onKindChange(nextKind)
@@ -62,7 +62,7 @@ export function DocumentEditorControls({ document, variant, hideScoreHint = fals
 
   const trySwitchAnswerMode = (mode: PaperAnswerMode) => {
     if (mode !== answerMode && answerModeLocked) {
-      MetisMessage.info('已生成答题卡后，不能再切换作答方式')
+      MetisMessage.info('当前不能切换作答方式')
       setAnswerMenuOpen(false)
       return
     }

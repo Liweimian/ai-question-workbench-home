@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
 import { ArrowLeft, Bold, ChevronDown, Heading2, Italic, Send, Sparkles, Strikethrough, Underline } from 'lucide-react'
 import { defaultDocumentFormat } from '../prototype/types'
-import type { AddQuestionMode, DocumentFormat, DocumentSyncState, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
+import type { AddQuestionMode, DocumentFormat, DocumentOutputLock, DocumentSyncState, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
 import { DocumentActionToolbar } from './DocumentActionToolbar'
@@ -19,9 +19,11 @@ interface EmptyCanvasProps {
   contentBusy: boolean
   syncState: DocumentSyncState
   assignmentOutdated: boolean
-  onSave: () => void
+  onSave: (kind?: WorkbenchDocumentKind) => void | Promise<boolean | void>
+  requiresSaveKind?: boolean
   onAssign: () => void
-  onRequirePaperScores?: (action: 'assign' | 'download' | 'print') => boolean
+  onMarkOutput: (lock: DocumentOutputLock) => void
+  onRequirePaperScores?: (action: 'preview' | 'assign' | 'download' | 'print' | 'share') => boolean
   onOpenAssistant: (prompt?: string) => void
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onOpenMyResources?: () => void
@@ -30,6 +32,8 @@ interface EmptyCanvasProps {
   onAnswerModeChange: (mode: PaperAnswerMode) => void
   studioLayout?: boolean
   onExpand?: () => void
+  onCreateNew?: (rememberCurrent?: boolean) => void
+  onSaveAndCreateNew?: (kind?: WorkbenchDocumentKind) => Promise<boolean>
 }
 
 export function EmptyCanvas(props: EmptyCanvasProps) {
@@ -138,9 +142,13 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             syncState={props.syncState}
             assignmentOutdated={props.assignmentOutdated}
             onSave={props.onSave}
+            requiresSaveKind={props.requiresSaveKind}
             onAssign={props.onAssign}
+            onMarkOutput={props.onMarkOutput}
             onRequirePaperScores={props.onRequirePaperScores}
             onExpand={props.onExpand}
+            onCreateNew={props.onCreateNew}
+            onSaveAndCreateNew={props.onSaveAndCreateNew}
           />
         </div>
       ) : null}
@@ -155,12 +163,10 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             onAnswerModeChange={props.onAnswerModeChange}
           />
         ) : null}
-        <MetisInput
-          value={props.document.title}
-          onChange={(event) => props.onTitleChange(event.target.value)}
-          className="empty-title-input"
-          aria-label="题单标题"
-        />
+        <div className="document-title-with-save-state">
+          <MetisInput value={props.document.title} onChange={(event) => props.onTitleChange(event.target.value)} className="empty-title-input" aria-label="题单标题" />
+          <span className={`document-auto-save-state is-${props.syncState}`} role="status">{props.syncState === 'saving' ? '保存中…' : props.syncState === 'error' ? '保存失败' : props.syncState === 'saved' ? '已保存' : '草稿已记录'}</span>
+        </div>
       </header>
 
       <div className="editor-empty-content" onPointerDown={() => setShowExampleContent(false)}>

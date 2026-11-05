@@ -12,6 +12,7 @@ interface AnswerSheetPageProps {
 export function AnswerSheetPage({ documentId }: AnswerSheetPageProps) {
   const [document, setDocument] = useState<WorkbenchDocument | null>(null)
   const [missing, setMissing] = useState(false)
+  const [saveState, setSaveState] = useState<'dirty' | 'saving' | 'saved' | 'error'>('saved')
 
   useEffect(() => {
     const stored = readStoredDocument(documentId)
@@ -39,12 +40,33 @@ export function AnswerSheetPage({ documentId }: AnswerSheetPageProps) {
     <div className="fx-app metis-theme-aiq answer-sheet-standalone">
       <AnswerSheetPanel
         document={document}
+        saveState={saveState}
         onSave={() => {
-          persistDocumentNow(document)
-          MetisMessage.success('答题卡已保存')
+          setSaveState('saving')
+          try {
+            persistDocumentNow(document)
+            setSaveState('saved')
+          } catch {
+            setSaveState('error')
+          }
+        }}
+        onChange={(patch) => {
+          const next = {
+            ...document,
+            answerSheet: { ...document.answerSheet, ...patch, updatedAt: new Date().toISOString() },
+          }
+          setDocument(next)
+          setSaveState('dirty')
         }}
         onMarkOutput={() => {
           persistDocumentNow(document)
+        }}
+        onShare={() => {
+          if (saveState !== 'saved') {
+            persistDocumentNow(document)
+            setSaveState('saved')
+          }
+          MetisMessage.info('共享到校本库面板已打开（原型演示）')
         }}
         onBackToPaper={leaveAnswerSheetPage}
       />
