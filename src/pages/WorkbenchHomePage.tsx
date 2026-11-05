@@ -35,6 +35,7 @@ interface LibraryDetailTab {
   libraryMode: LibraryTabMode
   record: SourceRecord
   matchedPath?: string
+  hideMatchBanner?: boolean
 }
 
 const addTabLabels: Record<AddTabMode, string> = {
@@ -249,7 +250,7 @@ export function WorkbenchHomePage() {
     refreshRecentBrowseEntries()
   }
 
-  const openLibraryDetail = (libraryMode: LibraryTabMode, record: SourceRecord, matchedPath?: string) => {
+  const openLibraryDetail = (libraryMode: LibraryTabMode, record: SourceRecord, matchedPath?: string, hideMatchBanner = false) => {
     const key = `${libraryMode}:${record.id}`
     setSidePanelOpen(true)
     setAssistantActive(false)
@@ -258,8 +259,8 @@ export function WorkbenchHomePage() {
     setAiSearchActive(false)
     setOpenAddTabs((current) => current.includes(libraryMode) ? current : [...current, libraryMode])
     setLibraryDetailTabs((current) => current.some((tab) => tab.key === key)
-      ? current.map((tab) => tab.key === key ? { ...tab, matchedPath: matchedPath ?? tab.matchedPath } : tab)
-      : [...current, { key, libraryMode, record, matchedPath }])
+      ? current.map((tab) => tab.key === key ? { ...tab, matchedPath: matchedPath ?? tab.matchedPath, hideMatchBanner } : tab)
+      : [...current, { key, libraryMode, record, matchedPath, hideMatchBanner }])
     setActiveLibraryDetailKey(key)
     setRecentBrowseActive(false)
     recordRecentBrowse(libraryMode, record, matchedPath)
@@ -303,7 +304,7 @@ export function WorkbenchHomePage() {
 
     const record = allSourceRecords.find((item) => item.id === hit.target.resourceId)
     if (record) {
-      openLibraryDetail(hit.target.mode, record, hit.target.anchorLabel)
+      openLibraryDetail(hit.target.mode, record, hit.target.anchorLabel, true)
       MetisMessage.success(`已进入“${record.title}”的命中位置`)
       return
     }
@@ -502,7 +503,7 @@ export function WorkbenchHomePage() {
     || recentBrowseTabOpen
     || fileDetailTabs.length > 0
   const showHomeAiSearch = isAddHome && !hasOpenTaskTabs
-  const alternateHomeLayout = sidePanelOpen && (isAddHome || aiSearchActive) && !draftCollapsed
+  const alternateHomeLayout = sidePanelOpen && (isAddHome || aiSearchActive || opensHomeworkResources) && !draftCollapsed
   const studioEditorOpen = !sidePanelOpen
   const documentCenterVisible = sidePanelOpen && isAddHome
   const reviewMode = new URLSearchParams(window.location.search).get('mode') === 'review'
@@ -805,6 +806,10 @@ export function WorkbenchHomePage() {
             contentBusy={workbench.isContentBusy}
             documentStatus={workbench.documentStatus}
             documentKind={getDocumentKind(workbench.document)}
+            answerMode={workbench.document.answerMode}
+            answerSheetPaper={workbench.document.answerMode === '答题卡作答'
+              || Boolean(workbench.document.answerSheet?.generatedAt)
+              || Boolean(workbench.document.outputLocks?.includes('answer-sheet'))}
             syncState={workbench.documentSyncState}
             assignmentOutdated={workbench.assignmentOutdated}
             hasPersistedDraft={workbench.historyDocuments.some((item) => item.id === workbench.document.id)}
@@ -1062,7 +1067,7 @@ export function WorkbenchHomePage() {
                     currentDocumentId={workbench.document.id}
                     onOpenFile={opensHomeworkResources ? openManagedResource : openFileDetail}
                     onOpenAnswerSheet={openResourceAnswerSheet}
-                    onOpenHomeworkHome={openHomeworkHome}
+                    onOpenHomeworkHome={opensHomeworkResources ? undefined : openHomeworkHome}
                     onOpenAiRecording={opensHomeworkResources ? () => leaveHomeworkResources('ai-recording') : undefined}
                     onOpenWorkbench={opensHomeworkResources ? () => leaveHomeworkResources() : undefined}
                   />
@@ -1095,6 +1100,7 @@ export function WorkbenchHomePage() {
                     libraryQuestionType={workbench.libraryQuestionType}
                     libraryDifficulty={workbench.libraryDifficulty}
                     libraryMatchedPath={activeLibraryDetail?.matchedPath}
+                    hideLibraryMatchBanner={activeLibraryDetail?.hideMatchBanner}
                     resourceType={workbench.resourceType}
                     records={workbench.sourceRecords}
                     listStatus={workbench.sourceListStatus}

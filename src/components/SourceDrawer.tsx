@@ -9,9 +9,7 @@ import {
   Plus,
   School,
   Search,
-  SquarePen,
   Sparkles,
-  Trash2,
   UploadCloud,
   X,
 } from 'lucide-react'
@@ -38,6 +36,7 @@ interface SourceDrawerProps {
   libraryQuestionType?: Question['type']
   libraryDifficulty?: Question['difficulty']
   libraryMatchedPath?: string
+  hideLibraryMatchBanner?: boolean
   resourceType: ResourceType
   records: SourceRecord[]
   listStatus: AsyncStatus
@@ -257,6 +256,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
               initialQuestionType={props.libraryQuestionType}
               initialDifficulty={props.libraryDifficulty}
               initialMatchedPath={props.libraryMatchedPath}
+              hideMatchBanner={props.hideLibraryMatchBanner}
               resourceType={props.resourceType}
               records={props.records}
               listStatus={props.listStatus}
@@ -372,13 +372,6 @@ export function SourceDrawer(props: SourceDrawerProps) {
                       <article className="ai-recording-question-card" key={question.id}>
                         <div className="ai-recording-question-toolbar">
                           <span>飞象原题</span>
-                          <div>
-                            <button type="button" onClick={() => MetisMessage.info('已在当前题目后新建空白题（原型演示）')}><Plus size={15} />新建</button>
-                            <button type="button" onClick={() => MetisMessage.info('已进入题目编辑（原型演示）')}><SquarePen size={15} />编辑</button>
-                            <button type="button" aria-label="上移题目">↑</button>
-                            <button type="button" aria-label="下移题目">↓</button>
-                            <button type="button" aria-label="删除题目" onClick={() => MetisMessage.success('已删除当前识别题（原型演示）')}><Trash2 size={15} /></button>
-                          </div>
                         </div>
                         <div className="ai-recording-question-meta"><small>{question.type} · {question.difficulty}</small></div>
                         <div className="ai-recording-question-stem"><b>{index + 1}.</b><p>{question.stem}</p></div>

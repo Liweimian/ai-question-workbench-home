@@ -14,7 +14,7 @@ import {
   Share2,
 } from 'lucide-react'
 import { formatDefaultDocumentTitle } from '../data/workbenchData'
-import type { DocumentOutputLock, DocumentStatus, DocumentSyncState, WorkbenchDocumentKind } from '../prototype/types'
+import type { DocumentOutputLock, DocumentStatus, DocumentSyncState, PaperAnswerMode, WorkbenchDocumentKind } from '../prototype/types'
 import { ElephantIcon } from './ElephantIcon'
 import { SaveAsDialog } from './SaveAsDialog'
 import { EditorStudioFooter } from './EditorStudioFooter'
@@ -29,6 +29,8 @@ interface WorkspaceHeaderProps {
   contentBusy: boolean
   documentStatus: DocumentStatus
   documentKind: WorkbenchDocumentKind
+  answerMode?: PaperAnswerMode
+  answerSheetPaper?: boolean
   syncState: DocumentSyncState
   assignmentOutdated: boolean
   hasPersistedDraft: boolean
@@ -62,6 +64,8 @@ export function WorkspaceHeader({
   contentBusy,
   documentStatus,
   documentKind,
+  answerMode,
+  answerSheetPaper = false,
   syncState,
   assignmentOutdated,
   hasPersistedDraft,
@@ -86,6 +90,9 @@ export function WorkspaceHeader({
   onDraftExpand,
 }: WorkspaceHeaderProps) {
   const hasQuestions = questionCount > 0
+  const compactAnswerSheetPaper = !studioEditorOpen
+    && (answerSheetPaper || (documentKind === '试卷' && answerMode === '答题卡作答'))
+    && hasQuestions
   const fallbackTitle = formatDefaultDocumentTitle()
   const [assignOpen, setAssignOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
@@ -305,7 +312,7 @@ export function WorkspaceHeader({
             {studioEditorOpen ? '新建' : undefined}
           </MetisButton>
         </span>
-        {!studioEditorOpen ? (
+        {!studioEditorOpen && !compactAnswerSheetPaper ? (
           <span className="header-save header-icon-action" data-tooltip={syncState === 'saving' ? '保存中' : '保存'} ref={saveRef}>
             <MetisButton
               type="borderless"
@@ -324,7 +331,7 @@ export function WorkspaceHeader({
             />
           </span>
         ) : null}
-        {!studioEditorOpen ? (
+        {!studioEditorOpen && documentKind !== '试卷' ? (
           <>
             <div className="header-assign header-icon-action" data-tooltip={assignmentOutdated ? '更新布置' : '布置题单'} ref={assignRef}>
               <MetisButton
@@ -384,9 +391,15 @@ export function WorkspaceHeader({
             />
             {moreOpen ? (
               <div className="header-more-menu" role="menu" aria-label="更多题单操作">
-                <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { downloadWord(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/downloadWord | 下载 | 无"><Download size={16} /><span>下载</span></button>
-                <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { void shareDocument(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/share | 共享到校本库 | 无"><Share2 size={16} /><span>共享到校本库</span></button>
-                <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { exportDocument(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/export | 打印 | 无"><FileDown size={16} /><span>打印</span></button>
+                {compactAnswerSheetPaper ? (
+                  <button type="button" role="menuitem" onClick={() => { onStudioGenerateAnswerSheet?.(); setMoreOpen(false) }}>生成答题卡</button>
+                ) : (
+                  <>
+                    <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { downloadWord(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/downloadWord | 下载 | 无"><Download size={16} /><span>下载</span></button>
+                    <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { void shareDocument(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/share | 共享到校本库 | 无"><Share2 size={16} /><span>共享到校本库</span></button>
+                    <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { exportDocument(); setMoreOpen(false) }} data-track="/click/aiQuestionHome/export | 打印 | 无"><FileDown size={16} /><span>打印</span></button>
+                  </>
+                )}
               </div>
             ) : null}
           </div>
@@ -407,7 +420,7 @@ export function WorkspaceHeader({
             onRequirePaperScores={onRequirePaperScores}
           />
         ) : null}
-        {sidePanelOpen ? (
+        {sidePanelOpen && !compactAnswerSheetPaper ? (
           <MetisButton
             type="borderless"
             icon={<PanelRightClose size={17} />}

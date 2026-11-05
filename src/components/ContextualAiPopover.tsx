@@ -40,7 +40,7 @@ export function ContextualAiPopover(props: ContextualAiPopoverProps) {
         <form className="contextual-ai-form" onSubmit={(event) => { event.preventDefault(); if (props.prompt.trim()) props.onSubmit() }}>
           {props.quickActions?.length ? (
             <section className="contextual-ai-action-section">
-              <div className="contextual-ai-section-title"><span><strong><Sparkles size={15} />AI 助手</strong><em># {props.title}</em></span><button type="button" aria-label="关闭 AI 弹窗" onClick={props.onClose}><X size={15} /></button></div>
+              <div className="contextual-ai-section-title"><span><strong><Sparkles size={15} />AI 改编</strong><em># {props.title}</em></span><button type="button" aria-label="关闭 AI 弹窗" onClick={props.onClose}><X size={15} /></button></div>
               <div className="contextual-ai-quick-actions" aria-label="常用 AI 加工方式">
                 {props.quickActions.map((action) => <button type="button" key={action.label} onClick={action.onSelect}>{action.label}</button>)}
               </div>

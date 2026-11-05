@@ -163,7 +163,7 @@ export function EditorStudioFooter({
       <MetisButton type="borderless" className="editor-studio-footer-btn" icon={<Eye size={17} />} disabled={!hasQuestions} onClick={previewDocument}>
         预览
       </MetisButton>
-      <span className="editor-studio-footer-assign" ref={assignRef}>
+      {getDocumentKind(document) !== '试卷' ? <span className="editor-studio-footer-assign" ref={assignRef}>
         <MetisButton
           type="borderless"
           className="editor-studio-footer-btn"
@@ -192,7 +192,7 @@ export function EditorStudioFooter({
             </div>
           </div>
         ) : null}
-      </span>
+      </span> : null}
       <span className="editor-studio-footer-more" ref={moreRef}>
         <MetisButton
           type="borderless"

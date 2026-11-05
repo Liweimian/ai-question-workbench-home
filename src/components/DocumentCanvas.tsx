@@ -207,6 +207,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
             onExpand={props.onExpand}
             onCreateNew={props.onCreateNew}
             onSaveAndCreateNew={props.onSaveAndCreateNew}
+            onGenerateAnswerSheet={props.onGenerateAnswerSheet}
           />
         </div>
       ) : null}
@@ -280,7 +281,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
               {selected ? (
                 <div className="editor-question-tools is-compact" onClick={(event) => event.stopPropagation()}>
                   <div className="editor-question-toolbar">
-                    <button type="button" className="editor-question-ai-trigger" onClick={() => { setQuestionAiSubmitted(false); setAnswerPreviewQuestionId(null); setQuestionAiOpen((open) => { const next = !open; if (next) requestAnimationFrame(() => document.getElementById(`question-${question.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })); return next }) }} aria-expanded={questionAiOpen}><Sparkles size={14} />AI助手</button>
+                    <button type="button" className="editor-question-ai-trigger" onClick={() => { setQuestionAiSubmitted(false); setAnswerPreviewQuestionId(null); setQuestionAiOpen((open) => { const next = !open; if (next) requestAnimationFrame(() => document.getElementById(`question-${question.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })); return next }) }} aria-expanded={questionAiOpen}><Sparkles size={14} />AI改编</button>
                     <>
                     <button type="button" className="question-compact-text-tool" onClick={() => props.onAdd()}><PlusCircle size={15} />插入<ChevronDown size={12} /></button>
                     <span className="toolbar-divider" />

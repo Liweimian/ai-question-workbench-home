@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Dispatch, SetStateAction } from 'react'
+import type { ChangeEvent, Dispatch, SetStateAction } from 'react'
 import { createPortal } from 'react-dom'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
 import {
@@ -43,6 +43,7 @@ interface LibraryPickerProps {
   initialQuestionType?: Question['type']
   initialDifficulty?: Question['difficulty']
   initialMatchedPath?: string
+  hideMatchBanner?: boolean
   resourceType: ResourceType
   records: SourceRecord[]
   listStatus: AsyncStatus
@@ -137,6 +138,7 @@ function getPaperRecordingType(record: SourceRecord) {
 interface LegacyResourceDetailProps {
   record: SourceRecord
   initialMatchedPath?: string
+  hideMatchBanner?: boolean
   embedded?: boolean
   questions: Question[]
   selectedQuestionIds: Set<string>
@@ -435,7 +437,7 @@ export function LegacyResourceDetail(props: LegacyResourceDetailProps) {
         ) : null}
         <main className="legacy-detail-panel">
           <div className="legacy-detail-scroll">
-            {props.initialMatchedPath ? (
+            {props.initialMatchedPath && !props.hideMatchBanner ? (
               <div className="legacy-search-match-banner" role="status">
                 <Search size={15} />
                 <span><strong>已定位到匹配内容</strong>{props.initialMatchedPath}</span>
@@ -552,6 +554,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set(['paper-2']))
   const [pinned, setPinned] = useState<Set<string>>(new Set())
   const chapterImageInputRef = useRef<HTMLInputElement>(null)
+  const chapterKeywordBeforeImageRef = useRef('')
   const { imageSearch: chapterImageSearch, startRecognition: startChapterImageRecognition, retry: retryChapterImageSearch, clear: clearChapterImageSearch } = useImageQuestionSearch(() => {
     setKeyword('一次函数')
   })
@@ -573,6 +576,24 @@ export function LibraryPicker(props: LibraryPickerProps) {
       return
     }
     setChapterNode(knowledgeGroups[0]?.items[0] ?? '一次函数概念')
+  }
+
+  const closeChapterImageSearch = () => {
+    clearChapterImageSearch()
+    setKeyword(chapterKeywordBeforeImageRef.current)
+  }
+
+  const handleChapterImageFile = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const validationMessage = validateQuestionImage(file)
+      if (validationMessage) MetisMessage.error(validationMessage)
+      else {
+        if (!chapterImageSearch) chapterKeywordBeforeImageRef.current = keyword
+        startChapterImageRecognition(file)
+      }
+    }
+    event.currentTarget.value = ''
   }
 
   useEffect(() => {
@@ -769,6 +790,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
         key={detailRecord.id}
         record={detailRecord}
         initialMatchedPath={props.initialMatchedPath}
+        hideMatchBanner={props.hideMatchBanner}
         embedded={variant === 'dialog'}
         questions={previewQuestions}
         selectedQuestionIds={selectedQuestionIds}
@@ -868,7 +890,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
       </nav> : null}
 
       {dialogChapter ? (
-        <div className="chapter-picker-browser">
+        <div className={`chapter-picker-browser${chapterImageSearch ? ' is-image-search' : ''}`}>
           <aside className="chapter-picker-tree" aria-label="教材章节与知识点">
             <div className="chapter-picker-tree-tabs" role="tablist" aria-label="章节或知识点选题">
               <button type="button" role="tab" aria-selected={chapterBrowseMode === 'chapter'} className={chapterBrowseMode === 'chapter' ? 'is-active' : ''} onClick={() => selectChapterBrowseMode('chapter')}>教材章节</button>
@@ -883,25 +905,22 @@ export function LibraryPicker(props: LibraryPickerProps) {
             ))}
           </aside>
           <main className="chapter-picker-results">
-            <div className="chapter-picker-heading"><div><h3>{chapterNode}</h3><p>按教材章节或知识点逐题选择</p></div><div className="library-search has-image-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索题目关键词" /><button type="button" className="library-image-search" aria-label="图片搜题" title="图片搜题" onClick={() => chapterImageInputRef.current?.click()}><ImagePlus size={16} /></button><input ref={chapterImageInputRef} className="global-resource-search-image-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="选择题目图片" onChange={(event) => {
-              const file = event.target.files?.[0]
-              if (file) {
-                const validationMessage = validateQuestionImage(file)
-                if (validationMessage) MetisMessage.error(validationMessage)
-                else startChapterImageRecognition(file)
-              }
-              event.currentTarget.value = ''
-            }} /></div></div>
+            {chapterImageSearch ? (
+              <div className="chapter-image-search-heading">
+                <button type="button" onClick={closeChapterImageSearch}><ArrowLeft size={16} />返回章节知识点选题</button>
+                <div><strong>图片搜题</strong><span>识别图片并查找相似题目</span></div>
+                <input ref={chapterImageInputRef} className="global-resource-search-image-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="选择题目图片" onChange={handleChapterImageFile} />
+              </div>
+            ) : (
+              <div className="chapter-picker-heading"><div><h3>{chapterNode}</h3><p>按教材章节或知识点逐题选择</p></div><div className="library-search has-image-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索题目关键词" /><button type="button" className="library-image-search" aria-label="图片搜题" title="图片搜题" onClick={() => chapterImageInputRef.current?.click()}><ImagePlus size={16} /></button><input ref={chapterImageInputRef} className="global-resource-search-image-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="选择题目图片" onChange={handleChapterImageFile} /></div></div>
+            )}
             {chapterImageSearch ? (
               <ImageQuestionSearchPanel
                 value={chapterImageSearch}
                 compact
                 onRetry={retryChapterImageSearch}
                 onReplace={() => chapterImageInputRef.current?.click()}
-                onRemove={() => {
-                  clearChapterImageSearch()
-                  setKeyword('')
-                }}
+                onRemove={closeChapterImageSearch}
               />
             ) : null}
             <div className="chapter-question-list">
