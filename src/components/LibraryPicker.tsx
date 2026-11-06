@@ -1005,7 +1005,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
                       <span className="library-card-copy">
                         {record.sourceType === 'workbook' ? <span className="library-workbook-type">{record.highlight || '同步练习'}</span> : <span className="library-card-tags">{getResourceCardTags(record).map((tag) => <em className={tag === 'AI录题' ? 'is-ai-recording' : tag === '委托录题' ? 'is-delegated-recording' : undefined} key={tag}>{tag}</em>)}</span>}
                         <strong>{record.title}{record.sourceType === 'workbook' ? <span className="library-workbook-year">2025-2026学年</span> : null}</strong>
-                        {record.sourceType === 'workbook' ? <small className="library-workbook-meta">{record.meta.replace(/·/g, ' ')}</small> : <small className="library-card-date"><Clock3 size={13} />{record.updatedAt ?? '最近更新'}</small>}
+                        {record.sourceType === 'workbook' ? <small className="library-workbook-meta">{record.meta.replace(/·/g, ' ')}</small> : <small className="library-card-date">{props.libraryKind === 'school' && record.creatorName ? <span>创建人：{record.creatorName}</span> : null}<Clock3 size={13} />{record.updatedAt ?? '最近更新'}</small>}
                       </span>
                     </button>
                     <button

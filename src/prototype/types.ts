@@ -162,6 +162,7 @@ export interface SourceRecord {
   description?: string
   tags?: string[]
   sourceName?: string
+  creatorName?: string
   updatedAt?: string
   usageCount?: number
 }
