@@ -224,7 +224,9 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
         ) : null}
         <div className="document-title-with-save-state">
           <MetisInput value={props.document.title} onChange={(event) => props.onTitleChange(event.target.value)} className="editor-title-input" aria-label="题单标题" />
-          <span className={`document-auto-save-state is-${props.syncState}`} role="status">{props.syncState === 'saving' ? '保存中…' : props.syncState === 'error' ? '保存失败' : props.syncState === 'saved' ? '已保存' : '草稿已记录'}</span>
+          {props.syncState !== 'dirty' ? (
+            <span className={`document-auto-save-state is-${props.syncState}`} role="status">{props.syncState === 'saving' ? '保存中…' : props.syncState === 'error' ? '保存失败' : '已保存'}</span>
+          ) : null}
         </div>
       </header>
 
