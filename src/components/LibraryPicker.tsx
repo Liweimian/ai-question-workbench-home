@@ -287,12 +287,12 @@ function LegacyUseWholeVolumeMenu(props: {
         <div className="legacy-use-whole-menu" role="menu" aria-label="使用整卷">
           <button type="button" role="menuitem" disabled={props.contentBusy} onClick={() => { props.onAddToDraft(); setOpen(false) }}>
             <FileText size={16} />
-            当前编辑
+            合并编辑
           </button>
           {props.showEdit ? (
             <button type="button" role="menuitem" onClick={() => { props.onEdit(); setOpen(false) }}>
               <SquarePen size={16} />
-              新建并编辑
+              独立编辑
             </button>
           ) : null}
           {props.showFavorite !== false || props.showUnpublish ? <div className="legacy-use-whole-menu-divider" role="separator" /> : null}
@@ -519,7 +519,7 @@ export function LegacyResourceDetail(props: LegacyResourceDetailProps) {
       {newEditConfirmOpen ? (
         <div className="workspace-confirm-overlay" role="presentation" onClick={() => { if (!newEditPending) setNewEditConfirmOpen(false) }}>
           <div className="workspace-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="resource-new-edit-title" onClick={(event) => event.stopPropagation()}>
-            <strong id="resource-new-edit-title">新建并编辑</strong>
+            <strong id="resource-new-edit-title">独立编辑</strong>
             <span>当前编辑有未保存的修改。保存后新建，可在「我的资源」中继续编辑；不保存则放弃本次修改，直接以当前整卷新建。</span>
             <div>
               <button type="button" disabled={newEditPending} onClick={() => setNewEditConfirmOpen(false)}>取消</button>
