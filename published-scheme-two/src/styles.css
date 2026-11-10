@@ -14708,6 +14708,29 @@ button.global-resource-search-condition:hover { color: var(--fx-primary); border
   box-shadow: 0 4px 16px rgba(31, 45, 61, .08);
 }
 
+.workspace-shell.is-split-source:not(.is-alternate-home) > .editor-scroll .homework-paper-header {
+  width: calc(100% - 160px);
+  max-width: 560px;
+}
+
+.workspace-shell.is-split-source:not(.is-alternate-home) > .editor-scroll .homework-paper-identity-row {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, .95fr);
+  gap: 8px;
+}
+
+.workspace-shell.is-split-source:not(.is-alternate-home) > .editor-scroll .homework-paper-field {
+  gap: 5px;
+  font-size: 14px;
+}
+
+.workspace-shell.is-split-source:not(.is-alternate-home) > .editor-scroll .homework-paper-field i {
+  min-width: 20px;
+}
+
+.workspace-shell.is-split-source:not(.is-alternate-home) > .editor-scroll .homework-paper-field.is-grade-class {
+  gap: 4px;
+}
+
 /* 资源分屏右侧题单：不依赖视口宽度，直接收窄灰区并拉开纸张顶部距离 */
 .workspace-shell.is-split-source.is-alternate-home .document-center-draft .document-action-rail {
   padding: 2px 8px;
