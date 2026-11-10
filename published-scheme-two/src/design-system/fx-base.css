@@ -1,0 +1,69 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+#root > div {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  min-width: var(--fx-page-min-width);
+  overflow: hidden;
+  color: var(--fx-text-primary);
+  background: var(--fx-surface-page);
+  font-family: var(--fx-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+.fx-app {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: var(--fx-page-min-width);
+  height: 100%;
+}
+
+.fx-sider {
+  position: relative;
+  z-index: 20;
+  flex: 0 0 var(--fx-sider-width);
+  width: var(--fx-sider-width);
+  height: 100%;
+}
+
+.fx-content {
+  position: relative;
+  flex: 1;
+  min-width: var(--fx-content-min-width);
+  height: 100%;
+  overflow: hidden;
+}
+
+.fx-page-header {
+  position: absolute;
+  top: var(--fx-page-gutter);
+  right: var(--fx-page-gutter);
+  left: var(--fx-page-gutter);
+  z-index: 10;
+  height: var(--fx-topbar-height);
+}
+
+.fx-zoom-area {
+  transform-origin: top left;
+}
