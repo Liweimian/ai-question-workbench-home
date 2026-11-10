@@ -10,7 +10,7 @@ import { MyResourceQuestionDetail } from '../components/MyResourceQuestionDetail
 import { ResourceFileDetail } from '../components/ResourceFileDetail'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
-import { DocumentCenter } from '../components/DocumentCenter'
+import { DocumentCenter, DocumentCenterIconNavigation, type DocumentCenterNavigationKey } from '../components/DocumentCenter'
 import { ElephantIcon, FeixiangAiLibraryLogo } from '../components/ElephantIcon'
 import { useWorkbench } from '../hooks/useWorkbench'
 import type { AddQuestionMode, Difficulty, MyResourceKind, MyResourceSummary, Question, QuestionType, SourceRecord } from '../prototype/types'
@@ -29,7 +29,6 @@ import { persistDocumentNow, readStoredDocument } from '../services/workbenchRep
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
 type LibraryTabMode = Extract<AddTabMode, 'resource' | 'school'>
-
 interface LibraryDetailTab {
   key: string
   libraryMode: LibraryTabMode
@@ -326,6 +325,17 @@ export function WorkbenchHomePage() {
     }
   }
 
+  const activateLibraryList = (tab: LibraryDetailTab) => {
+    setSidePanelOpen(true)
+    setActiveLibraryDetailKey(null)
+    setAssistantActive(false)
+    setMyResourcesActive(false)
+    setRecentBrowseActive(false)
+    setActiveFileDetailId(null)
+    setAiSearchActive(false)
+    workbench.openAdd(tab.libraryMode, { libraryView: tab.record.sourceType })
+  }
+
   const activateAddHome = () => {
     setSidePanelOpen(true)
     setActiveLibraryDetailKey(null)
@@ -495,6 +505,48 @@ export function WorkbenchHomePage() {
   }
 
   const isAddHome = !workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !aiSearchActive && !myResourcesActive && !recentBrowseActive && !activeFileDetailId
+  const activeAddTabLabel = (mode: AddTabMode) => {
+    if (mode !== 'resource') return addTabLabels[mode]
+    const labels = {
+      chapter: '章节/知识点',
+      workbook: '练习册',
+      paper: '试卷',
+      sync: '同步练习',
+      special: '专题',
+    } as const
+    return labels[workbench.libraryInitialView as keyof typeof labels] ?? '飞象题库'
+  }
+  const libraryViewLabel = (sourceType: SourceRecord['sourceType']) => {
+    const labels = {
+      chapter: '章节/知识点',
+      workbook: '练习册',
+      paper: '试卷',
+      sync: '同步练习',
+      special: '专题',
+    } as const
+    return labels[sourceType]
+  }
+  const breadcrumbItems = (() => {
+    if (isAddHome) return ['首页']
+    if (activeFileDetailId) {
+      const detail = fileDetailTabs.find((tab) => tab.id === activeFileDetailId)
+      return ['首页', '我的资源', detail?.title ?? '资源详情']
+    }
+    if (activeLibraryDetail) {
+      const parentLabel = activeLibraryDetail.libraryMode === 'school'
+        ? '校本题库'
+        : libraryViewLabel(activeLibraryDetail.record.sourceType)
+      return ['首页', parentLabel, activeLibraryDetail.record.title]
+    }
+    if (myResourcesActive) return ['首页', '我的资源']
+    if (recentBrowseActive) return ['首页', '最近浏览']
+    if (assistantActive) return ['首页', 'AI 组题']
+    if (aiSearchActive) return ['首页', 'AI智搜']
+    if (workbench.isAddOpen && workbench.addMode !== 'menu' && workbench.addMode !== 'compose' && workbench.addMode !== 'personalized') {
+      return ['首页', activeAddTabLabel(workbench.addMode)]
+    }
+    return ['首页']
+  })()
   const hasOpenTaskTabs = openAddTabs.length > 0
     || libraryDetailTabs.length > 0
     || assistantTabOpen
@@ -503,6 +555,22 @@ export function WorkbenchHomePage() {
     || recentBrowseTabOpen
     || fileDetailTabs.length > 0
   const showHomeAiSearch = isAddHome && !hasOpenTaskTabs
+  const compactNavigationActiveKey: DocumentCenterNavigationKey | undefined = (() => {
+    if (aiSearchActive) return 'ai-search'
+    if (assistantActive) return 'compose'
+    if (myResourcesActive) return 'my-resources'
+    if (recentBrowseActive) return 'recent'
+    if (workbench.isAddOpen) {
+      if (workbench.addMode === 'school') return 'school'
+      if (workbench.addMode === 'upload') return 'upload'
+      if (workbench.addMode === 'create') return 'create'
+      if (workbench.addMode === 'resource') {
+        const view = workbench.libraryInitialView
+        if (view === 'chapter' || view === 'workbook' || view === 'paper' || view === 'sync' || view === 'special') return view
+      }
+    }
+    return undefined
+  })()
   const alternateHomeLayout = sidePanelOpen && (isAddHome || aiSearchActive || opensHomeworkResources) && !draftCollapsed
   const studioEditorOpen = !sidePanelOpen
   const documentCenterVisible = sidePanelOpen && isAddHome
@@ -891,7 +959,7 @@ export function WorkbenchHomePage() {
 
             {sidePanelOpen ? (
               <div className="add-workspace" aria-label="添加题目多任务工作区">
-                <header className={`add-workspace-topbar${opensHomeworkResources ? ' is-homework-resource' : ''}`}>
+                <header className={`add-workspace-topbar is-breadcrumb-scheme${opensHomeworkResources ? ' is-homework-resource' : ''}`}>
                   {opensHomeworkResources ? (
                     <nav className="homework-resource-breadcrumb" aria-label="我的资源面包屑">
                       <span><House size={15} />作业首页</span>
@@ -928,6 +996,16 @@ export function WorkbenchHomePage() {
                     onAddQuestion={addGlobalSearchQuestion}
                     onOpenCompose={openAssistant}
                   />
+                  <nav className="add-workspace-breadcrumb" aria-label="当前位置">
+                    {breadcrumbItems.map((item, index) => (
+                      <Fragment key={`${item}-${index}`}>
+                        {index > 0 ? <ChevronRight size={14} aria-hidden="true" /> : null}
+                        {index === 0 ? <button type="button" onClick={activateAddHome}>{item}</button>
+                          : activeLibraryDetail && index === 1 ? <button type="button" onClick={() => activateLibraryList(activeLibraryDetail)}>{item}</button>
+                          : index === breadcrumbItems.length - 1 ? <strong title={item}>{item}</strong> : <span>{item}</span>}
+                      </Fragment>
+                    ))}
+                  </nav>
                   <nav className="add-workspace-tabs" aria-label="已打开的任务">
                   {openAddTabs.map((mode) => (
                     <Fragment key={mode}>
@@ -937,8 +1015,8 @@ export function WorkbenchHomePage() {
                           aria-current={workbench.isAddOpen && workbench.addMode === mode && !activeLibraryDetail ? 'page' : undefined}
                           data-add-tab-mode={mode}
                           onClick={() => activateAddTab(mode)}
-                        >{addTabLabels[mode]}</button>
-                        <button type="button" className="add-workspace-tab-close" aria-label={`关闭${addTabLabels[mode]}`} onClick={() => closeAddTab(mode)}>
+                        >{activeAddTabLabel(mode)}</button>
+                        <button type="button" className="add-workspace-tab-close" aria-label={`关闭${activeAddTabLabel(mode)}`} onClick={() => closeAddTab(mode)}>
                           <X size={13} />
                         </button>
                       </span>
@@ -1047,6 +1125,17 @@ export function WorkbenchHomePage() {
                     ><PanelLeftClose size={17} /></button>
                   )}
                 </header>
+                {!isAddHome && !opensHomeworkResources ? (
+                  <aside className="source-navigation-rail" aria-label="添加题目导航">
+                    <DocumentCenterIconNavigation
+                      activeKey={compactNavigationActiveKey}
+                      onOpenMyResources={() => openMyResources('全部')}
+                      onOpenSource={openAdd}
+                      onOpenAiSearch={activateAiSearch}
+                      onOpenRecentBrowse={openRecentBrowse}
+                    />
+                  </aside>
+                ) : null}
                 {activeFileDetailId && fileDetailTabs.some((tab) => tab.id === activeFileDetailId) ? (
                   fileDetailTabs.find((tab) => tab.id === activeFileDetailId)!.kind === '文件' ? <ResourceFileDetail
                       resource={fileDetailTabs.find((tab) => tab.id === activeFileDetailId)!}
@@ -1091,6 +1180,7 @@ export function WorkbenchHomePage() {
                   />
                 ) : workbench.isAddOpen ? (
                   <SourceDrawer
+                    key={`source-workspace-${workbench.addMode}-${workbench.libraryInitialView ?? 'default'}`}
                     presentation="docked"
                     mode={workbench.addMode}
                     libraryInitialView={workbench.libraryInitialView}
