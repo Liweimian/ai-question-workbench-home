@@ -9088,7 +9088,6 @@
 }
 
 /* 方案二：题单与添加内容并列展示；方案一的弹窗样式保持不变。 */
-.add-workspace-tabs.is-hidden { display: none; }
 .recent-create-wrap {
   position: relative;
   width: 72px;

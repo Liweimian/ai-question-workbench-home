@@ -21,6 +21,7 @@ import { getDocumentKind, needsPaperScoreSettings } from '../utils/documentEdito
 import { AnswerSheetPanel } from '../components/AnswerSheetPanel'
 import { RecentBrowsePanel } from '../components/RecentBrowsePanel'
 import { RequirementSpecControls } from '../components/RequirementSpecControls'
+import { WorkspaceSchemeControls, type WorkspaceNavigationScheme } from '../components/WorkspaceSchemeControls'
 import { GlobalResourceSearch } from '../components/GlobalResourceSearch'
 import { readRecentBrowseEntries, recordRecentBrowse, type RecentBrowseEntry } from '../utils/recentBrowseHistory'
 import type { GlobalResourceSearchHit } from '../services/globalResourceSearchRepository'
@@ -68,6 +69,7 @@ export function WorkbenchHomePage() {
   const aiSearchTabRef = useRef<HTMLButtonElement>(null)
   const [sortCollapsed, setSortCollapsed] = useState(false)
   const [sidePanelOpen, setSidePanelOpen] = useState(true)
+  const [navigationScheme, setNavigationScheme] = useState<WorkspaceNavigationScheme>('breadcrumb')
   const [draftCollapsed, setDraftCollapsed] = useState(false)
   const [openAddTabs, setOpenAddTabs] = useState<AddTabMode[]>([])
   const [libraryDetailTabs, setLibraryDetailTabs] = useState<LibraryDetailTab[]>([])
@@ -959,7 +961,7 @@ export function WorkbenchHomePage() {
 
             {sidePanelOpen ? (
               <div className="add-workspace" aria-label="添加题目多任务工作区">
-                <header className={`add-workspace-topbar is-breadcrumb-scheme${opensHomeworkResources ? ' is-homework-resource' : ''}`}>
+                <header className={`add-workspace-topbar is-${navigationScheme}-scheme${opensHomeworkResources ? ' is-homework-resource' : ''}`}>
                   {opensHomeworkResources ? (
                     <nav className="homework-resource-breadcrumb" aria-label="我的资源面包屑">
                       <span><House size={15} />作业首页</span>
@@ -996,7 +998,7 @@ export function WorkbenchHomePage() {
                     onAddQuestion={addGlobalSearchQuestion}
                     onOpenCompose={openAssistant}
                   />
-                  <nav className="add-workspace-breadcrumb" aria-label="当前位置">
+                  {navigationScheme === 'breadcrumb' ? <nav className="add-workspace-breadcrumb" aria-label="当前位置">
                     {breadcrumbItems.map((item, index) => (
                       <Fragment key={`${item}-${index}`}>
                         {index > 0 ? <ChevronRight size={14} aria-hidden="true" /> : null}
@@ -1005,7 +1007,7 @@ export function WorkbenchHomePage() {
                           : index === breadcrumbItems.length - 1 ? <strong title={item}>{item}</strong> : <span>{item}</span>}
                       </Fragment>
                     ))}
-                  </nav>
+                  </nav> : null}
                   <nav className="add-workspace-tabs" aria-label="已打开的任务">
                   {openAddTabs.map((mode) => (
                     <Fragment key={mode}>
@@ -1244,6 +1246,7 @@ export function WorkbenchHomePage() {
           </section>
         </div>
       </main>
+      <WorkspaceSchemeControls value={navigationScheme} onChange={setNavigationScheme} />
       <RequirementSpecControls
         reviewMode={reviewMode}
         context={{
