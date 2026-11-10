@@ -14462,23 +14462,34 @@ button.global-resource-search-condition:hover { color: var(--fx-primary); border
 
 /* 本地方案二：工具区与 A4 纸张分层 */
 .document-center-draft {
+  --document-workbench-bg: #eef0f3;
   border: 0;
-  background: var(--fx-surface-muted);
+  background: var(--document-workbench-bg);
   box-shadow: none;
   container-name: document-draft;
   container-type: inline-size;
+}
+
+.document-center.is-embedded.is-layout-2,
+.document-center.is-embedded.is-layout-2 .document-center-main,
+.document-center.is-embedded.is-layout-2 .document-layout-two {
+  background: #eef0f3;
+}
+
+.document-center.is-embedded.is-layout-2 .document-center-recent {
+  background: var(--common_bg2_color);
 }
 
 .workspace-shell.is-alternate-home .document-center-draft .editor-scroll,
 .workspace-shell.is-alternate-home .document-center-draft .editor-scroll.is-empty,
 .workspace-shell.is-alternate-home .document-center-draft .editor-empty,
 .document-center-draft .editor-empty.has-action-rail {
-  background: var(--fx-surface-muted) !important;
+  background: var(--document-workbench-bg) !important;
 }
 
 .document-center-draft .document-action-rail {
   padding: 4px 22px;
-  background: var(--fx-surface-muted) !important;
+  background: var(--document-workbench-bg) !important;
   box-shadow: none;
 }
 
@@ -14519,38 +14530,40 @@ button.global-resource-search-condition:hover { color: var(--fx-primary); border
 
 .document-center-draft .editor-empty.has-action-rail .editor-empty-heading,
 .document-center-draft .editor-document.has-action-rail .editor-document-heading {
-  padding: 36px 44px 14px;
+  padding: 36px 60px 14px;
 }
 
 .document-center-draft .editor-paper-sheet .editor-empty-content {
+  padding-right: 60px;
+  padding-bottom: 48px;
+  padding-left: 60px;
+}
+
+.document-center-draft .editor-paper-sheet .editor-document-intro {
+  margin-right: 60px;
+  margin-left: 60px;
+}
+
+.document-center-draft .editor-paper-sheet .editor-question-list {
   padding-right: 44px;
   padding-bottom: 48px;
   padding-left: 44px;
 }
 
-.document-center-draft .editor-paper-sheet .editor-document-intro {
-  margin-right: 44px;
-  margin-left: 44px;
-}
-
-.document-center-draft .editor-paper-sheet .editor-question-list {
-  padding-right: 24px;
-  padding-bottom: 48px;
-  padding-left: 24px;
-}
-
 /* 题单纸张表头：学生信息、题单名称 */
 .homework-paper-header {
-  width: 100%;
-  padding: 0 18px;
+  width: min(100%, 648px);
+  margin: 0 auto;
+  padding: 0;
   box-sizing: border-box;
 }
 
 .homework-paper-identity-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1.65fr) minmax(150px, 1.25fr) minmax(138px, 1fr);
+  grid-template-columns: minmax(220px, 250px) minmax(120px, 150px) minmax(170px, 200px);
   align-items: end;
-  gap: 28px;
+  justify-content: center;
+  gap: 24px;
 }
 
 .homework-paper-field {
