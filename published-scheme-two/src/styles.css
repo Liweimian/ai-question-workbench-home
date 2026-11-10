@@ -14483,7 +14483,9 @@ button.global-resource-search-condition:hover { color: var(--fx-primary); border
 .workspace-shell.is-alternate-home .document-center-draft .editor-scroll,
 .workspace-shell.is-alternate-home .document-center-draft .editor-scroll.is-empty,
 .workspace-shell.is-alternate-home .document-center-draft .editor-empty,
-.document-center-draft .editor-empty.has-action-rail {
+.workspace-shell.is-alternate-home .document-center-draft .editor-document,
+.document-center-draft .editor-empty.has-action-rail,
+.document-center-draft .editor-document.has-action-rail {
   background: var(--document-workbench-bg) !important;
 }
 
