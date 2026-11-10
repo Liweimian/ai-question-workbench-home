@@ -25,9 +25,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Assemble published versions
         run: |
-          mkdir -p site/scheme-2
+          mkdir -p site/scheme-2 site/new-scheme-two
           cp -R dist/client/. site/
           cp -R dist/client/. site/scheme-2/
+          cp -R published-scheme-two/dist/client/. site/new-scheme-two/
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
