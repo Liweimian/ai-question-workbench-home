@@ -10,7 +10,7 @@ import { MyResourceQuestionDetail } from '../components/MyResourceQuestionDetail
 import { ResourceFileDetail } from '../components/ResourceFileDetail'
 import { SourceDrawer } from '../components/SourceDrawer'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
-import { DocumentCenter, DocumentCenterIconNavigation, type DocumentCenterNavigationKey } from '../components/DocumentCenter'
+import { DocumentCenter, DocumentCenterIconNavigation, DocumentCenterNavigation, type DocumentCenterNavigationKey } from '../components/DocumentCenter'
 import { ElephantIcon, FeixiangAiLibraryLogo } from '../components/ElephantIcon'
 import { useWorkbench } from '../hooks/useWorkbench'
 import type { AddQuestionMode, Difficulty, MyResourceKind, MyResourceSummary, Question, QuestionType, SourceRecord } from '../prototype/types'
@@ -69,6 +69,9 @@ export function WorkbenchHomePage() {
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const previousDocumentId = useRef(workbench.document.id)
   const highlightTimerRef = useRef<number | null>(null)
+  const navigationTransitionTimerRef = useRef<number | null>(null)
+  const navigationTransitionEndTimerRef = useRef<number | null>(null)
+  const navigationMenuCloseTimerRef = useRef<number | null>(null)
   const assistantTabRef = useRef<HTMLButtonElement>(null)
   const aiSearchTabRef = useRef<HTMLButtonElement>(null)
   const [sortCollapsed, setSortCollapsed] = useState(false)
@@ -99,6 +102,8 @@ export function WorkbenchHomePage() {
   const [resourceAnswerSheetDocument, setResourceAnswerSheetDocument] = useState<ReturnType<typeof readStoredDocument>>(null)
   const [resourceAnswerSheetSaveState, setResourceAnswerSheetSaveState] = useState<'dirty' | 'saving' | 'saved' | 'error'>('saved')
   const [gradeSubject, setGradeSubject] = useState('初中数学')
+  const [navigationTransitionPhase, setNavigationTransitionPhase] = useState<'expanded' | 'collapsing' | null>(null)
+  const [navigationMenuExpanded, setNavigationMenuExpanded] = useState(false)
   const hasQuestions = workbench.document.questions.length > 0
   const activeLibraryDetail = libraryDetailTabs.find((tab) => tab.key === activeLibraryDetailKey) ?? null
 
@@ -119,7 +124,25 @@ export function WorkbenchHomePage() {
 
   useEffect(() => () => {
     if (highlightTimerRef.current !== null) window.clearTimeout(highlightTimerRef.current)
+    if (navigationTransitionTimerRef.current !== null) window.clearTimeout(navigationTransitionTimerRef.current)
+    if (navigationTransitionEndTimerRef.current !== null) window.clearTimeout(navigationTransitionEndTimerRef.current)
+    if (navigationMenuCloseTimerRef.current !== null) window.clearTimeout(navigationMenuCloseTimerRef.current)
   }, [])
+
+  const beginNavigationTransition = () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (navigationTransitionTimerRef.current !== null) window.clearTimeout(navigationTransitionTimerRef.current)
+    if (navigationTransitionEndTimerRef.current !== null) window.clearTimeout(navigationTransitionEndTimerRef.current)
+    setNavigationTransitionPhase('expanded')
+    navigationTransitionTimerRef.current = window.setTimeout(() => {
+      setNavigationTransitionPhase('collapsing')
+      navigationTransitionTimerRef.current = null
+    }, 350)
+    navigationTransitionEndTimerRef.current = window.setTimeout(() => {
+      setNavigationTransitionPhase(null)
+      navigationTransitionEndTimerRef.current = null
+    }, 800)
+  }
 
   useEffect(() => {
     if (previousDocumentId.current === workbench.document.id) return
@@ -535,12 +558,6 @@ export function WorkbenchHomePage() {
     window.requestAnimationFrame(() => {
       document.querySelector<HTMLButtonElement>(`[data-add-tab-mode="${tab.libraryMode}"]`)?.focus()
     })
-  }
-
-  const collapseSidePanel = () => {
-    setDraftCollapsed(false)
-    setAiSearchActive(false)
-    setSidePanelOpen(false)
   }
 
   const isAddHome = !workbench.isAddOpen && !activeLibraryDetail && !assistantActive && !aiSearchActive && !myResourcesActive && !recentBrowseActive && !activeFileDetailId
@@ -1001,7 +1018,7 @@ export function WorkbenchHomePage() {
             )) : null}
 
             {sidePanelOpen ? (
-              <div className="add-workspace" aria-label="添加题目多任务工作区">
+              <div className={`add-workspace${navigationTransitionPhase ? ' is-navigation-entering' : ''}${navigationTransitionPhase === 'collapsing' ? ' is-navigation-collapsing' : ''}`} aria-label="添加题目多任务工作区">
                 <header className={`add-workspace-topbar is-breadcrumb-scheme${opensHomeworkResources ? ' is-homework-resource' : ''}`}>
                   {opensHomeworkResources ? (
                     <nav className="homework-resource-breadcrumb" aria-label="我的资源面包屑">
@@ -1160,20 +1177,54 @@ export function WorkbenchHomePage() {
                     </span>
                   ) : null}
                   </nav>
-                  {isAddHome ? null : (
+                </header>
+                {!isAddHome && !opensHomeworkResources && navigationTransitionPhase !== 'expanded' ? (
+                  <aside
+                    className={`source-navigation-rail${navigationMenuExpanded ? ' is-expanded' : ''}`}
+                    aria-label="添加题目导航"
+                  >
                     <button
                       type="button"
-                      className="add-workspace-collapse"
-                      aria-label="收起添加题目工作区"
-                      title="专注编辑"
-                      onClick={collapseSidePanel}
-                    ><PanelLeftClose size={17} /></button>
-                  )}
-                </header>
-                {!isAddHome && !opensHomeworkResources ? (
-                  <aside className="source-navigation-rail" aria-label="添加题目导航">
+                      className="source-navigation-expand-control"
+                      aria-label="展开添加题目导航"
+                      title="展开添加题目导航"
+                      onClick={() => setNavigationMenuExpanded(true)}
+                    ><PanelRightOpen size={16} /></button>
                     <DocumentCenterIconNavigation
                       activeKey={compactNavigationActiveKey}
+                      onOpenMyResources={() => openMyResources('全部')}
+                      onOpenSource={openAdd}
+                      onOpenAiSearch={activateAiSearch}
+                      onOpenRecentBrowse={openRecentBrowse}
+                    />
+                    <div className="source-navigation-hover-panel">
+                      <button
+                        type="button"
+                        className="source-navigation-collapse-control"
+                        aria-label="收起添加题目导航"
+                        title="收起添加题目导航"
+                        onClick={() => setNavigationMenuExpanded(false)}
+                      ><PanelLeftClose size={16} /></button>
+                      <DocumentCenterNavigation
+                        activeKey={compactNavigationActiveKey}
+                        onOpenMyResources={() => openMyResources('全部')}
+                        onOpenSource={openAdd}
+                        onOpenAiSearch={activateAiSearch}
+                        onOpenRecentBrowse={openRecentBrowse}
+                        onNavigate={() => {
+                          if (navigationMenuCloseTimerRef.current !== null) window.clearTimeout(navigationMenuCloseTimerRef.current)
+                          navigationMenuCloseTimerRef.current = window.setTimeout(() => {
+                            setNavigationMenuExpanded(false)
+                            navigationMenuCloseTimerRef.current = null
+                          }, 180)
+                        }}
+                      />
+                    </div>
+                  </aside>
+                ) : null}
+                {!isAddHome && !opensHomeworkResources && navigationTransitionPhase ? (
+                  <aside className="source-navigation-transition" aria-label="添加题目导航">
+                    <DocumentCenterNavigation
                       onOpenMyResources={() => openMyResources('全部')}
                       onOpenSource={openAdd}
                       onOpenAiSearch={activateAiSearch}
@@ -1281,6 +1332,7 @@ export function WorkbenchHomePage() {
                     onOpenSource={(mode, options) => openAdd(mode, options)}
                     onOpenAiSearch={activateAiSearch}
                     onOpenRecentBrowse={openRecentBrowse}
+                    onNavigate={beginNavigationTransition}
                     onReload={() => { void workbench.reloadHistory() }}
                   />
                 )}

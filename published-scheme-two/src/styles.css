@@ -5435,6 +5435,28 @@
   flex-direction: column;
 }
 
+.editor-empty-content:has(.empty-question-preview) {
+  cursor: text;
+}
+
+.empty-inline-editor {
+  width: 100%;
+  min-height: 420px;
+  padding: 8px 0;
+  border: 0;
+  outline: 0;
+  resize: none;
+  color: var(--fx-text-primary);
+  font: inherit;
+  line-height: 1.7;
+  caret-color: var(--fx-primary);
+  background: transparent;
+}
+
+.editor-empty-content.is-inline-editing .empty-block-list {
+  min-height: 0;
+}
+
 .empty-first-block {
   position: relative;
   display: flex;
@@ -9393,12 +9415,137 @@
   border-right: 1px solid var(--fx-line-soft);
   background: var(--common_bg2_color);
 }
+.source-navigation-hover-panel {
+  position: absolute;
+  z-index: 72;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 248px;
+  padding: 20px 16px;
+  overflow: hidden auto;
+  border-right: 1px solid var(--fx-line-strong);
+  background: var(--common_bg2_color);
+  box-shadow: 8px 0 24px rgba(31, 45, 61, .16);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-12px);
+  transform-origin: left center;
+  transition: opacity 160ms ease, transform 180ms cubic-bezier(.4, 0, .2, 1);
+}
+.source-navigation-rail.is-expanded .source-navigation-hover-panel {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.source-navigation-expand-control,
+.source-navigation-collapse-control {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: var(--fx-text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+.source-navigation-expand-control {
+  margin: 6px auto 2px;
+}
+.source-navigation-collapse-control {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  right: 14px;
+}
+.source-navigation-expand-control:hover,
+.source-navigation-collapse-control:hover {
+  color: var(--fx-primary);
+  background: var(--fx-primary-selected);
+}
+.source-navigation-hover-panel .document-center-nav {
+  height: 100%;
+  padding-top: 0;
+  overflow-y: auto;
+}
+.source-navigation-transition {
+  position: absolute;
+  z-index: 46;
+  top: 42px;
+  bottom: 0;
+  left: 0;
+  width: 248px;
+  padding: 20px 16px;
+  overflow: hidden;
+  border-right: 1px solid var(--fx-line-strong);
+  background: var(--common_bg2_color);
+  box-shadow: 4px 0 16px var(--common_shadow3_color);
+  will-change: width, padding, opacity;
+}
+.add-workspace.is-navigation-entering > :not(.add-workspace-topbar):not(.source-navigation-transition):not(.source-navigation-rail) {
+  min-width: 0;
+  margin-left: 248px;
+  transition: margin-left 420ms cubic-bezier(.4, 0, .2, 1);
+}
+.add-workspace.is-navigation-collapsing .source-navigation-transition {
+  animation: source-navigation-morph 420ms cubic-bezier(.4, 0, .2, 1) both;
+  pointer-events: none;
+}
+.add-workspace.is-navigation-collapsing .source-navigation-transition .document-center-nav {
+  animation: source-navigation-content-out 250ms ease both;
+}
+.add-workspace.is-navigation-collapsing .source-navigation-rail {
+  animation: source-navigation-rail-in 260ms ease 150ms both;
+}
+@keyframes source-navigation-morph {
+  0% {
+    width: 248px;
+    padding-right: 16px;
+    padding-left: 16px;
+    opacity: 1;
+    box-shadow: 4px 0 16px var(--common_shadow3_color);
+  }
+  62% {
+    width: 112px;
+    padding-right: 8px;
+    padding-left: 8px;
+    opacity: .82;
+    box-shadow: 2px 0 9px var(--common_shadow3_color);
+  }
+  100% {
+    width: 60px;
+    padding-right: 3px;
+    padding-left: 3px;
+    opacity: 0;
+    box-shadow: none;
+  }
+}
+@keyframes source-navigation-content-out {
+  0% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(-10px); }
+}
+@keyframes source-navigation-rail-in {
+  0% { opacity: 0; transform: translateX(-5px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.add-workspace.is-navigation-collapsing > :not(.add-workspace-topbar):not(.source-navigation-transition):not(.source-navigation-rail) {
+  margin-left: 60px;
+}
 .add-workspace:has(> .source-navigation-rail) > :not(.add-workspace-topbar):not(.source-navigation-rail) {
   min-width: 0;
   margin-left: 60px;
 }
+@media (prefers-reduced-motion: reduce) {
+  .source-navigation-transition,
+  .source-navigation-hover-panel,
+  .add-workspace.is-navigation-entering > :not(.add-workspace-topbar):not(.source-navigation-transition):not(.source-navigation-rail) { transition-duration: 1ms; }
+  .add-workspace.is-navigation-collapsing .source-navigation-transition,
+  .add-workspace.is-navigation-collapsing .source-navigation-transition .document-center-nav,
+  .add-workspace.is-navigation-collapsing .source-navigation-rail { animation-duration: 1ms; animation-delay: 0ms; }
+}
 .source-navigation-icon-nav {
-  height: 100%;
+  height: calc(100% - 40px);
   padding: 6px 3px;
   overflow: visible;
 }

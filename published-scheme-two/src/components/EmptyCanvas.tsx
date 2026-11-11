@@ -44,6 +44,9 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   const [aiEditOpen, setAiEditOpen] = useState(false)
   const [customAiInstruction, setCustomAiInstruction] = useState('')
   const [showExampleContent, setShowExampleContent] = useState(true)
+  const [isInlineEditing, setIsInlineEditing] = useState(false)
+  const [inlineDraft, setInlineDraft] = useState('')
+  const inlineEditorRef = useRef<HTMLTextAreaElement>(null)
   const blockRefs = useRef(new Map<string, HTMLDivElement>())
   const blockIdsRef = useRef(blockIds)
   const selectedRangeRef = useRef<Range | null>(null)
@@ -51,6 +54,8 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
 
   useEffect(() => {
     setShowExampleContent(true)
+    setIsInlineEditing(false)
+    setInlineDraft('')
     blockIdsRef.current = ['initial']
     setBlockIds(['initial'])
     setAddMenuRequests({})
@@ -61,6 +66,30 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
       initialBlock.focus()
     })
   }, [props.document.id])
+
+  useEffect(() => {
+    if (!isInlineEditing) return
+    window.requestAnimationFrame(() => inlineEditorRef.current?.focus())
+  }, [isInlineEditing])
+
+  const beginInlineEditing = (target: EventTarget | null) => {
+    if (isInlineEditing || !showExampleContent) return
+    const element = target instanceof Element ? target : null
+    if (element?.closest('button, input, textarea, [contenteditable="true"]')) return
+    setShowExampleContent(false)
+    setIsInlineEditing(true)
+  }
+
+  const finishInlineEditing = () => {
+    const value = inlineDraft.trim()
+    if (!value) {
+      setInlineDraft('')
+      setIsInlineEditing(false)
+      setShowExampleContent(true)
+      return
+    }
+    props.onIntroChange(value)
+  }
 
   const syncBlockContent = () => {
     const intro = blockIdsRef.current
@@ -170,7 +199,10 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         />
       </header>
 
-      <div className="editor-empty-content">
+      <div
+        className={`editor-empty-content${isInlineEditing ? ' is-inline-editing' : ''}`}
+        onClick={(event) => beginInlineEditing(event.target)}
+      >
         {showExampleContent ? (
           <div className="empty-add-guide" role="note">
             <span className="empty-add-guide-icon"><ArrowLeft size={18} /></span>
@@ -220,6 +252,18 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             </div>
           ))}
         </div>
+
+        {isInlineEditing ? (
+          <textarea
+            ref={inlineEditorRef}
+            className="empty-inline-editor"
+            value={inlineDraft}
+            aria-label="输入题单内容"
+            onClick={(event) => event.stopPropagation()}
+            onChange={(event) => setInlineDraft(event.target.value)}
+            onBlur={finishInlineEditing}
+          />
+        ) : null}
 
         {showExampleContent ? <div className="empty-question-preview" aria-hidden="true">
           <div className="empty-preview-section-title"><strong>一、选择题</strong></div>

@@ -1,5 +1,5 @@
 import { MetisButton } from '@yuanfudao/metis-web-component'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   BrainCircuit,
   BookOpen,
@@ -24,6 +24,7 @@ import { formatRecentEditedMeta, selectRecentEditedSummaries } from '../utils/re
 import { isRecentEditedPanelClosed, setRecentEditedPanelClosed } from '../utils/recentEditedPanelPreference'
 
 export interface DocumentCenterNavigationProps {
+  activeKey?: DocumentCenterNavigationKey
   hasRecentContent?: boolean
   recentPanelDismissed?: boolean
   onOpenRecentPanel?: () => void
@@ -49,7 +50,7 @@ export type DocumentCenterNavigationKey =
   | 'compose'
   | 'ai-search'
 
-interface DocumentCenterProps extends Omit<DocumentCenterNavigationProps, 'hasRecentContent' | 'recentPanelDismissed' | 'onOpenRecentPanel' | 'onNavigate'> {
+interface DocumentCenterProps extends Omit<DocumentCenterNavigationProps, 'hasRecentContent' | 'recentPanelDismissed' | 'onOpenRecentPanel'> {
   embedded?: boolean
   draftContent?: ReactNode
   histories: HistoryDocumentSummary[]
@@ -71,48 +72,35 @@ const aiTaskEntries: Array<{ mode: AddQuestionMode; label: string; description: 
 
 const aiSearchDescription = '搜索题库中的已有题目、练习和试卷'
 
-export function DocumentCenterNavigation({ hasRecentContent = false, recentPanelDismissed = false, onOpenRecentPanel, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse, onNavigate }: DocumentCenterNavigationProps) {
-  const [isCollapsing, setIsCollapsing] = useState(false)
-  const collapseTimerRef = useRef<number | null>(null)
-
-  useEffect(() => () => {
-    if (collapseTimerRef.current !== null) window.clearTimeout(collapseTimerRef.current)
-  }, [])
-
+export function DocumentCenterNavigation({ activeKey, hasRecentContent = false, recentPanelDismissed = false, onOpenRecentPanel, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse, onNavigate }: DocumentCenterNavigationProps) {
   const run = (action: () => void) => () => {
-    if (isCollapsing) return
-    setIsCollapsing(true)
-    collapseTimerRef.current = window.setTimeout(() => {
-      action()
-      onNavigate?.()
-      setIsCollapsing(false)
-      collapseTimerRef.current = null
-    }, 180)
+    onNavigate?.()
+    action()
   }
 
   return (
-    <nav className={`document-center-nav${isCollapsing ? ' is-collapsing' : ''}`} aria-label="添加题目导航" aria-busy={isCollapsing || undefined}>
+    <nav className="document-center-nav" aria-label="添加题目导航">
       <div className="document-center-nav-title">添加题目</div>
       <section className="document-center-nav-group is-feixiang" aria-label="飞象资源">
-        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('resource', { libraryView: 'chapter' }))}><ListTree size={17} /><span>按章节/知识点选题</span></button>
-        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('resource', { libraryView: 'sync' }))}><Layers3 size={17} /><span>从同步练习选题</span></button>
-        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('resource', { libraryView: 'workbook' }))}><BookOpen size={17} /><span>从练习册选题</span></button>
-        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('resource', { libraryView: 'special' }))}><Target size={17} /><span>从专题练习选题</span></button>
-        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('resource', { libraryView: 'paper' }))}><FileText size={17} /><span>从试卷选题</span></button>
+        <button type="button" className={`is-library-task${activeKey === 'chapter' ? ' is-active' : ''}`} onClick={run(() => onOpenSource('resource', { libraryView: 'chapter' }))}><ListTree size={17} /><span>按章节/知识点选题</span></button>
+        <button type="button" className={`is-library-task${activeKey === 'sync' ? ' is-active' : ''}`} onClick={run(() => onOpenSource('resource', { libraryView: 'sync' }))}><Layers3 size={17} /><span>从同步练习选题</span></button>
+        <button type="button" className={`is-library-task${activeKey === 'workbook' ? ' is-active' : ''}`} onClick={run(() => onOpenSource('resource', { libraryView: 'workbook' }))}><BookOpen size={17} /><span>从练习册选题</span></button>
+        <button type="button" className={`is-library-task${activeKey === 'special' ? ' is-active' : ''}`} onClick={run(() => onOpenSource('resource', { libraryView: 'special' }))}><Target size={17} /><span>从专题练习选题</span></button>
+        <button type="button" className={`is-library-task${activeKey === 'paper' ? ' is-active' : ''}`} onClick={run(() => onOpenSource('resource', { libraryView: 'paper' }))}><FileText size={17} /><span>从试卷选题</span></button>
       </section>
       <section className="document-center-nav-group is-school" aria-label="区本与校本资源">
-        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('district'))}><School size={17} /><span>从区本题库选题</span></button>
-        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('school'))}><School size={17} /><span>从校本题库选题</span></button>
+        <button type="button" className={`is-library-task${activeKey === 'district' ? ' is-active' : ''}`} onClick={run(() => onOpenSource('district'))}><School size={17} /><span>从区本题库选题</span></button>
+        <button type="button" className={`is-library-task${activeKey === 'school' ? ' is-active' : ''}`} onClick={run(() => onOpenSource('school'))}><School size={17} /><span>从校本题库选题</span></button>
       </section>
       <section className="document-center-nav-group is-ai" aria-label="AI 工具">
         {aiTaskEntries.map(({ mode, label, description, icon: Icon }) => (
-          <button type="button" className="is-ai-task" key={mode} title={description} aria-label={label} onClick={run(() => onOpenSource(mode))}><Icon size={17} /><span>{label}</span></button>
+          <button type="button" className={`is-ai-task${activeKey === mode ? ' is-active' : ''}`} key={mode} title={description} aria-label={label} onClick={run(() => onOpenSource(mode))}><Icon size={17} /><span>{label}</span></button>
         ))}
-        <button type="button" className="is-ai-task" title={aiSearchDescription} aria-label="AI智搜" onClick={run(onOpenAiSearch)} data-track="/click/aiQuestionHome/openAiSearch | 打开AI智搜 | 无"><Search size={17} /><span>AI智搜</span></button>
+        <button type="button" className={`is-ai-task${activeKey === 'ai-search' ? ' is-active' : ''}`} title={aiSearchDescription} aria-label="AI智搜" onClick={run(onOpenAiSearch)} data-track="/click/aiQuestionHome/openAiSearch | 打开AI智搜 | 无"><Search size={17} /><span>AI智搜</span></button>
       </section>
       <section className="document-center-nav-group is-personal" aria-label="个人资源">
-        <button type="button" className="is-personal-task" onClick={run(onOpenMyResources)} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><FolderHeart size={17} /><span>从我的资源选题</span></button>
-        <button type="button" className="is-personal-task" onClick={run(onOpenRecentBrowse)} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><RefreshCw size={17} /><span>继续最近浏览</span></button>
+        <button type="button" className={`is-personal-task${activeKey === 'my-resources' ? ' is-active' : ''}`} onClick={run(onOpenMyResources)} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><FolderHeart size={17} /><span>从我的资源选题</span></button>
+        <button type="button" className={`is-personal-task${activeKey === 'recent' ? ' is-active' : ''}`} onClick={run(onOpenRecentBrowse)} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><RefreshCw size={17} /><span>继续最近浏览</span></button>
         {hasRecentContent && recentPanelDismissed && onOpenRecentPanel ? (
           <button type="button" className="is-personal-task is-recent-edited-reopen" onClick={run(onOpenRecentPanel)}><Clock3 size={17} /><span>最近编辑</span></button>
         ) : null}
@@ -123,9 +111,10 @@ export function DocumentCenterNavigation({ hasRecentContent = false, recentPanel
 
 interface DocumentCenterIconNavigationProps extends Omit<DocumentCenterNavigationProps, 'hasRecentContent' | 'recentPanelDismissed' | 'onOpenRecentPanel' | 'onNavigate'> {
   activeKey?: DocumentCenterNavigationKey
+  onExpand?: () => void
 }
 
-export function DocumentCenterIconNavigation({ activeKey, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse }: DocumentCenterIconNavigationProps) {
+export function DocumentCenterIconNavigation({ activeKey, onExpand, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse }: DocumentCenterIconNavigationProps) {
   const item = (key: DocumentCenterNavigationKey, label: string, shortLabel: ReactNode, icon: ReactNode, action: () => void, description?: string) => (
     <button
       key={key}
@@ -135,7 +124,7 @@ export function DocumentCenterIconNavigation({ activeKey, onOpenMyResources, onO
       title={description ?? label}
       aria-current={activeKey === key ? 'page' : undefined}
       data-tooltip={description ? `${label}：${description}` : label}
-      onClick={action}
+      onClick={() => activeKey === key && onExpand ? onExpand() : action()}
     >
       <span className="source-navigation-short-icon" aria-hidden="true">{icon}</span>
       <span className="source-navigation-short-label">{shortLabel}</span>
@@ -169,7 +158,7 @@ export function DocumentCenterIconNavigation({ activeKey, onOpenMyResources, onO
   )
 }
 
-export function DocumentCenter({ embedded = false, draftContent, histories, currentDocumentId, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse, onReload }: DocumentCenterProps) {
+export function DocumentCenter({ embedded = false, draftContent, histories, currentDocumentId, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse, onNavigate, onReload }: DocumentCenterProps) {
   const [recentPanelClosed, setRecentPanelClosed] = useState(() => isRecentEditedPanelClosed())
 
   useEffect(() => {
@@ -241,6 +230,7 @@ export function DocumentCenter({ embedded = false, draftContent, histories, curr
           onOpenSource={onOpenSource}
           onOpenAiSearch={onOpenAiSearch}
           onOpenRecentBrowse={onOpenRecentBrowse}
+          onNavigate={onNavigate}
         />
       </aside>
 
