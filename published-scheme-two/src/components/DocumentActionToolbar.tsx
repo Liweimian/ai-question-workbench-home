@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Check, ChevronDown, Download, FileText, Maximize2, MoreHorizontal, Plus, Printer, Save, Send, Share2 } from 'lucide-react'
+import { Check, Download, FileText, History, Maximize2, MoreHorizontal, Plus, Printer, Save, Send, Share2 } from 'lucide-react'
 import type { DocumentOutputLock, DocumentSyncState, HistoryDocumentSummary, WorkbenchDocument, WorkbenchDocumentKind } from '../prototype/types'
 import { getDocumentKind, getPaperAnswerMode } from '../utils/documentEditorUtils'
 import { formatRecentEditedMeta, selectRecentEditedSummaries } from '../utils/recentEditedDocuments'
@@ -46,6 +46,7 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
   const saveRef = useRef<HTMLSpanElement>(null)
   const moreRef = useRef<HTMLSpanElement>(null)
   const documentSwitcherRef = useRef<HTMLDivElement>(null)
+  const documentSwitcherCloseTimerRef = useRef<number | null>(null)
   const hasQuestions = document.questions.length > 0
   const saving = syncState === 'saving'
   const hasUnsavedChanges = syncState === 'dirty' || syncState === 'error' || assignmentOutdated
@@ -76,6 +77,23 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
   }, [assignOpen, saveAsOpen, savePending, moreOpen, documentSwitcherOpen])
 
   const recentEditedDocuments = selectRecentEditedSummaries(recentDocuments).slice(0, 8)
+
+  const openDocumentSwitcher = () => {
+    if (documentSwitcherCloseTimerRef.current !== null) window.clearTimeout(documentSwitcherCloseTimerRef.current)
+    setDocumentSwitcherOpen(true)
+  }
+
+  const scheduleDocumentSwitcherClose = () => {
+    if (documentSwitcherCloseTimerRef.current !== null) window.clearTimeout(documentSwitcherCloseTimerRef.current)
+    documentSwitcherCloseTimerRef.current = window.setTimeout(() => {
+      setDocumentSwitcherOpen(false)
+      documentSwitcherCloseTimerRef.current = null
+    }, 180)
+  }
+
+  useEffect(() => () => {
+    if (documentSwitcherCloseTimerRef.current !== null) window.clearTimeout(documentSwitcherCloseTimerRef.current)
+  }, [])
 
   const saveDocument = async (kind?: WorkbenchDocumentKind, forNew = saveForNew) => {
     setSavePending(true)
@@ -147,10 +165,11 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
 
   return (
     <div className="document-action-toolbar" role="toolbar" aria-label="题单操作">
-      <div className="document-switcher" ref={documentSwitcherRef}>
-        <button type="button" className="document-switcher-trigger" aria-haspopup="menu" aria-expanded={documentSwitcherOpen} onClick={() => setDocumentSwitcherOpen((open) => !open)}>
-          <span>{document.title.trim() || '未命名练习'}</span><ChevronDown size={14} />
+      <div className="document-switcher" ref={documentSwitcherRef} onMouseEnter={openDocumentSwitcher} onMouseLeave={scheduleDocumentSwitcherClose}>
+        <button type="button" className="document-recent-trigger" aria-label="最近编辑" title="最近编辑" aria-haspopup="menu" aria-expanded={documentSwitcherOpen} onFocus={openDocumentSwitcher} onClick={openDocumentSwitcher}>
+          <History size={17} />
         </button>
+        <span className="document-switcher-current">{document.title.trim() || '未命名练习'}</span>
         {documentSwitcherOpen ? (
           <div className="document-switcher-menu" role="menu" aria-label="切换最近练习">
             <strong>最近编辑</strong>

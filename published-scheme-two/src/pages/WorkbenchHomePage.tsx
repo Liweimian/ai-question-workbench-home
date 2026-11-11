@@ -70,6 +70,8 @@ export function WorkbenchHomePage() {
   const previousDocumentId = useRef(workbench.document.id)
   const highlightTimerRef = useRef<number | null>(null)
   const navigationTransitionTimerRef = useRef<number | null>(null)
+  const navigationTransitionEndTimerRef = useRef<number | null>(null)
+  const navigationMenuCloseTimerRef = useRef<number | null>(null)
   const assistantTabRef = useRef<HTMLButtonElement>(null)
   const aiSearchTabRef = useRef<HTMLButtonElement>(null)
   const [sortCollapsed, setSortCollapsed] = useState(false)
@@ -100,7 +102,7 @@ export function WorkbenchHomePage() {
   const [resourceAnswerSheetDocument, setResourceAnswerSheetDocument] = useState<ReturnType<typeof readStoredDocument>>(null)
   const [resourceAnswerSheetSaveState, setResourceAnswerSheetSaveState] = useState<'dirty' | 'saving' | 'saved' | 'error'>('saved')
   const [gradeSubject, setGradeSubject] = useState('初中数学')
-  const [navigationTransitionPhase, setNavigationTransitionPhase] = useState<'handoff' | null>(null)
+  const [navigationTransitionPhase, setNavigationTransitionPhase] = useState<'expanded' | 'collapsing' | null>(null)
   const [navigationMenuExpanded, setNavigationMenuExpanded] = useState(false)
   const hasQuestions = workbench.document.questions.length > 0
   const activeLibraryDetail = libraryDetailTabs.find((tab) => tab.key === activeLibraryDetailKey) ?? null
@@ -123,19 +125,23 @@ export function WorkbenchHomePage() {
   useEffect(() => () => {
     if (highlightTimerRef.current !== null) window.clearTimeout(highlightTimerRef.current)
     if (navigationTransitionTimerRef.current !== null) window.clearTimeout(navigationTransitionTimerRef.current)
+    if (navigationTransitionEndTimerRef.current !== null) window.clearTimeout(navigationTransitionEndTimerRef.current)
+    if (navigationMenuCloseTimerRef.current !== null) window.clearTimeout(navigationMenuCloseTimerRef.current)
   }, [])
 
   const beginNavigationTransition = () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     if (navigationTransitionTimerRef.current !== null) window.clearTimeout(navigationTransitionTimerRef.current)
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setNavigationTransitionPhase(null)
-      return
-    }
-    setNavigationTransitionPhase('handoff')
+    if (navigationTransitionEndTimerRef.current !== null) window.clearTimeout(navigationTransitionEndTimerRef.current)
+    setNavigationTransitionPhase('expanded')
     navigationTransitionTimerRef.current = window.setTimeout(() => {
-      setNavigationTransitionPhase(null)
+      setNavigationTransitionPhase('collapsing')
       navigationTransitionTimerRef.current = null
-    }, 240)
+    }, 640)
+    navigationTransitionEndTimerRef.current = window.setTimeout(() => {
+      setNavigationTransitionPhase(null)
+      navigationTransitionEndTimerRef.current = null
+    }, 1220)
   }
 
   useEffect(() => {
@@ -599,14 +605,7 @@ export function WorkbenchHomePage() {
     }
     return ['首页']
   })()
-  const hasOpenTaskTabs = openAddTabs.length > 0
-    || libraryDetailTabs.length > 0
-    || assistantTabOpen
-    || aiSearchTabOpen
-    || myResourcesTabOpen
-    || recentBrowseTabOpen
-    || fileDetailTabs.length > 0
-  const showHomeAiSearch = isAddHome && !hasOpenTaskTabs
+  const showHomeAiSearch = isAddHome
   const compactNavigationActiveKey: DocumentCenterNavigationKey | undefined = (() => {
     if (aiSearchActive) return 'ai-search'
     if (assistantActive) return 'compose'
@@ -1019,7 +1018,7 @@ export function WorkbenchHomePage() {
             )) : null}
 
             {sidePanelOpen ? (
-              <div className={`add-workspace${navigationTransitionPhase ? ' is-navigation-handoff' : ''}`} aria-label="添加题目多任务工作区">
+              <div className={`add-workspace${navigationTransitionPhase ? ' is-navigation-entering' : ''}${navigationTransitionPhase === 'collapsing' ? ' is-navigation-collapsing' : ''}`} aria-label="添加题目多任务工作区">
                 <header className={`add-workspace-topbar is-breadcrumb-scheme${opensHomeworkResources ? ' is-homework-resource' : ''}`}>
                   {opensHomeworkResources ? (
                     <nav className="homework-resource-breadcrumb" aria-label="我的资源面包屑">
@@ -1179,18 +1178,11 @@ export function WorkbenchHomePage() {
                   ) : null}
                   </nav>
                 </header>
-                {!isAddHome && !opensHomeworkResources ? (
-                  <aside
-                    className={`source-navigation-rail${navigationMenuExpanded ? ' is-expanded' : ''}`}
-                    aria-label="添加题目导航"
-                  >
-                    <button
-                      type="button"
-                      className="source-navigation-expand-control"
-                      aria-label="展开添加题目导航"
-                      title="展开添加题目导航"
-                      onClick={() => setNavigationMenuExpanded(true)}
-                    ><PanelRightOpen size={16} /></button>
+                {!isAddHome && !opensHomeworkResources && navigationTransitionPhase !== 'expanded' ? (
+                  <aside className={`source-navigation-rail${navigationMenuExpanded ? ' is-expanded' : ''}`} aria-label="添加题目导航">
+                    <button type="button" className="source-navigation-expand-control" aria-label="展开添加题目导航" title="展开添加题目导航" onClick={() => setNavigationMenuExpanded(true)}>
+                      <PanelRightOpen size={16} />
+                    </button>
                     <DocumentCenterIconNavigation
                       activeKey={compactNavigationActiveKey}
                       onOpenMyResources={() => openMyResources('全部')}
@@ -1199,20 +1191,22 @@ export function WorkbenchHomePage() {
                       onOpenRecentBrowse={openRecentBrowse}
                     />
                     <div className="source-navigation-hover-panel">
-                      <button
-                        type="button"
-                        className="source-navigation-collapse-control"
-                        aria-label="收起添加题目导航"
-                        title="收起添加题目导航"
-                        onClick={() => setNavigationMenuExpanded(false)}
-                      ><PanelLeftClose size={16} /></button>
+                      <button type="button" className="source-navigation-collapse-control" aria-label="收起添加题目导航" title="收起添加题目导航" onClick={() => setNavigationMenuExpanded(false)}>
+                        <PanelLeftClose size={16} />
+                      </button>
                       <DocumentCenterNavigation
                         activeKey={compactNavigationActiveKey}
                         onOpenMyResources={() => openMyResources('全部')}
                         onOpenSource={openAdd}
                         onOpenAiSearch={activateAiSearch}
                         onOpenRecentBrowse={openRecentBrowse}
-                        onNavigate={() => setNavigationMenuExpanded(false)}
+                        onNavigate={() => {
+                          if (navigationMenuCloseTimerRef.current !== null) window.clearTimeout(navigationMenuCloseTimerRef.current)
+                          navigationMenuCloseTimerRef.current = window.setTimeout(() => {
+                            setNavigationMenuExpanded(false)
+                            navigationMenuCloseTimerRef.current = null
+                          }, 180)
+                        }}
                       />
                     </div>
                   </aside>

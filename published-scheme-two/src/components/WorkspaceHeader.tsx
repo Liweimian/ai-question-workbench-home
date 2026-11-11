@@ -7,6 +7,7 @@ import {
   Download,
   FileDown,
   FileText,
+  History,
   LoaderCircle,
   ListPlus,
   Maximize2,
@@ -120,6 +121,7 @@ export function WorkspaceHeader({
   const moreRef = useRef<HTMLDivElement>(null)
   const saveRef = useRef<HTMLSpanElement>(null)
   const documentSwitcherRef = useRef<HTMLDivElement>(null)
+  const documentSwitcherCloseTimerRef = useRef<number | null>(null)
   const syncLabel = syncState === 'saving'
     ? '正在保存…'
     : syncState === 'dirty'
@@ -176,6 +178,23 @@ export function WorkspaceHeader({
   }, [assignOpen, moreOpen, saveAsDialogOpen, saveAsPending, syncState, documentSwitcherOpen])
 
   const recentEditedDocuments = selectRecentEditedSummaries(historyDocuments).slice(0, 8)
+
+  const openDocumentSwitcher = () => {
+    if (documentSwitcherCloseTimerRef.current !== null) window.clearTimeout(documentSwitcherCloseTimerRef.current)
+    setDocumentSwitcherOpen(true)
+  }
+
+  const scheduleDocumentSwitcherClose = () => {
+    if (documentSwitcherCloseTimerRef.current !== null) window.clearTimeout(documentSwitcherCloseTimerRef.current)
+    documentSwitcherCloseTimerRef.current = window.setTimeout(() => {
+      setDocumentSwitcherOpen(false)
+      documentSwitcherCloseTimerRef.current = null
+    }, 180)
+  }
+
+  useEffect(() => () => {
+    if (documentSwitcherCloseTimerRef.current !== null) window.clearTimeout(documentSwitcherCloseTimerRef.current)
+  }, [])
 
   useEffect(() => {
     if (!newDocumentDialogOpen) return
@@ -315,10 +334,11 @@ export function WorkspaceHeader({
             <ChevronRight size={14} aria-hidden="true" />
           </div>
         ) : null}
-        <div className="header-title-summary" ref={documentSwitcherRef} title={`${documentTitle || fallbackTitle} · ${syncLabel}`}>
-          <button type="button" className="header-document-switcher-trigger" aria-haspopup="menu" aria-expanded={documentSwitcherOpen} onClick={() => setDocumentSwitcherOpen((open) => !open)}>
-            <strong>{documentTitle?.trim() || fallbackTitle}</strong><ChevronDown size={13} />
+        <div className="header-title-summary" ref={documentSwitcherRef} title={`${documentTitle || fallbackTitle} · ${syncLabel}`} onMouseEnter={openDocumentSwitcher} onMouseLeave={scheduleDocumentSwitcherClose}>
+          <button type="button" className="header-recent-edit-trigger" aria-label="最近编辑" title="最近编辑" aria-haspopup="menu" aria-expanded={documentSwitcherOpen} onFocus={openDocumentSwitcher} onClick={openDocumentSwitcher}>
+            <History size={16} />
           </button>
+          <strong className="header-current-practice-name">{documentTitle?.trim() || fallbackTitle}</strong>
           <small className="header-save-summary">{saveSummary}</small>
           {documentSwitcherOpen ? (
             <div className="document-switcher-menu header-document-switcher-menu" role="menu" aria-label="切换最近练习">
