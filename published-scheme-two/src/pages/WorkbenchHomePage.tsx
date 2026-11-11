@@ -69,8 +69,6 @@ export function WorkbenchHomePage() {
   const previousQuestionCount = useRef(workbench.document.questions.length)
   const previousDocumentId = useRef(workbench.document.id)
   const highlightTimerRef = useRef<number | null>(null)
-  const navigationTransitionTimerRef = useRef<number | null>(null)
-  const navigationTransitionEndTimerRef = useRef<number | null>(null)
   const navigationMenuCloseTimerRef = useRef<number | null>(null)
   const assistantTabRef = useRef<HTMLButtonElement>(null)
   const aiSearchTabRef = useRef<HTMLButtonElement>(null)
@@ -102,7 +100,6 @@ export function WorkbenchHomePage() {
   const [resourceAnswerSheetDocument, setResourceAnswerSheetDocument] = useState<ReturnType<typeof readStoredDocument>>(null)
   const [resourceAnswerSheetSaveState, setResourceAnswerSheetSaveState] = useState<'dirty' | 'saving' | 'saved' | 'error'>('saved')
   const [gradeSubject, setGradeSubject] = useState('初中数学')
-  const [navigationTransitionPhase, setNavigationTransitionPhase] = useState<'expanded' | 'collapsing' | null>(null)
   const [navigationMenuExpanded, setNavigationMenuExpanded] = useState(false)
   const hasQuestions = workbench.document.questions.length > 0
   const activeLibraryDetail = libraryDetailTabs.find((tab) => tab.key === activeLibraryDetailKey) ?? null
@@ -124,25 +121,8 @@ export function WorkbenchHomePage() {
 
   useEffect(() => () => {
     if (highlightTimerRef.current !== null) window.clearTimeout(highlightTimerRef.current)
-    if (navigationTransitionTimerRef.current !== null) window.clearTimeout(navigationTransitionTimerRef.current)
-    if (navigationTransitionEndTimerRef.current !== null) window.clearTimeout(navigationTransitionEndTimerRef.current)
     if (navigationMenuCloseTimerRef.current !== null) window.clearTimeout(navigationMenuCloseTimerRef.current)
   }, [])
-
-  const beginNavigationTransition = () => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    if (navigationTransitionTimerRef.current !== null) window.clearTimeout(navigationTransitionTimerRef.current)
-    if (navigationTransitionEndTimerRef.current !== null) window.clearTimeout(navigationTransitionEndTimerRef.current)
-    setNavigationTransitionPhase('expanded')
-    navigationTransitionTimerRef.current = window.setTimeout(() => {
-      setNavigationTransitionPhase('collapsing')
-      navigationTransitionTimerRef.current = null
-    }, 640)
-    navigationTransitionEndTimerRef.current = window.setTimeout(() => {
-      setNavigationTransitionPhase(null)
-      navigationTransitionEndTimerRef.current = null
-    }, 1220)
-  }
 
   useEffect(() => {
     if (previousDocumentId.current === workbench.document.id) return
@@ -1017,7 +997,7 @@ export function WorkbenchHomePage() {
             )) : null}
 
             {sidePanelOpen ? (
-              <div className={`add-workspace${navigationTransitionPhase ? ' is-navigation-entering' : ''}${navigationTransitionPhase === 'collapsing' ? ' is-navigation-collapsing' : ''}`} aria-label="添加题目多任务工作区">
+              <div className="add-workspace" aria-label="添加题目多任务工作区">
                 <header className={`add-workspace-topbar is-breadcrumb-scheme${opensHomeworkResources ? ' is-homework-resource' : ''}`}>
                   {opensHomeworkResources ? (
                     <nav className="homework-resource-breadcrumb" aria-label="我的资源面包屑">
@@ -1177,7 +1157,7 @@ export function WorkbenchHomePage() {
                   ) : null}
                   </nav>
                 </header>
-                {!isAddHome && !opensHomeworkResources && navigationTransitionPhase !== 'expanded' ? (
+                {!isAddHome && !opensHomeworkResources ? (
                   <aside className={`source-navigation-rail${navigationMenuExpanded ? ' is-expanded' : ''}`} aria-label="添加题目导航">
                     <button type="button" className="source-navigation-expand-control" aria-label="展开添加题目导航" title="展开添加题目导航" onClick={() => setNavigationMenuExpanded(true)}>
                       <PanelRightOpen size={16} />
@@ -1208,16 +1188,6 @@ export function WorkbenchHomePage() {
                         }}
                       />
                     </div>
-                  </aside>
-                ) : null}
-                {!isAddHome && !opensHomeworkResources && navigationTransitionPhase ? (
-                  <aside className="source-navigation-transition" aria-label="添加题目导航">
-                    <DocumentCenterNavigation
-                      onOpenMyResources={() => openMyResources('全部')}
-                      onOpenSource={openAdd}
-                      onOpenAiSearch={activateAiSearch}
-                      onOpenRecentBrowse={openRecentBrowse}
-                    />
                   </aside>
                 ) : null}
                 {activeFileDetailId && fileDetailTabs.some((tab) => tab.id === activeFileDetailId) ? (
@@ -1320,7 +1290,6 @@ export function WorkbenchHomePage() {
                     onOpenSource={(mode, options) => openAdd(mode, options)}
                     onOpenAiSearch={activateAiSearch}
                     onOpenRecentBrowse={openRecentBrowse}
-                    onNavigate={beginNavigationTransition}
                     onReload={() => { void workbench.reloadHistory() }}
                   />
                 )}
