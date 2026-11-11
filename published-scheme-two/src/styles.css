@@ -9642,68 +9642,37 @@
   border-right: 1px solid var(--fx-line-strong);
   background: var(--common_bg2_color);
   box-shadow: 4px 0 16px var(--common_shadow3_color);
-  will-change: width, padding, opacity;
-}
-.add-workspace.is-navigation-entering > :not(.add-workspace-topbar):not(.source-navigation-transition):not(.source-navigation-rail) {
-  min-width: 0;
-  margin-left: 248px;
-  transition: margin-left 420ms cubic-bezier(.4, 0, .2, 1);
-}
-.add-workspace.is-navigation-collapsing .source-navigation-transition {
-  animation: source-navigation-morph 420ms cubic-bezier(.4, 0, .2, 1) both;
   pointer-events: none;
-}
-.add-workspace.is-navigation-collapsing .source-navigation-transition .document-center-nav {
-  animation: source-navigation-content-out 250ms ease both;
-}
-.add-workspace.is-navigation-collapsing .source-navigation-rail {
-  animation: source-navigation-rail-in 260ms ease 150ms both;
-}
-@keyframes source-navigation-morph {
-  0% {
-    width: 248px;
-    padding-right: 16px;
-    padding-left: 16px;
-    opacity: 1;
-    box-shadow: 4px 0 16px var(--common_shadow3_color);
-  }
-  62% {
-    width: 112px;
-    padding-right: 8px;
-    padding-left: 8px;
-    opacity: .82;
-    box-shadow: 2px 0 9px var(--common_shadow3_color);
-  }
-  100% {
-    width: 60px;
-    padding-right: 3px;
-    padding-left: 3px;
-    opacity: 0;
-    box-shadow: none;
-  }
-}
-@keyframes source-navigation-content-out {
-  0% { opacity: 1; transform: translateX(0); }
-  100% { opacity: 0; transform: translateX(-10px); }
-}
-@keyframes source-navigation-rail-in {
-  0% { opacity: 0; transform: translateX(-5px); }
-  100% { opacity: 1; transform: translateX(0); }
-}
-.add-workspace.is-navigation-collapsing > :not(.add-workspace-topbar):not(.source-navigation-transition):not(.source-navigation-rail) {
-  margin-left: 60px;
+  will-change: opacity, transform;
 }
 .add-workspace:has(> .source-navigation-rail) > :not(.add-workspace-topbar):not(.source-navigation-rail) {
   min-width: 0;
   margin-left: 60px;
+  transition: margin-left 220ms cubic-bezier(.4, 0, .2, 1);
+}
+.add-workspace.is-navigation-handoff > :not(.add-workspace-topbar):not(.source-navigation-transition):not(.source-navigation-rail) {
+  margin-left: 248px;
+}
+.add-workspace.is-navigation-handoff .source-navigation-transition {
+  animation: source-navigation-handoff-out 220ms cubic-bezier(.4, 0, .2, 1) both;
+}
+.add-workspace.is-navigation-handoff .source-navigation-rail {
+  animation: source-navigation-rail-handoff-in 180ms ease 60ms both;
+}
+@keyframes source-navigation-handoff-out {
+  0%, 38% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(-14px); }
+}
+@keyframes source-navigation-rail-handoff-in {
+  0% { opacity: 0; transform: translateX(-6px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
 @media (prefers-reduced-motion: reduce) {
   .source-navigation-transition,
   .source-navigation-hover-panel,
-  .add-workspace.is-navigation-entering > :not(.add-workspace-topbar):not(.source-navigation-transition):not(.source-navigation-rail) { transition-duration: 1ms; }
-  .add-workspace.is-navigation-collapsing .source-navigation-transition,
-  .add-workspace.is-navigation-collapsing .source-navigation-transition .document-center-nav,
-  .add-workspace.is-navigation-collapsing .source-navigation-rail { animation-duration: 1ms; animation-delay: 0ms; }
+  .add-workspace:has(> .source-navigation-rail) > :not(.add-workspace-topbar):not(.source-navigation-rail) { transition-duration: 1ms; }
+  .add-workspace.is-navigation-handoff .source-navigation-transition,
+  .add-workspace.is-navigation-handoff .source-navigation-rail { animation-duration: 1ms; animation-delay: 0ms; }
 }
 .source-navigation-icon-nav {
   height: calc(100% - 40px);

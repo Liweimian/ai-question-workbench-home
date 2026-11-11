@@ -70,8 +70,6 @@ export function WorkbenchHomePage() {
   const previousDocumentId = useRef(workbench.document.id)
   const highlightTimerRef = useRef<number | null>(null)
   const navigationTransitionTimerRef = useRef<number | null>(null)
-  const navigationTransitionEndTimerRef = useRef<number | null>(null)
-  const navigationMenuCloseTimerRef = useRef<number | null>(null)
   const assistantTabRef = useRef<HTMLButtonElement>(null)
   const aiSearchTabRef = useRef<HTMLButtonElement>(null)
   const [sortCollapsed, setSortCollapsed] = useState(false)
@@ -102,7 +100,7 @@ export function WorkbenchHomePage() {
   const [resourceAnswerSheetDocument, setResourceAnswerSheetDocument] = useState<ReturnType<typeof readStoredDocument>>(null)
   const [resourceAnswerSheetSaveState, setResourceAnswerSheetSaveState] = useState<'dirty' | 'saving' | 'saved' | 'error'>('saved')
   const [gradeSubject, setGradeSubject] = useState('初中数学')
-  const [navigationTransitionPhase, setNavigationTransitionPhase] = useState<'expanded' | 'collapsing' | null>(null)
+  const [navigationTransitionPhase, setNavigationTransitionPhase] = useState<'handoff' | null>(null)
   const [navigationMenuExpanded, setNavigationMenuExpanded] = useState(false)
   const hasQuestions = workbench.document.questions.length > 0
   const activeLibraryDetail = libraryDetailTabs.find((tab) => tab.key === activeLibraryDetailKey) ?? null
@@ -125,23 +123,19 @@ export function WorkbenchHomePage() {
   useEffect(() => () => {
     if (highlightTimerRef.current !== null) window.clearTimeout(highlightTimerRef.current)
     if (navigationTransitionTimerRef.current !== null) window.clearTimeout(navigationTransitionTimerRef.current)
-    if (navigationTransitionEndTimerRef.current !== null) window.clearTimeout(navigationTransitionEndTimerRef.current)
-    if (navigationMenuCloseTimerRef.current !== null) window.clearTimeout(navigationMenuCloseTimerRef.current)
   }, [])
 
   const beginNavigationTransition = () => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     if (navigationTransitionTimerRef.current !== null) window.clearTimeout(navigationTransitionTimerRef.current)
-    if (navigationTransitionEndTimerRef.current !== null) window.clearTimeout(navigationTransitionEndTimerRef.current)
-    setNavigationTransitionPhase('expanded')
-    navigationTransitionTimerRef.current = window.setTimeout(() => {
-      setNavigationTransitionPhase('collapsing')
-      navigationTransitionTimerRef.current = null
-    }, 350)
-    navigationTransitionEndTimerRef.current = window.setTimeout(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setNavigationTransitionPhase(null)
-      navigationTransitionEndTimerRef.current = null
-    }, 800)
+      return
+    }
+    setNavigationTransitionPhase('handoff')
+    navigationTransitionTimerRef.current = window.setTimeout(() => {
+      setNavigationTransitionPhase(null)
+      navigationTransitionTimerRef.current = null
+    }, 240)
   }
 
   useEffect(() => {
@@ -1025,7 +1019,7 @@ export function WorkbenchHomePage() {
             )) : null}
 
             {sidePanelOpen ? (
-              <div className={`add-workspace${navigationTransitionPhase ? ' is-navigation-entering' : ''}${navigationTransitionPhase === 'collapsing' ? ' is-navigation-collapsing' : ''}`} aria-label="添加题目多任务工作区">
+              <div className={`add-workspace${navigationTransitionPhase ? ' is-navigation-handoff' : ''}`} aria-label="添加题目多任务工作区">
                 <header className={`add-workspace-topbar is-breadcrumb-scheme${opensHomeworkResources ? ' is-homework-resource' : ''}`}>
                   {opensHomeworkResources ? (
                     <nav className="homework-resource-breadcrumb" aria-label="我的资源面包屑">
@@ -1185,7 +1179,7 @@ export function WorkbenchHomePage() {
                   ) : null}
                   </nav>
                 </header>
-                {!isAddHome && !opensHomeworkResources && navigationTransitionPhase !== 'expanded' ? (
+                {!isAddHome && !opensHomeworkResources ? (
                   <aside
                     className={`source-navigation-rail${navigationMenuExpanded ? ' is-expanded' : ''}`}
                     aria-label="添加题目导航"
@@ -1218,13 +1212,7 @@ export function WorkbenchHomePage() {
                         onOpenSource={openAdd}
                         onOpenAiSearch={activateAiSearch}
                         onOpenRecentBrowse={openRecentBrowse}
-                        onNavigate={() => {
-                          if (navigationMenuCloseTimerRef.current !== null) window.clearTimeout(navigationMenuCloseTimerRef.current)
-                          navigationMenuCloseTimerRef.current = window.setTimeout(() => {
-                            setNavigationMenuExpanded(false)
-                            navigationMenuCloseTimerRef.current = null
-                          }, 180)
-                        }}
+                        onNavigate={() => setNavigationMenuExpanded(false)}
                       />
                     </div>
                   </aside>
