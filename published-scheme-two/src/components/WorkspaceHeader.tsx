@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
 import {
+  Check,
+  ChevronDown,
   ChevronRight,
   Download,
   FileDown,
+  FileText,
   LoaderCircle,
   ListPlus,
   Maximize2,
@@ -16,7 +19,8 @@ import {
   Share2,
 } from 'lucide-react'
 import { formatDefaultDocumentTitle } from '../data/workbenchData'
-import type { DocumentOutputLock, DocumentStatus, DocumentSyncState, PaperAnswerMode, WorkbenchDocumentKind } from '../prototype/types'
+import type { DocumentOutputLock, DocumentStatus, DocumentSyncState, HistoryDocumentSummary, PaperAnswerMode, WorkbenchDocumentKind } from '../prototype/types'
+import { formatRecentEditedMeta, selectRecentEditedSummaries } from '../utils/recentEditedDocuments'
 import { FeixiangAiLibraryLogo } from './ElephantIcon'
 import { SaveAsDialog } from './SaveAsDialog'
 import { EditorStudioFooter } from './EditorStudioFooter'
@@ -57,6 +61,9 @@ interface WorkspaceHeaderProps {
   draftCollapsed: boolean
   onDraftCollapse: () => void
   onDraftExpand: () => void
+  historyDocuments?: HistoryDocumentSummary[]
+  currentDocumentId?: string
+  onOpenRecentDocument?: (documentId: string) => void
 }
 
 export function WorkspaceHeader({
@@ -92,6 +99,9 @@ export function WorkspaceHeader({
   draftCollapsed,
   onDraftCollapse,
   onDraftExpand,
+  historyDocuments = [],
+  currentDocumentId,
+  onOpenRecentDocument,
 }: WorkspaceHeaderProps) {
   const hasQuestions = questionCount > 0
   const compactAnswerSheetPaper = !studioEditorOpen
@@ -105,9 +115,11 @@ export function WorkspaceHeader({
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false)
   const [saveAsPending, setSaveAsPending] = useState(false)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
+  const [documentSwitcherOpen, setDocumentSwitcherOpen] = useState(false)
   const assignRef = useRef<HTMLDivElement>(null)
   const moreRef = useRef<HTMLDivElement>(null)
   const saveRef = useRef<HTMLSpanElement>(null)
+  const documentSwitcherRef = useRef<HTMLDivElement>(null)
   const syncLabel = syncState === 'saving'
     ? '正在保存…'
     : syncState === 'dirty'
@@ -140,17 +152,19 @@ export function WorkspaceHeader({
           : '草稿已记录'
 
   useEffect(() => {
-    if (!assignOpen && !moreOpen && !saveAsDialogOpen) return
+    if (!assignOpen && !moreOpen && !saveAsDialogOpen && !documentSwitcherOpen) return
     const closeOnOutside = (event: MouseEvent) => {
       const target = event.target as Node
       if (!assignRef.current?.contains(target)) setAssignOpen(false)
       if (!moreRef.current?.contains(target)) setMoreOpen(false)
       if (!saveRef.current?.contains(target) && !saveAsPending && syncState !== 'saving') setSaveAsDialogOpen(false)
+      if (!documentSwitcherRef.current?.contains(target)) setDocumentSwitcherOpen(false)
     }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
       setAssignOpen(false)
       setMoreOpen(false)
+      setDocumentSwitcherOpen(false)
       if (!saveAsPending && syncState !== 'saving') setSaveAsDialogOpen(false)
     }
     document.addEventListener('mousedown', closeOnOutside)
@@ -159,7 +173,9 @@ export function WorkspaceHeader({
       document.removeEventListener('mousedown', closeOnOutside)
       document.removeEventListener('keydown', closeOnEscape)
     }
-  }, [assignOpen, moreOpen, saveAsDialogOpen, saveAsPending, syncState])
+  }, [assignOpen, moreOpen, saveAsDialogOpen, saveAsPending, syncState, documentSwitcherOpen])
+
+  const recentEditedDocuments = selectRecentEditedSummaries(historyDocuments).slice(0, 8)
 
   useEffect(() => {
     if (!newDocumentDialogOpen) return
@@ -299,9 +315,29 @@ export function WorkspaceHeader({
             <ChevronRight size={14} aria-hidden="true" />
           </div>
         ) : null}
-        <div className="header-title-summary" title={`${documentTitle || fallbackTitle} · ${syncLabel}`}>
-          <strong>{documentTitle?.trim() || fallbackTitle}</strong>
+        <div className="header-title-summary" ref={documentSwitcherRef} title={`${documentTitle || fallbackTitle} · ${syncLabel}`}>
+          <button type="button" className="header-document-switcher-trigger" aria-haspopup="menu" aria-expanded={documentSwitcherOpen} onClick={() => setDocumentSwitcherOpen((open) => !open)}>
+            <strong>{documentTitle?.trim() || fallbackTitle}</strong><ChevronDown size={13} />
+          </button>
           <small className="header-save-summary">{saveSummary}</small>
+          {documentSwitcherOpen ? (
+            <div className="document-switcher-menu header-document-switcher-menu" role="menu" aria-label="切换最近练习">
+              <strong>最近编辑</strong>
+              {recentEditedDocuments.length ? recentEditedDocuments.map((item) => {
+                const current = item.id === currentDocumentId
+                return (
+                  <button type="button" role="menuitem" className={current ? 'is-current' : undefined} key={item.id} onClick={() => {
+                    setDocumentSwitcherOpen(false)
+                    if (!current) onOpenRecentDocument?.(item.id)
+                  }}>
+                    <span className="document-switcher-file"><FileText size={16} /></span>
+                    <span><b>{item.title}</b><small>{formatRecentEditedMeta(item)}</small></span>
+                    {current ? <Check size={15} /> : null}
+                  </button>
+                )
+              }) : <div className="document-switcher-empty">暂无最近编辑的练习</div>}
+            </div>
+          ) : null}
         </div>
       </div>
       <div className="header-actions">

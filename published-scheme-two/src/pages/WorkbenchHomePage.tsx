@@ -797,6 +797,8 @@ export function WorkbenchHomePage() {
         onExpand={sidePanelOpen ? () => { setSidePanelOpen(false); setDraftCollapsed(false) } : undefined}
         onCreateNew={finalizeNewDocument}
         onSaveAndCreateNew={(kind) => trySaveDocument(kind, true)}
+        recentDocuments={workbench.historyDocuments}
+        onOpenRecentDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
         onOpenAssistant={openAssistant}
         onOpenAdd={openAdd}
         onOpenMyResources={() => openMyResources('全部')}
@@ -833,6 +835,8 @@ export function WorkbenchHomePage() {
         onExpand={sidePanelOpen ? () => { setSidePanelOpen(false); setDraftCollapsed(false) } : undefined}
         onCreateNew={finalizeNewDocument}
         onSaveAndCreateNew={(kind) => trySaveDocument(kind, true)}
+        recentDocuments={workbench.historyDocuments}
+        onOpenRecentDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
         onSectionTitleChange={workbench.setSectionTitle}
         onInsertUtility={workbench.insertUtility}
         onAdd={openAdd}
@@ -971,6 +975,9 @@ export function WorkbenchHomePage() {
             draftCollapsed={draftCollapsed}
             onDraftCollapse={() => setDraftCollapsed(true)}
             onDraftExpand={() => setDraftCollapsed(false)}
+            historyDocuments={workbench.historyDocuments}
+            currentDocumentId={workbench.document.id}
+            onOpenRecentDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
           />
 
           <section className={`${shellClassName}${alternateHomeLayout ? ' is-alternate-home is-home-layout-2' : ''}`} aria-label="飞象AI题库编辑器">

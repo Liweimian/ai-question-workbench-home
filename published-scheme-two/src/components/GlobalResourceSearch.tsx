@@ -7,10 +7,10 @@ import {
   ChevronRight,
   Clock3,
   FileText,
-  ImagePlus,
   Layers3,
   ListTree,
   LoaderCircle,
+  Plus,
   Search,
   Sparkles,
   Target,
@@ -152,7 +152,7 @@ export function GlobalResourceSearchBar({
       <MetisButton
         type="borderless"
         className="global-resource-search-image"
-        icon={<ImagePlus size={16} />}
+        icon={<Plus size={17} />}
         aria-label="上传图片搜题"
         title="图片搜题"
         disabled={disabled || loading}

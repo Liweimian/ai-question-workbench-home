@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Download, Maximize2, MoreHorizontal, Plus, Printer, Save, Send, Share2 } from 'lucide-react'
-import type { DocumentOutputLock, DocumentSyncState, WorkbenchDocument, WorkbenchDocumentKind } from '../prototype/types'
+import { Check, ChevronDown, Download, FileText, Maximize2, MoreHorizontal, Plus, Printer, Save, Send, Share2 } from 'lucide-react'
+import type { DocumentOutputLock, DocumentSyncState, HistoryDocumentSummary, WorkbenchDocument, WorkbenchDocumentKind } from '../prototype/types'
 import { getDocumentKind, getPaperAnswerMode } from '../utils/documentEditorUtils'
+import { formatRecentEditedMeta, selectRecentEditedSummaries } from '../utils/recentEditedDocuments'
 import { SaveAsDialog } from './SaveAsDialog'
 
 interface DocumentActionToolbarProps {
@@ -20,6 +21,8 @@ interface DocumentActionToolbarProps {
   onCreateNew?: (rememberCurrent?: boolean) => void
   onSaveAndCreateNew?: (kind?: WorkbenchDocumentKind) => Promise<boolean>
   onGenerateAnswerSheet?: () => void
+  recentDocuments?: HistoryDocumentSummary[]
+  onOpenRecentDocument?: (documentId: string) => void
 }
 
 function escapeHtml(value: string) {
@@ -31,16 +34,18 @@ function escapeHtml(value: string) {
     .replace(/'/g, '&#039;')
 }
 
-export function DocumentActionToolbar({ document, canSave, contentBusy, syncState, assignmentOutdated, onSave, requiresSaveKind = false, onAssign, onMarkOutput, onRequirePaperScores, onExpand, onCreateNew, onSaveAndCreateNew, onGenerateAnswerSheet }: DocumentActionToolbarProps) {
+export function DocumentActionToolbar({ document, canSave, contentBusy, syncState, assignmentOutdated, onSave, requiresSaveKind = false, onAssign, onMarkOutput, onRequirePaperScores, onExpand, onCreateNew, onSaveAndCreateNew, onGenerateAnswerSheet, recentDocuments = [], onOpenRecentDocument }: DocumentActionToolbarProps) {
   const [assignOpen, setAssignOpen] = useState(false)
   const [saveAsOpen, setSaveAsOpen] = useState(false)
   const [savePending, setSavePending] = useState(false)
   const [saveForNew, setSaveForNew] = useState(false)
   const [newDocumentOpen, setNewDocumentOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
+  const [documentSwitcherOpen, setDocumentSwitcherOpen] = useState(false)
   const assignRef = useRef<HTMLSpanElement>(null)
   const saveRef = useRef<HTMLSpanElement>(null)
   const moreRef = useRef<HTMLSpanElement>(null)
+  const documentSwitcherRef = useRef<HTMLDivElement>(null)
   const hasQuestions = document.questions.length > 0
   const saving = syncState === 'saving'
   const hasUnsavedChanges = syncState === 'dirty' || syncState === 'error' || assignmentOutdated
@@ -49,16 +54,18 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
     && hasQuestions
 
   useEffect(() => {
-    if (!assignOpen && !saveAsOpen && !moreOpen) return
+    if (!assignOpen && !saveAsOpen && !moreOpen && !documentSwitcherOpen) return
     const closeOnOutside = (event: MouseEvent) => {
       if (!assignRef.current?.contains(event.target as Node)) setAssignOpen(false)
       if (!saveRef.current?.contains(event.target as Node) && !savePending) setSaveAsOpen(false)
       if (!moreRef.current?.contains(event.target as Node)) setMoreOpen(false)
+      if (!documentSwitcherRef.current?.contains(event.target as Node)) setDocumentSwitcherOpen(false)
     }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setAssignOpen(false)
       if (event.key === 'Escape' && !savePending) setSaveAsOpen(false)
       if (event.key === 'Escape') setMoreOpen(false)
+      if (event.key === 'Escape') setDocumentSwitcherOpen(false)
     }
     window.document.addEventListener('mousedown', closeOnOutside)
     window.document.addEventListener('keydown', closeOnEscape)
@@ -66,7 +73,9 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
       window.document.removeEventListener('mousedown', closeOnOutside)
       window.document.removeEventListener('keydown', closeOnEscape)
     }
-  }, [assignOpen, saveAsOpen, savePending, moreOpen])
+  }, [assignOpen, saveAsOpen, savePending, moreOpen, documentSwitcherOpen])
+
+  const recentEditedDocuments = selectRecentEditedSummaries(recentDocuments).slice(0, 8)
 
   const saveDocument = async (kind?: WorkbenchDocumentKind, forNew = saveForNew) => {
     setSavePending(true)
@@ -138,6 +147,29 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
 
   return (
     <div className="document-action-toolbar" role="toolbar" aria-label="题单操作">
+      <div className="document-switcher" ref={documentSwitcherRef}>
+        <button type="button" className="document-switcher-trigger" aria-haspopup="menu" aria-expanded={documentSwitcherOpen} onClick={() => setDocumentSwitcherOpen((open) => !open)}>
+          <span>{document.title.trim() || '未命名练习'}</span><ChevronDown size={14} />
+        </button>
+        {documentSwitcherOpen ? (
+          <div className="document-switcher-menu" role="menu" aria-label="切换最近练习">
+            <strong>最近编辑</strong>
+            {recentEditedDocuments.length ? recentEditedDocuments.map((item) => {
+              const current = item.id === document.id
+              return (
+                <button type="button" role="menuitem" className={current ? 'is-current' : undefined} key={item.id} onClick={() => {
+                  setDocumentSwitcherOpen(false)
+                  if (!current) onOpenRecentDocument?.(item.id)
+                }}>
+                  <span className="document-switcher-file"><FileText size={16} /></span>
+                  <span><b>{item.title}</b><small>{formatRecentEditedMeta(item)}</small></span>
+                  {current ? <Check size={15} /> : null}
+                </button>
+              )
+            }) : <div className="document-switcher-empty">暂无最近编辑的练习</div>}
+          </div>
+        ) : null}
+      </div>
       {answerSheetPaper ? (
         <>
           {onCreateNew ? (

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
 import { ArrowLeft, Bold, ChevronDown, Heading2, Italic, Send, Sparkles, Strikethrough, Underline } from 'lucide-react'
 import { defaultDocumentFormat } from '../prototype/types'
-import type { AddQuestionMode, DocumentFormat, DocumentOutputLock, DocumentSyncState, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
+import type { AddQuestionMode, DocumentFormat, DocumentOutputLock, DocumentSyncState, HistoryDocumentSummary, OpenAddOptions, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
 import { DocumentActionToolbar } from './DocumentActionToolbar'
@@ -35,6 +35,8 @@ interface EmptyCanvasProps {
   onExpand?: () => void
   onCreateNew?: (rememberCurrent?: boolean) => void
   onSaveAndCreateNew?: (kind?: WorkbenchDocumentKind) => Promise<boolean>
+  recentDocuments?: HistoryDocumentSummary[]
+  onOpenRecentDocument?: (documentId: string) => void
 }
 
 export function EmptyCanvas(props: EmptyCanvasProps) {
@@ -180,6 +182,8 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             onExpand={props.onExpand}
             onCreateNew={props.onCreateNew}
             onSaveAndCreateNew={props.onSaveAndCreateNew}
+            recentDocuments={props.recentDocuments}
+            onOpenRecentDocument={props.onOpenRecentDocument}
           />
         </div>
       ) : null}

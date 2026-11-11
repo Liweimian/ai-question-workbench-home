@@ -1,27 +1,20 @@
-import { MetisButton } from '@yuanfudao/metis-web-component'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import {
   BrainCircuit,
   BookOpen,
   FileInput,
-  FilePenLine,
   FileText,
   FolderHeart,
   ListTree,
   Layers3,
-  LoaderCircle,
   RefreshCw,
   Search,
   School,
   Sparkles,
   Target,
-  Clock3,
-  X,
 } from 'lucide-react'
 import type { AddQuestionMode, AsyncStatus, HistoryDocumentSummary, OpenAddOptions } from '../prototype/types'
 import { FeixiangAiLibraryLogo } from './ElephantIcon'
-import { formatRecentEditedMeta, selectRecentEditedSummaries } from '../utils/recentEditedDocuments'
-import { isRecentEditedPanelClosed, setRecentEditedPanelClosed } from '../utils/recentEditedPanelPreference'
 
 export interface DocumentCenterNavigationProps {
   activeKey?: DocumentCenterNavigationKey
@@ -72,7 +65,7 @@ const aiTaskEntries: Array<{ mode: AddQuestionMode; label: string; description: 
 
 const aiSearchDescription = '搜索题库中的已有题目、练习和试卷'
 
-export function DocumentCenterNavigation({ activeKey, hasRecentContent = false, recentPanelDismissed = false, onOpenRecentPanel, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse, onNavigate }: DocumentCenterNavigationProps) {
+export function DocumentCenterNavigation({ activeKey, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse, onNavigate }: DocumentCenterNavigationProps) {
   const run = (action: () => void) => () => {
     onNavigate?.()
     action()
@@ -101,9 +94,6 @@ export function DocumentCenterNavigation({ activeKey, hasRecentContent = false, 
       <section className="document-center-nav-group is-personal" aria-label="个人资源">
         <button type="button" className={`is-personal-task${activeKey === 'my-resources' ? ' is-active' : ''}`} onClick={run(onOpenMyResources)} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><FolderHeart size={17} /><span>从我的资源选题</span></button>
         <button type="button" className={`is-personal-task${activeKey === 'recent' ? ' is-active' : ''}`} onClick={run(onOpenRecentBrowse)} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><RefreshCw size={17} /><span>继续最近浏览</span></button>
-        {hasRecentContent && recentPanelDismissed && onOpenRecentPanel ? (
-          <button type="button" className="is-personal-task is-recent-edited-reopen" onClick={run(onOpenRecentPanel)}><Clock3 size={17} /><span>最近编辑</span></button>
-        ) : null}
       </section>
     </nav>
   )
@@ -158,74 +148,12 @@ export function DocumentCenterIconNavigation({ activeKey, onExpand, onOpenMyReso
   )
 }
 
-export function DocumentCenter({ embedded = false, draftContent, histories, currentDocumentId, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse, onNavigate, onReload }: DocumentCenterProps) {
-  const [recentPanelClosed, setRecentPanelClosed] = useState(() => isRecentEditedPanelClosed())
-
-  useEffect(() => {
-    setRecentPanelClosed(isRecentEditedPanelClosed())
-  }, [])
-
-  const recentDocuments = useMemo(() => selectRecentEditedSummaries(histories), [histories])
-  const hasRecentContent = historyStatus === 'error' || recentDocuments.length > 0
-  const panelDismissed = recentPanelClosed || isRecentEditedPanelClosed()
-  const showRecentPanel = hasRecentContent && !panelDismissed
-
-  const closeRecentPanel = () => {
-    setRecentEditedPanelClosed(true)
-    setRecentPanelClosed(true)
-  }
-
-  const openRecentPanel = () => {
-    setRecentEditedPanelClosed(false)
-    setRecentPanelClosed(false)
-  }
-
-  const recentPanel = showRecentPanel ? (
-    <section className="document-center-recent" aria-label="最近编辑">
-      <div className="document-center-section-title">
-        <div><h2>最近编辑</h2></div>
-        <div className="document-center-section-actions">
-          {recentDocuments.length ? <span>{recentDocuments.length} 份</span> : null}
-          <button type="button" className="document-center-recent-close" aria-label="关闭最近编辑" onClick={closeRecentPanel}>
-            <X size={16} />
-          </button>
-        </div>
-      </div>
-      {historyStatus === 'loading' ? (
-        <div className="document-center-state"><LoaderCircle className="is-spinning" size={18} />正在加载最近题单…</div>
-      ) : historyStatus === 'error' ? (
-        <div className="document-center-state is-error"><span>最近题单加载失败</span><MetisButton type="bordered" onClick={onReload}>重新加载</MetisButton></div>
-      ) : (
-        <div className="document-center-list">
-          {recentDocuments.map((item) => {
-            const editing = item.id === currentDocumentId
-            return (
-            <button type="button" className={`document-recent-item${editing ? ' is-editing' : ''}`} key={item.id} onClick={() => onOpenDocument(item.id)} aria-current={editing ? 'true' : undefined}>
-              <span className="document-file-icon" title={editing ? '正在编辑' : undefined}>{editing ? <FilePenLine size={22} /> : <FileText size={22} />}</span>
-              <span className="document-recent-item-copy">
-                <span className="document-recent-item-title">
-                  <strong>{item.title}</strong>
-                  {editing ? <em className="document-editing-label">正在编辑</em> : null}
-                </span>
-                <small>{formatRecentEditedMeta(item)}</small>
-              </span>
-              <time>{item.updatedAt}</time>
-            </button>
-            )
-          })}
-        </div>
-      )}
-    </section>
-  ) : null
-
+export function DocumentCenter({ embedded = false, draftContent, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse, onNavigate }: DocumentCenterProps) {
   return (
     <div className={`document-center${embedded ? ' is-embedded' : ''} is-layout-2`}>
       <aside className="document-center-sidebar">
         {!embedded ? <div className="document-center-brand"><FeixiangAiLibraryLogo /><strong>AI 题单</strong></div> : null}
         <DocumentCenterNavigation
-          hasRecentContent={hasRecentContent}
-          recentPanelDismissed={panelDismissed}
-          onOpenRecentPanel={openRecentPanel}
           onOpenMyResources={onOpenMyResources}
           onOpenSource={onOpenSource}
           onOpenAiSearch={onOpenAiSearch}
@@ -237,12 +165,10 @@ export function DocumentCenter({ embedded = false, draftContent, histories, curr
       <main className="document-center-main">
         <header className="document-center-heading">
           <div>{!embedded ? <span>题单工作台</span> : null}<h1>最近编辑</h1>{!embedded ? <p>继续上次的题单，或创建一份新题单。</p> : null}</div>
-          {!embedded ? <MetisButton type="borderless" icon={<RefreshCw size={16} />} onClick={onReload}>刷新</MetisButton> : null}
         </header>
 
-        <div className={`document-layout-two${showRecentPanel ? '' : ' is-recent-hidden'}`}>
+        <div className="document-layout-two is-recent-hidden">
           <div className="document-center-draft">{draftContent}</div>
-          {recentPanel}
         </div>
       </main>
     </div>

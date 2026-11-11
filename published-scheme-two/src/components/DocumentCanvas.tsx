@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { MetisButton, MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
 import { ArrowDown, ArrowUp, ChevronDown, GripVertical, PlusCircle, Radical, Sparkles, Trash2, Type } from 'lucide-react'
 import { defaultDocumentFormat } from '../prototype/types'
-import type { AddQuestionMode, AsyncStatus, DocumentFormat, DocumentOutputLock, DocumentSyncState, OpenAddOptions, Question, QuestionPatch, QuestionType, WorkbenchDocument } from '../prototype/types'
+import type { AddQuestionMode, AsyncStatus, DocumentFormat, DocumentOutputLock, DocumentSyncState, HistoryDocumentSummary, OpenAddOptions, Question, QuestionPatch, QuestionType, WorkbenchDocument } from '../prototype/types'
 import { BlockAddMenu } from './BlockAddMenu'
 import type { UtilityAction } from './BlockAddMenu'
 import { ContextualAiPopover } from './ContextualAiPopover'
@@ -48,6 +48,8 @@ interface DocumentCanvasProps {
   onExpand?: () => void
   onCreateNew?: (rememberCurrent?: boolean) => void
   onSaveAndCreateNew?: (kind?: WorkbenchDocumentKind) => Promise<boolean>
+  recentDocuments?: HistoryDocumentSummary[]
+  onOpenRecentDocument?: (documentId: string) => void
 }
 
 type QuestionStyle = DocumentFormat & {
@@ -209,6 +211,8 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
             onCreateNew={props.onCreateNew}
             onSaveAndCreateNew={props.onSaveAndCreateNew}
             onGenerateAnswerSheet={props.onGenerateAnswerSheet}
+            recentDocuments={props.recentDocuments}
+            onOpenRecentDocument={props.onOpenRecentDocument}
           />
         </div>
       ) : null}
