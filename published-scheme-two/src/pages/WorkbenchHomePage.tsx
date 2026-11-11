@@ -1046,7 +1046,7 @@ export function WorkbenchHomePage() {
                     onClick={activateAddHome}
                   >首页</button>
                   <GlobalResourceSearch
-                    className={showHomeAiSearch ? 'is-full-workspace is-home-aligned' : alternateHomeLayout ? 'is-full-workspace' : 'is-split-workspace'}
+                    className={showHomeAiSearch ? 'is-full-workspace is-home-aligned is-home-persistent' : alternateHomeLayout ? 'is-full-workspace' : 'is-split-workspace'}
                     currentScope={gradeSubject}
                     workspaceActive={aiSearchActive}
                     showTopBar={showHomeAiSearch}

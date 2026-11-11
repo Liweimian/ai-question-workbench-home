@@ -13936,6 +13936,21 @@
   margin-left: 0;
 }
 
+/* 首页 AI 智搜为固定能力，不因已打开任务或窄屏布局被隐藏。 */
+.global-resource-search.is-home-persistent {
+  z-index: 45;
+  display: flex !important;
+  min-height: 41px;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.global-resource-search.is-home-persistent .global-resource-search-bar {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 .global-resource-search.is-split-workspace {
   width: clamp(250px, 24vw, 360px);
   flex: 0 0 clamp(250px, 24vw, 360px);
