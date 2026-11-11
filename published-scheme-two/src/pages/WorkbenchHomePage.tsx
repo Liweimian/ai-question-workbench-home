@@ -923,7 +923,6 @@ export function WorkbenchHomePage() {
         <div className={`fx-zoom-area workbench-zoom-area${alternateHomeLayout ? ' is-alternate-home' : ''}`}>
           <WorkspaceHeader
             documentTitle={workbench.document.title}
-            documentUpdatedAt={workbench.document.updatedAt}
             questionCount={workbench.document.questions.length}
             canSave={canSaveDocument}
             canUndo={workbench.canUndo && !workbench.isContentBusy}

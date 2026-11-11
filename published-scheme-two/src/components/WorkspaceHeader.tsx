@@ -29,7 +29,6 @@ import type { WorkbenchDocument } from '../prototype/types'
 
 interface WorkspaceHeaderProps {
   documentTitle: string
-  documentUpdatedAt: string
   questionCount: number
   canSave: boolean
   canUndo: boolean
@@ -69,7 +68,6 @@ interface WorkspaceHeaderProps {
 
 export function WorkspaceHeader({
   documentTitle,
-  documentUpdatedAt,
   questionCount,
   canSave,
   contentBusy,
@@ -115,44 +113,12 @@ export function WorkspaceHeader({
   const [saveBeforeNewPending, setSaveBeforeNewPending] = useState(false)
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false)
   const [saveAsPending, setSaveAsPending] = useState(false)
-  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
   const [documentSwitcherOpen, setDocumentSwitcherOpen] = useState(false)
   const assignRef = useRef<HTMLDivElement>(null)
   const moreRef = useRef<HTMLDivElement>(null)
   const saveRef = useRef<HTMLSpanElement>(null)
   const documentSwitcherRef = useRef<HTMLDivElement>(null)
   const documentSwitcherCloseTimerRef = useRef<number | null>(null)
-  const syncLabel = syncState === 'saving'
-    ? '正在保存…'
-    : syncState === 'dirty'
-      ? '草稿已记录，尚未保存'
-      : syncState === 'error'
-        ? '保存失败'
-        : documentStatus === '已布置'
-          ? assignmentOutdated ? '已布置 · 有新修改' : '已布置'
-          : documentStatus === '已保存'
-            ? '已保存'
-            : syncState === 'saved'
-              ? '已保存'
-              : hasPersistedDraft
-                ? '已保存'
-                : '草稿已记录'
-
-  useEffect(() => {
-    if (syncState !== 'saved') return
-    setLastSavedAt(new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date()))
-  }, [syncState])
-
-  const saveSummary = syncState === 'saving'
-    ? '保存中…'
-    : syncState === 'dirty'
-      ? `草稿已记录 · 上次保存 ${lastSavedAt ?? documentUpdatedAt}`
-      : lastSavedAt
-        ? `最后保存 ${lastSavedAt}`
-        : hasPersistedDraft
-          ? `最后保存 ${documentUpdatedAt}`
-          : '草稿已记录'
-
   useEffect(() => {
     if (!assignOpen && !moreOpen && !saveAsDialogOpen && !documentSwitcherOpen) return
     const closeOnOutside = (event: MouseEvent) => {
@@ -334,12 +300,11 @@ export function WorkspaceHeader({
             <ChevronRight size={14} aria-hidden="true" />
           </div>
         ) : null}
-        <div className="header-title-summary" ref={documentSwitcherRef} title={`${documentTitle || fallbackTitle} · ${syncLabel}`} onMouseEnter={openDocumentSwitcher} onMouseLeave={scheduleDocumentSwitcherClose}>
+        <div className="header-title-summary" ref={documentSwitcherRef} title={documentTitle || fallbackTitle} onMouseEnter={openDocumentSwitcher} onMouseLeave={scheduleDocumentSwitcherClose}>
           <button type="button" className="header-recent-edit-trigger" aria-label="最近编辑" title="最近编辑" aria-haspopup="menu" aria-expanded={documentSwitcherOpen} onFocus={openDocumentSwitcher} onClick={openDocumentSwitcher}>
             <History size={16} />
           </button>
           <strong className="header-current-practice-name">{documentTitle?.trim() || fallbackTitle}</strong>
-          <small className="header-save-summary">{saveSummary}</small>
           {documentSwitcherOpen ? (
             <div className="document-switcher-menu header-document-switcher-menu" role="menu" aria-label="切换最近练习">
               <strong>最近编辑</strong>
