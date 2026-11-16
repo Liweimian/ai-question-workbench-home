@@ -43,7 +43,7 @@ export function QuestionSortPanel(props: QuestionSortPanelProps) {
         {groups.length === 0 ? (
           <section className="question-sort-empty">
             <h3>基础提优题</h3>
-            <p>题单中还没有题目</p>
+            <p>练习中还没有题目</p>
           </section>
         ) : null}
         {groups.map((group, groupIndex) => (

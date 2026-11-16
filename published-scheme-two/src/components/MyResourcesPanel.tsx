@@ -12,19 +12,19 @@ const SUBJECTS = ['小学科学', '初中数学', '初中语文', '初中英语'
 
 const KIND_FOLDER: Record<Exclude<MyResourceKind, '练习册'>, string> = {
   试卷: '试卷',
-  题单: '题单',
+  练习: '练习',
   题目: '题目',
   文件: '墨水屏作业',
 }
 
 const FOLDER_KIND: Record<string, ResourceKind> = {
   试卷: '试卷',
-  题单: '题单',
+  练习: '练习',
   题目: '题目',
   墨水屏作业: '文件',
 }
 
-export const RESOURCE_CREATED_FOLDERS = ['全部资源', '试卷', '题单', '题目', '墨水屏作业']
+export const RESOURCE_CREATED_FOLDERS = ['全部资源', '试卷', '练习', '题目', '墨水屏作业']
 
 const seedCreatedResources: MyResourceSummary[] = [
   { id: 'mine-3', title: '教辅扫描题 · 待校对', kind: '题目', detail: '12 道题 · AI 录题', questionCount: 12, updatedAt: '10 月 18 日', folder: '题目' },
@@ -39,7 +39,7 @@ const favoriteResources: MyResourceSummary[] = [
 ]
 
 const iconMap = {
-  题单: ListChecks,
+  练习: ListChecks,
   试卷: FileText,
   题目: FileQuestion,
   文件: File,
@@ -133,7 +133,7 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
   }, [moreMenuId])
 
   const historyResources = useMemo<MyResourceSummary[]>(() => props.histories.map((item) => {
-    const inferredKind = item.title.includes('试卷') ? '试卷' : (item.kind ?? '题单')
+    const inferredKind = item.title.includes('试卷') ? '试卷' : (item.kind ?? '练习')
     const inferredAnswerMode = item.title.includes('答题卡') ? '答题卡作答' : item.answerMode
     return {
       id: `history-${item.id}`,
@@ -152,7 +152,7 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
   const resources = space === 'created' ? [...historyResources, ...ownedResources] : favoriteResources
   const rootFolder = space === 'created' ? '全部资源' : '全部收藏'
   const folderNames = space === 'created'
-    ? ['试卷', '题单', '题目']
+    ? ['试卷', '练习', '题目']
     : ['常用练习册', '期中复习', '未分类收藏']
   const folders = [
     { name: rootFolder, root: true },
@@ -160,7 +160,7 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
     ...customFolders.map((name) => ({ name, root: false })),
   ]
   const kinds: ResourceKind[] = space === 'created'
-    ? ['试卷', '题单', '题目']
+    ? ['试卷', '练习', '题目']
     : ['题目', '练习册', '试卷']
   const visible = useMemo(() => {
     const query = keyword.trim().toLowerCase()

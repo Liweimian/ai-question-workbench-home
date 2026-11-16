@@ -104,7 +104,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
                   <div className="ai-assistant-response-body">
                     <div className="ai-assistant-response-heading">
                       <strong>{run.status === 'loading' ? '正在生成' : run.status === 'success' ? '已生成预览' : '处理遇到问题'}</strong>
-                      <span>{run.status === 'loading' ? '生成过程同线上 AI 组题' : run.status === 'success' ? '可单题或批量加入右侧题单' : '可修改要求后重试'}</span>
+                      <span>{run.status === 'loading' ? '生成过程同线上 AI 组题' : run.status === 'success' ? '可单题或批量加入右侧练习' : '可修改要求后重试'}</span>
                     </div>
                     <ol className="ai-assistant-steps">
                       {steps.map((step, index) => {
@@ -192,7 +192,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
               <div className="ai-assistant-empty">
                 <span><BrainCircuit size={22} /></span>
                 <strong>直接说出作业或试卷要求</strong>
-                <p>生成过程与结果复用线上 AI 组题；题目在左侧预览，可单题或批量加入右侧当前题单。</p>
+                <p>生成过程与结果复用线上 AI 组题；题目在左侧预览，可单题或批量加入右侧当前练习。</p>
               </div>
             )}
           </div>

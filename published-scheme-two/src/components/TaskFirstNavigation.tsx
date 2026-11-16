@@ -72,24 +72,24 @@ export function TaskFirstNavigation({ disabled = false, histories, historyStatus
         </div>
       </section>
 
-      <section className="document-layout-four-recent-strip is-bottom" aria-label="最近编辑题单" data-sec="2">
+      <section className="document-layout-four-recent-strip is-bottom" aria-label="最近编辑练习" data-sec="2">
         <header><Clock3 size={18} /><strong>最近编辑</strong></header>
         <div className="document-layout-four-recent-list">
           {historyPending ? Array.from({ length: 3 }, (_, index) => <span className="document-layout-four-recent-skeleton" key={index} aria-hidden="true" />)
             : historyStatus === 'error' ? (
-              <div className="document-layout-four-recent-state is-error"><span>最近题单加载失败</span><MetisButton type="bordered" onClick={onReload}>重新加载</MetisButton></div>
+              <div className="document-layout-four-recent-state is-error"><span>最近练习加载失败</span><MetisButton type="bordered" onClick={onReload}>重新加载</MetisButton></div>
             ) : recentDocuments.length ? recentDocuments.map((item) => (
               <button
                 type="button"
                 key={item.id}
                 disabled={disabled}
                 onClick={() => onOpenDocument(item.id)}
-                data-track="/click/aiQuestionHome/openRecentDocument | 打开最近编辑题单 | documentId#STRING"
+                data-track="/click/aiQuestionHome/openRecentDocument | 打开最近编辑练习 | documentId#STRING"
               >
                 <strong>{item.title}</strong>
                 <span className="document-layout-four-recent-meta"><Clock3 size={15} /><small>{item.updatedAt}</small><ChevronRight size={16} /></span>
               </button>
-            )) : <div className="document-layout-four-recent-state">暂无最近题单</div>}
+            )) : <div className="document-layout-four-recent-state">暂无最近练习</div>}
         </div>
       </section>
     </nav>

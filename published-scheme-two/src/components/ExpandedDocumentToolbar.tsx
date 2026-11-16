@@ -27,7 +27,7 @@ export function ExpandedDocumentToolbar({
   const [aiGrading, setAiGrading] = useState('on')
   const [questionFrame, setQuestionFrame] = useState('hidden')
 
-  const analysisLabel = kind === '试卷' ? '试卷分析' : '题单分析'
+  const analysisLabel = kind === '试卷' ? '试卷分析' : '练习分析'
 
   return (
     <div className="document-editor-toolbar is-expanded-studio" role="toolbar" aria-label="整份编辑工具栏">

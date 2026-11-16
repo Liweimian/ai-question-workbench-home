@@ -17,12 +17,23 @@ interface StoredDocumentEntry {
   savedAtMs?: number
 }
 
+const normalizeLegacyDocument = (document: WorkbenchDocument): WorkbenchDocument => {
+  const legacyKind = (document as unknown as { kind?: string }).kind
+  return {
+    ...document,
+    kind: legacyKind === '\u9898\u5355' ? '练习' : (document.kind ?? '练习'),
+    title: document.title.replace(/\u9898\u5355(?=(?:（\d+）)?$)/, '练习'),
+  }
+}
+
 function readStoredDocuments(): StoredDocumentEntry[] {
   try {
     const value = window.localStorage.getItem(localDocumentStorageKey)
     if (!value) return []
     const parsed = JSON.parse(value) as StoredDocumentEntry[]
-    return Array.isArray(parsed) ? parsed : []
+    return Array.isArray(parsed)
+      ? parsed.map((entry) => ({ ...entry, document: normalizeLegacyDocument(entry.document) }))
+      : []
   } catch {
     return []
   }
@@ -37,7 +48,7 @@ export function getActiveDraftDocument(): WorkbenchDocument | null {
     const raw = window.localStorage.getItem(activeDocumentStorageKey)
     if (!raw) return null
     const active = JSON.parse(raw) as { draft?: WorkbenchDocument; unsaved?: boolean }
-    return active.unsaved && active.draft ? active.draft : null
+    return active.unsaved && active.draft ? normalizeLegacyDocument(active.draft) : null
   } catch {
     return null
   }
@@ -371,7 +382,7 @@ export const workbenchRepository: WorkbenchRepository = {
     await delay(420)
     const document = readStoredDocuments().find((entry) => entry.document.id === documentId)?.document
       ?? historyDocuments.find((item) => item.id === documentId)
-    if (!document) throw new Error('未找到该历史题单')
+    if (!document) throw new Error('未找到该历史练习')
     return {
       ...document,
       questions: document.questions.map((question, index) => cloneQuestion(question, `${documentId}-${index}`)),
@@ -388,7 +399,7 @@ export const workbenchRepository: WorkbenchRepository = {
     const labelMap: Record<ResourceType, string> = {
       workbook: '53 天天练',
       paper: '一次函数单元达标卷',
-      sync: '一次函数同步题单',
+      sync: '一次函数同步练习',
       special: '一次函数思维进阶专题',
     }
     const selectedSource = sourceRecords.find((record) => record.id === sourceId)

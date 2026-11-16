@@ -112,7 +112,7 @@ export function ResourceFileDetail({ resource, folders, onBack, onResourceChange
             <div><dt>大小</dt><dd>{resource.detail.split('·').pop()?.trim() ?? resource.detail}</dd></div>
             <div><dt>上传时间</dt><dd>{resource.updatedAt}</dd></div>
             <div><dt>所在目录</dt><dd>{resource.folder}</dd></div>
-            <div><dt>用途</dt><dd>可发布到墨水屏，不加入题单</dd></div>
+            <div><dt>用途</dt><dd>可发布到墨水屏，不加入练习</dd></div>
           </dl>
           <button type="button" className="resource-pill is-publish" onClick={() => { setPublishOpen(true); setPublishSubject(''); setPublishStudents('') }}>发布到墨水屏</button>
         </aside>

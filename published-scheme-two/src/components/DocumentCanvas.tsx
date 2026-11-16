@@ -32,7 +32,6 @@ interface DocumentCanvasProps {
   syncState: DocumentSyncState
   assignmentOutdated: boolean
   onSave: (kind?: WorkbenchDocumentKind) => void | Promise<boolean | void>
-  requiresSaveKind?: boolean
   onAssign: () => void
   onMarkOutput: (lock: DocumentOutputLock) => void
   onSectionTitleChange: (questionType: QuestionType, title: string) => void
@@ -185,7 +184,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
     <article
       className={`editor-document${questionAiOpen ? ' is-ai-focus' : ''}${props.studioLayout ? ' is-studio-paper' : ''}${props.compactPreview && !props.hideActionToolbar ? ' has-action-rail' : ''}`}
       data-sec="3"
-      aria-label="题单编辑区"
+      aria-label="练习编辑区"
       style={{
         '--document-font-family': documentFormat.fontFamily === 'sans' ? 'var(--fx-font-body)' : documentFormat.fontFamily === 'kaiti' ? '"Kaiti SC", "STKaiti", serif' : '"Songti SC", "STSong", serif',
         '--document-font-size': `${documentFormat.fontSize}px`,
@@ -203,7 +202,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
             syncState={props.syncState}
             assignmentOutdated={props.assignmentOutdated}
             onSave={props.onSave}
-            requiresSaveKind={props.requiresSaveKind}
+            onKindChange={props.onKindChange}
             onAssign={props.onAssign}
             onMarkOutput={props.onMarkOutput}
             onRequirePaperScores={props.onRequirePaperScores}
@@ -228,7 +227,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
           />
         ) : null}
         <HomeworkPaperHeader
-          titleEditor={<MetisInput value={props.document.title} onChange={(event) => props.onTitleChange(event.target.value)} className="editor-title-input" aria-label="题单标题" />}
+          titleEditor={<MetisInput value={props.document.title} onChange={(event) => props.onTitleChange(event.target.value)} className="editor-title-input" aria-label="练习标题" />}
           saveState={props.syncState !== 'dirty' ? (
             <span className={`document-auto-save-state is-${props.syncState}`} role="status">{props.syncState === 'saving' ? '保存中…' : props.syncState === 'error' ? '保存失败' : '已保存'}</span>
           ) : null}
@@ -331,7 +330,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
                   onClose={() => { setQuestionAiOpen(false); setQuestionAiSubmitted(false) }}
                   onReplace={() => { props.onApplyRewrite('replace'); setQuestionAiOpen(false); setEditRequirement('') }}
                   onAppend={() => { props.onApplyRewrite('append'); setQuestionAiOpen(false); setEditRequirement('') }}
-                  appendLabel="添加到题单"
+                  appendLabel="添加到练习"
                 />
               ) : null}
               <div className="editor-question-mainline">

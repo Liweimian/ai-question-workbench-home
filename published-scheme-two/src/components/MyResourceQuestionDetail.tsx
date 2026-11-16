@@ -11,7 +11,7 @@ interface MyResourceQuestionDetailProps {
 
 const resourceTypeByKind: Record<Exclude<MyResourceSummary['kind'], '文件'>, ResourceType> = {
   试卷: 'paper',
-  题单: 'special',
+  练习: 'special',
   题目: 'special',
   练习册: 'workbook',
 }

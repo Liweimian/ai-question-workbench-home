@@ -21,7 +21,6 @@ interface EmptyCanvasProps {
   syncState: DocumentSyncState
   assignmentOutdated: boolean
   onSave: (kind?: WorkbenchDocumentKind) => void | Promise<boolean | void>
-  requiresSaveKind?: boolean
   onAssign: () => void
   onMarkOutput: (lock: DocumentOutputLock) => void
   onRequirePaperScores?: (action: 'preview' | 'assign' | 'download' | 'print' | 'share') => boolean
@@ -165,7 +164,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
   }
 
   return (
-    <article className={`editor-empty${props.sidePanelOpen ? ' is-linked-workspace' : ''}${props.studioLayout ? ' is-studio-paper' : ''}${!props.hideActionToolbar ? ' has-action-rail' : ''}`} data-sec="3" aria-label="空白题单编辑区">
+    <article className={`editor-empty${props.sidePanelOpen ? ' is-linked-workspace' : ''}${props.studioLayout ? ' is-studio-paper' : ''}${!props.hideActionToolbar ? ' has-action-rail' : ''}`} data-sec="3" aria-label="空白练习编辑区">
       {!props.hideActionToolbar ? (
         <div className="document-action-rail">
           <DocumentActionToolbar
@@ -175,7 +174,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             syncState={props.syncState}
             assignmentOutdated={props.assignmentOutdated}
             onSave={props.onSave}
-            requiresSaveKind={props.requiresSaveKind}
+            onKindChange={props.onKindChange}
             onAssign={props.onAssign}
             onMarkOutput={props.onMarkOutput}
             onRequirePaperScores={props.onRequirePaperScores}
@@ -199,7 +198,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
           />
         ) : null}
         <HomeworkPaperHeader
-          titleEditor={<MetisInput value={props.document.title} onChange={(event) => props.onTitleChange(event.target.value)} className="empty-title-input" aria-label="题单标题" />}
+          titleEditor={<MetisInput value={props.document.title} onChange={(event) => props.onTitleChange(event.target.value)} className="empty-title-input" aria-label="练习标题" />}
         />
       </header>
 
@@ -215,7 +214,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         ) : null}
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
-            <div className={`empty-first-block${blockId === 'initial' && !props.document.intro ? ' is-add-only' : ''}`} role="group" aria-label="题单内容块" key={blockId}>
+            <div className={`empty-first-block${blockId === 'initial' && !props.document.intro ? ' is-add-only' : ''}`} role="group" aria-label="练习内容块" key={blockId}>
               <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenMyResources={props.onOpenMyResources} />
               {blockId !== 'initial' || props.document.intro ? (
                 <div
@@ -262,7 +261,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             ref={inlineEditorRef}
             className="empty-inline-editor"
             value={inlineDraft}
-            aria-label="输入题单内容"
+            aria-label="输入练习内容"
             onClick={(event) => event.stopPropagation()}
             onChange={(event) => setInlineDraft(event.target.value)}
             onBlur={finishInlineEditing}

@@ -100,7 +100,7 @@ const cloneDocument = (document: WorkbenchDocument): WorkbenchDocument => ({
 const documentFingerprint = (document: WorkbenchDocument) => JSON.stringify({
   title: document.title,
   intro: document.intro ?? '',
-  kind: document.kind ?? '题单',
+  kind: document.kind ?? '练习',
   answerMode: document.answerMode ?? '原卷作答',
   scoreSettingsConfirmed: Boolean(document.scoreSettingsConfirmed),
   format: document.format ?? defaultDocumentFormat,
@@ -111,7 +111,7 @@ const documentFingerprint = (document: WorkbenchDocument) => JSON.stringify({
 const isUntouchedBlankDocument = (document: WorkbenchDocument) => (
   document.questions.length === 0
   && !document.intro?.trim()
-  && (['未命名组题', '未命名题单'].includes(document.title.trim()) || isDefaultDocumentTitle(document.title))
+  && (['未命名组题', '未命名练习'].includes(document.title.trim()) || isDefaultDocumentTitle(document.title))
   && Object.entries(defaultDocumentFormat).every(
     ([key, value]) => ({ ...defaultDocumentFormat, ...document.format })[key as keyof DocumentFormat] === value,
   )
@@ -182,13 +182,13 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
   }
 
   if (action.type === 'set-document-kind') {
-    if ((state.document.kind ?? '题单') === action.kind) return state
+    if ((state.document.kind ?? '练习') === action.kind) return state
     const nextDocument: WorkbenchDocument = {
       ...state.document,
       kind: action.kind,
       updatedAt: '刚刚',
     }
-    if (action.kind === '题单') {
+    if (action.kind === '练习') {
       nextDocument.answerMode = '原卷作答'
     } else {
       nextDocument.scoreSettingsConfirmed = false
@@ -202,7 +202,7 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
 
   if (action.type === 'set-answer-mode') {
     if ((state.document.answerMode ?? '原卷作答') === action.mode
-      && (state.document.kind ?? '题单') === '试卷') return state
+      && (state.document.kind ?? '练习') === '试卷') return state
     return {
       document: {
         ...state.document,
@@ -350,7 +350,7 @@ export function useWorkbench() {
   const [initialDocumentState] = useState(() => {
     const restoredDraft = getActiveDraftDocument()
     const restoredDocument = restoredDraft && isDefaultDocumentTitle(restoredDraft.title)
-      ? { ...restoredDraft, title: restoredDraft.title.replace(/题单(?=(?:（\d+）)?$)/, '练习') }
+      ? { ...restoredDraft, title: restoredDraft.title.replace(/\u9898\u5355(?=(?:（\d+）)?$)/, '练习') }
       : restoredDraft
     return {
       document: cloneDocument(restoredDocument ?? {
@@ -424,8 +424,8 @@ export function useWorkbench() {
   )
 
   useEffect(() => {
-    if (!/^\d{4}\.\d{2}\.\d{2}题单(?:（\d+）)?$/.test(document.title.trim())) return
-    dispatch({ type: 'set-title', title: document.title.replace(/题单(?=(?:（\d+）)?$)/, '练习') })
+    if (!/^\d{4}\.\d{2}\.\d{2}练习(?:（\d+）)?$/.test(document.title.trim())) return
+    dispatch({ type: 'set-title', title: document.title.replace(/练习(?=(?:（\d+）)?$)/, '练习') })
   }, [document.title])
 
   useEffect(() => {
@@ -612,7 +612,7 @@ export function useWorkbench() {
       rememberDocument(latestFingerprint === snapshotFingerprint ? result.document : latest, '已布置', false)
       setDocumentSyncState(latestFingerprint === snapshotFingerprint ? 'saved' : 'dirty')
       dispatch({ type: 'add-output-lock', lock: 'assign' })
-      MetisMessage.success('题单已保存并布置成功')
+      MetisMessage.success('练习已保存并布置成功')
       return true
     } catch {
       if (saveRequestIdRef.current === requestId && documentIdRef.current === snapshot.id) {
@@ -859,7 +859,7 @@ export function useWorkbench() {
     const existingIds = new Set(document.questions.map((question) => question.id))
     const nextQuestions = questions.filter((question) => !existingIds.has(question.id))
     if (nextQuestions.length === 0) {
-      MetisMessage.info('选中的题目已在当前题单中')
+      MetisMessage.info('选中的题目已在当前练习中')
       return false
     }
     appendQuestions(nextQuestions, `已加入 ${nextQuestions.length} 道题`, false)
@@ -948,7 +948,7 @@ export function useWorkbench() {
       return false
     }
     if (isUntouchedBlankDocument(document)) {
-      MetisMessage.info('当前已经是一份空白题单')
+      MetisMessage.info('当前已经是一份空白练习')
       return false
     }
 
@@ -1003,7 +1003,7 @@ export function useWorkbench() {
   ): Promise<'success' | 'failed'> => {
     if (!documentHasEditableContent(document)) {
       const added = await addSource(type, sourceId, count, selectedQuestions)
-      if (added) MetisMessage.success('已将整卷载入当前题单')
+      if (added) MetisMessage.success('已将整卷载入当前练习')
       return added ? 'success' : 'failed'
     }
     if (mode === 'save-first') {
@@ -1022,7 +1022,7 @@ export function useWorkbench() {
 
   const openHistoryDocument = useCallback(async (documentId: string) => {
     if (document.id === documentId) {
-      MetisMessage.info('这份题单已经打开')
+      MetisMessage.info('这份练习已经打开')
       return
     }
     if (documentSyncState === 'dirty' && !isUntouchedBlankDocument(document)) {
@@ -1047,7 +1047,7 @@ export function useWorkbench() {
       clearAssistantRun()
       MetisMessage.success(`已打开“${nextDocument.title}”`)
     } catch {
-      MetisMessage.error('历史题单加载失败，请重试')
+      MetisMessage.error('历史练习加载失败，请重试')
     } finally {
       finishContentOperation('history-load')
     }
@@ -1127,7 +1127,7 @@ export function useWorkbench() {
 
   const setDocumentKind = useCallback((kind: WorkbenchDocumentKind) => {
     if (!canSwitchDocumentKind(document)) {
-      MetisMessage.info('当前文档已输出或生成答题卡，不能再切换题单 / 试卷类型')
+      MetisMessage.info('当前文档已输出或生成答题卡，不能再切换练习 / 试卷类型')
       return
     }
     if (getDocumentKind(document) === kind) return

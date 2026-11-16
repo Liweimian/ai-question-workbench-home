@@ -453,7 +453,7 @@ export function WorkbenchHomePage() {
   }
 
   const openManagedResource = async (resource: MyResourceSummary) => {
-    if ((resource.kind === '题单' || resource.kind === '试卷') && resource.documentId) {
+    if ((resource.kind === '练习' || resource.kind === '试卷') && resource.documentId) {
       await workbench.openHistoryDocument(resource.documentId)
       setSidePanelOpen(false)
       setDraftCollapsed(false)
@@ -615,12 +615,11 @@ export function WorkbenchHomePage() {
     || workbench.documentSyncState === 'error'
     || workbench.assignmentOutdated
   const canSaveDocument = workbench.document.questions.length > 0 && hasUnsavedDocumentChanges
-  const requiresSaveKind = !workbench.historyDocuments.some((item) => item.id === workbench.document.id)
   const finalizeNewDocument = (rememberCurrent = true) => {
     if (!workbench.createNewDocument({
       preserveAddWorkspace: sidePanelOpen,
       rememberCurrent,
-      successMessage: rememberCurrent ? undefined : '已新建空白题单',
+      successMessage: rememberCurrent ? undefined : '已新建空白练习',
     })) return
     setActiveLibraryDetailKey(null)
     setAssistantTabOpen(false)
@@ -695,10 +694,16 @@ export function WorkbenchHomePage() {
       return
     }
     if (next === 'download') {
-      downloadCurrentDocument()
+      void workbench.saveDocument(true, getDocumentKind(workbench.document)).then((saved) => {
+        if (saved) downloadCurrentDocument()
+      })
       return
     }
-    if (next === 'print') printCurrentDocument()
+    if (next === 'print') {
+      void workbench.saveDocument(true, getDocumentKind(workbench.document)).then((saved) => {
+        if (saved) printCurrentDocument()
+      })
+    }
     if (next === 'share') {
       void workbench.saveDocument(true, getDocumentKind(workbench.document)).then((saved) => {
         if (!saved) return
@@ -733,13 +738,17 @@ export function WorkbenchHomePage() {
     void workbench.assignDocument()
   }
 
-  const tryDownloadDocument = () => {
+  const tryDownloadDocument = async () => {
     if (!requirePaperScores('download')) return
+    const saved = await workbench.saveDocument(true, getDocumentKind(workbench.document))
+    if (!saved) return
     downloadCurrentDocument()
   }
 
-  const tryPrintDocument = () => {
+  const tryPrintDocument = async () => {
     if (!requirePaperScores('print')) return
+    const saved = await workbench.saveDocument(true, getDocumentKind(workbench.document))
+    if (!saved) return
     printCurrentDocument()
   }
 
@@ -763,7 +772,6 @@ export function WorkbenchHomePage() {
         syncState={workbench.documentSyncState}
         assignmentOutdated={workbench.assignmentOutdated}
         onSave={(kind) => trySaveDocument(kind)}
-        requiresSaveKind={requiresSaveKind}
         onAssign={tryAssignDocument}
         onMarkOutput={workbench.markDocumentOutput}
         onRequirePaperScores={requirePaperScores}
@@ -801,7 +809,6 @@ export function WorkbenchHomePage() {
         syncState={workbench.documentSyncState}
         assignmentOutdated={workbench.assignmentOutdated}
         onSave={(kind) => trySaveDocument(kind)}
-        requiresSaveKind={requiresSaveKind}
         onAssign={tryAssignDocument}
         onMarkOutput={workbench.markDocumentOutput}
         onRequirePaperScores={requirePaperScores}
@@ -903,6 +910,7 @@ export function WorkbenchHomePage() {
         <div className={`fx-zoom-area workbench-zoom-area${alternateHomeLayout ? ' is-alternate-home' : ''}`}>
           <WorkspaceHeader
             documentTitle={workbench.document.title}
+            currentDocument={workbench.document}
             questionCount={workbench.document.questions.length}
             canSave={canSaveDocument}
             canUndo={workbench.canUndo && !workbench.isContentBusy}
@@ -940,7 +948,6 @@ export function WorkbenchHomePage() {
             studioEditorOpen={studioEditorOpen}
             studioDocument={studioEditorOpen ? workbench.document : undefined}
             onStudioSave={(kind) => trySaveDocument(kind)}
-            studioRequiresSaveKind={requiresSaveKind}
             onStudioAssign={tryAssignDocument}
             onStudioGenerateAnswerSheet={tryGenerateAnswerSheet}
             onRequirePaperScores={requirePaperScores}
@@ -950,6 +957,7 @@ export function WorkbenchHomePage() {
             historyDocuments={workbench.historyDocuments}
             currentDocumentId={workbench.document.id}
             onOpenRecentDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
+            onKindChange={workbench.setDocumentKind}
           />
 
           <section className={`${shellClassName}${alternateHomeLayout ? ' is-alternate-home is-home-layout-2' : ''}`} aria-label="飞象AI题库编辑器">

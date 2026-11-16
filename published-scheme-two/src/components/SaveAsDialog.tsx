@@ -16,9 +16,9 @@ const saveAsOptions: Array<{
   tone: 'list' | 'paper'
 }> = [
   {
-    kind: '题单',
+    kind: '练习',
     glyph: '题',
-    title: '保存为题单',
+    title: '保存为练习',
     description: '平时练习、布置作业，无需分值',
     tone: 'list',
   },

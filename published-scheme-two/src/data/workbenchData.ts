@@ -14,7 +14,7 @@ export function formatDefaultDocumentTitle(date = new Date()) {
 }
 
 export function isDefaultDocumentTitle(title: string) {
-  return /^\d{4}\.\d{2}\.\d{2}(?:题单|练习)(?:（\d+）)?$/.test(title.trim())
+  return /^\d{4}\.\d{2}\.\d{2}(?:练习|\u9898\u5355)(?:（\d+）)?$/.test(title.trim())
 }
 
 export const sourceOptions: SourceOption[] = [
@@ -37,13 +37,13 @@ export const sourceRecords: SourceRecord[] = [
   { id: 'paper-4', sourceType: 'paper', title: '2026-2027学年北京市朝阳区八年级（上）期末统考数学试卷', meta: '八年级上 · 北京市朝阳区', questionCount: 28, highlight: '期末', tags: ['委托录题'], updatedAt: '2026/08/11', usageCount: 1206 },
   { id: 'paper-5', sourceType: 'paper', title: '2026-2027学年北京市海淀区八年级（上）单元测试数学试卷', meta: '八年级上 · 北京市海淀区', questionCount: 20, highlight: '单元测试', tags: ['区教研'], creatorName: '李老师', updatedAt: '2026/08/09', usageCount: 1138 },
   { id: 'paper-6', sourceType: 'paper', title: '2026年北京市中考数学模拟试卷（一）', meta: '九年级 · 北京市', questionCount: 28, highlight: '模拟题', tags: ['中考'], creatorName: '陈老师', updatedAt: '2026/08/07', usageCount: 1086 },
-  { id: 'sync-1', sourceType: 'sync', title: '一次函数概念课时过关：函数、图象与表达式', meta: '同步练习 / 基础', questionCount: 12, highlight: '系列题单', description: '概念辨析、图象识别与表达式求值。', sourceName: '多维导学案', usageCount: 968, updatedAt: '2026/08/13' },
+  { id: 'sync-1', sourceType: 'sync', title: '一次函数概念课时过关：函数、图象与表达式', meta: '同步练习 / 基础', questionCount: 12, highlight: '系列练习', description: '概念辨析、图象识别与表达式求值。', sourceName: '多维导学案', usageCount: 968, updatedAt: '2026/08/13' },
   { id: 'sync-2', sourceType: 'sync', title: '一次函数图象与性质同步精练', meta: '同步练习 / 中等', questionCount: 16, highlight: '精品', description: '从图象走向、交点到性质迁移的课时巩固。', sourceName: '朝阳区教研精选', usageCount: 842, updatedAt: '2026/08/12' },
   { id: 'sync-3', sourceType: 'sync', title: '待定系数法题型突破：从条件到解析式', meta: '同步练习 / 中等', questionCount: 14, highlight: '高频易错', description: '集中突破代入、列式与参数计算。', sourceName: '八年级数学备课组', usageCount: 786, updatedAt: '2026/08/10' },
   { id: 'sync-4', sourceType: 'sync', title: '一次函数实际应用：审题与建模', meta: '同步练习 / 提升', questionCount: 10, highlight: '名师推荐', description: '真实情境中提取变量关系，建立函数模型。', sourceName: '北京八十中', usageCount: 669, updatedAt: '2026/08/08' },
-  { id: 'sync-5', sourceType: 'sync', title: '一次函数单元小结与自测', meta: '同步练习 / 中等', questionCount: 18, highlight: '章节复习', description: '覆盖概念、图象、解析式和应用四类核心考点。', sourceName: '飞象精品题单', usageCount: 621, updatedAt: '2026/08/07' },
-  { id: 'sync-6', sourceType: 'sync', title: '二元一次方程组课前预习题单', meta: '同步练习 / 基础', questionCount: 8, highlight: '新课预习', description: '从实际问题认识二元一次方程与方程组。', sourceName: '同步备课资源', usageCount: 512, updatedAt: '2026/08/06' },
-  { id: 'special-1', sourceType: 'special', title: '一次函数思维进阶题单', meta: '专题 / 较难', questionCount: 18, highlight: '名师推荐', description: '覆盖图象、性质、交点与综合应用。', sourceName: '北京中考专题', usageCount: 1374, updatedAt: '2026/08/13' },
+  { id: 'sync-5', sourceType: 'sync', title: '一次函数单元小结与自测', meta: '同步练习 / 中等', questionCount: 18, highlight: '章节复习', description: '覆盖概念、图象、解析式和应用四类核心考点。', sourceName: '飞象精品练习', usageCount: 621, updatedAt: '2026/08/07' },
+  { id: 'sync-6', sourceType: 'sync', title: '二元一次方程组课前预习练习', meta: '同步练习 / 基础', questionCount: 8, highlight: '新课预习', description: '从实际问题认识二元一次方程与方程组。', sourceName: '同步备课资源', usageCount: 512, updatedAt: '2026/08/06' },
+  { id: 'special-1', sourceType: 'special', title: '一次函数思维进阶练习', meta: '专题 / 较难', questionCount: 18, highlight: '名师推荐', description: '覆盖图象、性质、交点与综合应用。', sourceName: '北京中考专题', usageCount: 1374, updatedAt: '2026/08/13' },
   { id: 'special-2', sourceType: 'special', title: '函数选择题高频考法：审题与快速提分', meta: '专题 / 中等', questionCount: 15, highlight: '培优突破', description: '高频选择题与排除方法，适合阶段复习。', sourceName: '朝阳区教研室', usageCount: 1328, updatedAt: '2026/08/12' },
   { id: 'special-3', sourceType: 'special', title: '真实情境建模：一次函数应用专项', meta: '专题 / 中等', questionCount: 12, highlight: '精品', description: '从真实语境中提取数量关系，完成建模。', sourceName: '朝阳情境题专题', usageCount: 842, updatedAt: '2026/08/10' },
   { id: 'special-4', sourceType: 'special', title: '一次函数易错二练：错因到变式', meta: '专题 / 中等', questionCount: 10, highlight: '高频易错', description: '定位符号、图象与取值范围错误。', sourceName: '易错方法系列', usageCount: 686, updatedAt: '2026/08/08' },
@@ -242,7 +242,7 @@ export const historySummaries: HistoryDocumentSummary[] = [
   },
   {
     id: 'doc-layered',
-    title: '2026.10.31题单',
+    title: '2026.10.31练习',
     gradeSubject: '八年级数学 · 人教版',
     schoolStage: '小学',
     subjectName: '语文',

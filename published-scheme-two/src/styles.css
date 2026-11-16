@@ -114,6 +114,11 @@
   gap: 8px;
 }
 
+.workspace-header.is-split .header-workbench-brand > .document-editor-controls.is-compact {
+  flex: 0 0 auto;
+  gap: 0;
+}
+
 .workspace-header.is-split .header-workbench-brand > div {
   gap: 8px;
 }
@@ -174,6 +179,11 @@
   align-items: center;
   min-width: 0;
   gap: 10px;
+}
+
+.header-workbench-brand > .document-editor-controls.is-compact {
+  flex: 0 0 auto;
+  gap: 0;
 }
 
 .header-workbench-mark {
@@ -1306,6 +1316,91 @@
 .document-editor-controls.is-expanded .document-answer-mode {
   height: 32px;
   background: var(--common_bg2_color);
+}
+
+.document-editor-controls.is-compact {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  margin: 0;
+  gap: 0;
+}
+
+.document-kind-compact-trigger {
+  display: inline-flex;
+  height: 26px;
+  padding: 0 7px 0 9px;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: 7px;
+  color: var(--fx-text-secondary);
+  background: rgb(255 255 255 / .72);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.document-kind-compact-trigger:hover,
+.document-kind-compact-trigger[aria-expanded="true"] {
+  border-color: rgb(47 108 246 / .38);
+  color: var(--fx-primary);
+  background: var(--common_bg2_color);
+}
+
+.document-kind-compact-trigger > i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgb(245 158 11 / .12);
+}
+
+.document-kind-compact-menu {
+  position: absolute;
+  z-index: 96;
+  top: calc(100% + 7px);
+  left: 0;
+  width: 238px;
+  padding: 6px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: 10px;
+  background: var(--common_bg2_color);
+  box-shadow: 0 12px 30px rgb(31 45 61 / .16);
+}
+
+.document-kind-compact-menu > button {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--fx-text-primary);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.document-kind-compact-menu > button:hover,
+.document-kind-compact-menu > button.is-selected {
+  background: var(--fx-primary-selected);
+}
+
+.document-kind-compact-menu b {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.document-kind-compact-menu small {
+  color: var(--fx-text-secondary);
+  font-size: 10px;
+  line-height: 1.45;
 }
 
 .editor-empty-heading .document-editor-toolbar {
@@ -4347,6 +4442,18 @@
   padding: 0 2px;
   justify-content: flex-end;
   background: transparent;
+}
+
+.document-action-context {
+  display: flex;
+  min-width: 0;
+  margin-right: auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.document-action-context .document-switcher {
+  margin-right: 0;
 }
 
 .document-switcher {
@@ -9407,7 +9514,7 @@
   grid-template-columns: 176px minmax(0, 1fr);
 }
 
-/* 方案二：题单与添加内容并列展示；方案一的弹窗样式保持不变。 */
+/* 方案二：练习与添加内容并列展示；方案一的弹窗样式保持不变。 */
 .recent-create-wrap {
   position: relative;
   width: 72px;
@@ -9515,7 +9622,7 @@
   box-shadow: 4px 0 16px var(--common_shadow3_color);
 }
 
-/* 题单首页：先新建 / 打开，再进入添加内容的编辑流程。 */
+/* 练习首页：先新建 / 打开，再进入添加内容的编辑流程。 */
 .document-center {
   display: grid;
   min-width: var(--fx-page-min-width);
@@ -10373,7 +10480,7 @@
   background-size: 28px 28px;
 }
 
-/* 从首页进入任一选题任务时，让题单编辑区随题库展开自然向右落位。 */
+/* 从首页进入任一选题任务时，让练习编辑区随题库展开自然向右落位。 */
 .workspace-shell.is-split-source:not(.is-alternate-home) > .editor-scroll {
   animation: workspace-editor-push-right 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
   will-change: transform;
@@ -12176,7 +12283,7 @@
 .chapter-question-list footer button.is-add,
 .legacy-question-card footer button.is-add { min-width: 72px; padding-right: 12px; padding-left: 12px; }
 
-/* 阶段一 · 迭代 145：品牌、题单联动与单题 AI 演示增强 */
+/* 阶段一 · 迭代 145：品牌、练习联动与单题 AI 演示增强 */
 .add-workspace-tabs { padding-left: 142px; }
 .add-workspace-brand { gap: 7px; }
 .feixiang-ai-library-logo { display: block; width: 30px; height: 30px; flex: 0 0 auto; }
@@ -13636,7 +13743,7 @@
   font-weight: 600;
 }
 
-/* 阶段一 · 迭代 183：窄题单点击题目后悬浮展示答案解析 */
+/* 阶段一 · 迭代 183：窄练习点击题目后悬浮展示答案解析 */
 .editor-question-answer-popover {
   display: none;
 }
@@ -13706,7 +13813,7 @@
 .question-fly-card span { display: grid; width: 18px; height: 18px; place-items: center; border-radius: 50%; color: var(--common_fg_color); background: var(--fx-primary); font-size: 13px; }
 .question-fly-card strong { font-weight: 600; }
 
-/* 默认卡片是添加内容首页；进入资源后，资源区占主宽度，题单保持右侧窄栏。 */
+/* 默认卡片是添加内容首页；进入资源后，资源区占主宽度，练习保持右侧窄栏。 */
 .composition-hub--resource-first .composition-hub-scroll { padding: 48px 20px 28px; }
 
 .recent-browse-panel {
@@ -13927,7 +14034,7 @@
   margin-left: clamp(48px, 8vw, 164px);
 }
 
-/* 首页搜索框与下方题单列共用同一组横向边界。 */
+/* 首页搜索框与下方练习列共用同一组横向边界。 */
 .global-resource-search.is-full-workspace.is-home-aligned {
   position: absolute;
   left: 246px;
@@ -14874,7 +14981,7 @@ button.global-resource-search-condition:hover { color: var(--fx-primary); border
   padding-left: 44px;
 }
 
-/* 题单纸张表头：学生信息、题单名称 */
+/* 练习纸张表头：学生信息、练习名称 */
 .homework-paper-header {
   width: min(100%, 648px);
   margin: 0 auto;
@@ -15007,7 +15114,7 @@ button.global-resource-search-condition:hover { color: var(--fx-primary); border
   }
 }
 
-/* 真正的右侧题单小窗：资源工作区打开时，题单是 shell 的直接子级 */
+/* 真正的右侧练习小窗：资源工作区打开时，练习是 shell 的直接子级 */
 .workspace-shell.is-split-source:not(.is-alternate-home) > .editor-scroll .editor-empty-heading,
 .workspace-shell.is-split-source:not(.is-alternate-home) > .editor-scroll .editor-document-heading {
   padding: 36px 18px 10px;
@@ -15055,7 +15162,7 @@ button.global-resource-search-condition:hover { color: var(--fx-primary); border
   gap: 4px;
 }
 
-/* 资源分屏右侧题单：不依赖视口宽度，直接收窄灰区并拉开纸张顶部距离 */
+/* 资源分屏右侧练习：不依赖视口宽度，直接收窄灰区并拉开纸张顶部距离 */
 .workspace-shell.is-split-source.is-alternate-home .document-center-draft .document-action-rail {
   padding: 2px 8px;
 }

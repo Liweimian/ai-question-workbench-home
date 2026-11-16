@@ -4,7 +4,7 @@ import { Check, Download, FileText, History, Maximize2, MoreHorizontal, Plus, Pr
 import type { DocumentOutputLock, DocumentSyncState, HistoryDocumentSummary, WorkbenchDocument, WorkbenchDocumentKind } from '../prototype/types'
 import { getDocumentKind, getPaperAnswerMode } from '../utils/documentEditorUtils'
 import { formatRecentEditedMeta, selectRecentEditedSummaries } from '../utils/recentEditedDocuments'
-import { SaveAsDialog } from './SaveAsDialog'
+import { DocumentEditorControls } from './DocumentEditorControls'
 
 interface DocumentActionToolbarProps {
   document: WorkbenchDocument
@@ -13,7 +13,7 @@ interface DocumentActionToolbarProps {
   syncState: DocumentSyncState
   assignmentOutdated: boolean
   onSave: (kind?: WorkbenchDocumentKind) => void | Promise<boolean | void>
-  requiresSaveKind?: boolean
+  onKindChange: (kind: WorkbenchDocumentKind) => void
   onAssign: () => void
   onMarkOutput: (lock: DocumentOutputLock) => void
   onRequirePaperScores?: (action: 'preview' | 'assign' | 'download' | 'print' | 'share') => boolean
@@ -34,16 +34,13 @@ function escapeHtml(value: string) {
     .replace(/'/g, '&#039;')
 }
 
-export function DocumentActionToolbar({ document, canSave, contentBusy, syncState, assignmentOutdated, onSave, requiresSaveKind = false, onAssign, onMarkOutput, onRequirePaperScores, onExpand, onCreateNew, onSaveAndCreateNew, onGenerateAnswerSheet, recentDocuments = [], onOpenRecentDocument }: DocumentActionToolbarProps) {
+export function DocumentActionToolbar({ document, canSave, contentBusy, syncState, assignmentOutdated, onSave, onKindChange, onAssign, onMarkOutput, onRequirePaperScores, onExpand, onCreateNew, onSaveAndCreateNew, onGenerateAnswerSheet, recentDocuments = [], onOpenRecentDocument }: DocumentActionToolbarProps) {
   const [assignOpen, setAssignOpen] = useState(false)
-  const [saveAsOpen, setSaveAsOpen] = useState(false)
   const [savePending, setSavePending] = useState(false)
-  const [saveForNew, setSaveForNew] = useState(false)
   const [newDocumentOpen, setNewDocumentOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const [documentSwitcherOpen, setDocumentSwitcherOpen] = useState(false)
   const assignRef = useRef<HTMLSpanElement>(null)
-  const saveRef = useRef<HTMLSpanElement>(null)
   const moreRef = useRef<HTMLSpanElement>(null)
   const documentSwitcherRef = useRef<HTMLDivElement>(null)
   const documentSwitcherCloseTimerRef = useRef<number | null>(null)
@@ -55,16 +52,14 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
     && hasQuestions
 
   useEffect(() => {
-    if (!assignOpen && !saveAsOpen && !moreOpen && !documentSwitcherOpen) return
+    if (!assignOpen && !moreOpen && !documentSwitcherOpen) return
     const closeOnOutside = (event: MouseEvent) => {
       if (!assignRef.current?.contains(event.target as Node)) setAssignOpen(false)
-      if (!saveRef.current?.contains(event.target as Node) && !savePending) setSaveAsOpen(false)
       if (!moreRef.current?.contains(event.target as Node)) setMoreOpen(false)
       if (!documentSwitcherRef.current?.contains(event.target as Node)) setDocumentSwitcherOpen(false)
     }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setAssignOpen(false)
-      if (event.key === 'Escape' && !savePending) setSaveAsOpen(false)
       if (event.key === 'Escape') setMoreOpen(false)
       if (event.key === 'Escape') setDocumentSwitcherOpen(false)
     }
@@ -74,7 +69,7 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
       window.document.removeEventListener('mousedown', closeOnOutside)
       window.document.removeEventListener('keydown', closeOnEscape)
     }
-  }, [assignOpen, saveAsOpen, savePending, moreOpen, documentSwitcherOpen])
+  }, [assignOpen, moreOpen, documentSwitcherOpen])
 
   const recentEditedDocuments = selectRecentEditedSummaries(recentDocuments).slice(0, 8)
 
@@ -95,14 +90,12 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
     if (documentSwitcherCloseTimerRef.current !== null) window.clearTimeout(documentSwitcherCloseTimerRef.current)
   }, [])
 
-  const saveDocument = async (kind?: WorkbenchDocumentKind, forNew = saveForNew) => {
+  const saveDocument = async (kind = getDocumentKind(document), forNew = false) => {
     setSavePending(true)
     try {
       const saved = forNew && onSaveAndCreateNew ? await onSaveAndCreateNew(kind) : await onSave(kind)
       if (saved !== false) {
-        setSaveAsOpen(false)
         if (forNew) onCreateNew?.(true)
-        setSaveForNew(false)
       }
     } finally {
       setSavePending(false)
@@ -111,18 +104,19 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
 
   const saveAndCreateNew = () => {
     setNewDocumentOpen(false)
-    setSaveForNew(true)
-    if (requiresSaveKind) {
-      setSaveAsOpen(true)
-      return
-    }
-    void saveDocument(undefined, true)
+    void saveDocument(getDocumentKind(document), true)
   }
 
-  const downloadDocument = () => {
+  const saveBeforeOutput = async () => {
+    const saved = await onSave(getDocumentKind(document))
+    return saved !== false
+  }
+
+  const downloadDocument = async () => {
     if (!hasQuestions) return
     if (onRequirePaperScores && !onRequirePaperScores('download')) return
-    const title = document.title.trim() || '未命名题单'
+    if (!(await saveBeforeOutput())) return
+    const title = document.title.trim() || '未命名练习'
     const safeTitle = title.replace(/[\\/:*?"<>|]/g, '-')
     const questions = document.questions.map((question, index) => {
       const options = question.options?.length
@@ -137,13 +131,14 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
     anchor.download = `${safeTitle}.doc`
     anchor.click()
     URL.revokeObjectURL(url)
-    MetisMessage.success('题单已开始下载')
+    MetisMessage.success('练习已开始下载')
     onMarkOutput('download')
   }
 
-  const printDocument = () => {
+  const printDocument = async () => {
     if (!hasQuestions) return
     if (onRequirePaperScores && !onRequirePaperScores('print')) return
+    if (!(await saveBeforeOutput())) return
     window.print()
     onMarkOutput('print')
   }
@@ -151,9 +146,8 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
   const shareDocument = async () => {
     if (!hasQuestions) return
     if (onRequirePaperScores && !onRequirePaperScores('share')) return
-    const saved = await onSave(getDocumentKind(document))
-    if (saved === false) return
-    const shareText = `${document.title.trim() || '未命名题单'}（共 ${document.questions.length} 道题）`
+    if (!(await saveBeforeOutput())) return
+    const shareText = `${document.title.trim() || '未命名练习'}（共 ${document.questions.length} 道题）`
     try {
       await navigator.clipboard.writeText(shareText)
       MetisMessage.success('已共享到校本库')
@@ -164,30 +158,33 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
   }
 
   return (
-    <div className="document-action-toolbar" role="toolbar" aria-label="题单操作">
-      <div className="document-switcher" ref={documentSwitcherRef} onMouseEnter={openDocumentSwitcher} onMouseLeave={scheduleDocumentSwitcherClose}>
-        <button type="button" className="document-recent-trigger" aria-label="最近编辑" title="最近编辑" aria-haspopup="menu" aria-expanded={documentSwitcherOpen} onFocus={openDocumentSwitcher} onClick={openDocumentSwitcher}>
-          <History size={17} />
-        </button>
-        <span className="document-switcher-current">{document.title.trim() || '未命名练习'}</span>
-        {documentSwitcherOpen ? (
-          <div className="document-switcher-menu" role="menu" aria-label="切换最近练习">
-            <strong>最近编辑</strong>
-            {recentEditedDocuments.length ? recentEditedDocuments.map((item) => {
-              const current = item.id === document.id
-              return (
-                <button type="button" role="menuitem" className={current ? 'is-current' : undefined} key={item.id} onClick={() => {
-                  setDocumentSwitcherOpen(false)
-                  if (!current) onOpenRecentDocument?.(item.id)
-                }}>
-                  <span className="document-switcher-file"><FileText size={16} /></span>
-                  <span><b>{item.title}</b><small>{formatRecentEditedMeta(item)}</small></span>
-                  {current ? <Check size={15} /> : null}
-                </button>
-              )
-            }) : <div className="document-switcher-empty">暂无最近编辑的练习</div>}
-          </div>
-        ) : null}
+    <div className="document-action-toolbar" role="toolbar" aria-label="练习操作">
+      <div className="document-action-context">
+        <div className="document-switcher" ref={documentSwitcherRef} onMouseEnter={openDocumentSwitcher} onMouseLeave={scheduleDocumentSwitcherClose}>
+          <button type="button" className="document-recent-trigger" aria-label="最近编辑" title="最近编辑" aria-haspopup="menu" aria-expanded={documentSwitcherOpen} onFocus={openDocumentSwitcher} onClick={openDocumentSwitcher}>
+            <History size={17} />
+          </button>
+          <span className="document-switcher-current">{document.title.trim() || '未命名练习'}</span>
+          {documentSwitcherOpen ? (
+            <div className="document-switcher-menu" role="menu" aria-label="切换最近练习">
+              <strong>最近编辑</strong>
+              {recentEditedDocuments.length ? recentEditedDocuments.map((item) => {
+                const current = item.id === document.id
+                return (
+                  <button type="button" role="menuitem" className={current ? 'is-current' : undefined} key={item.id} onClick={() => {
+                    setDocumentSwitcherOpen(false)
+                    if (!current) onOpenRecentDocument?.(item.id)
+                  }}>
+                    <span className="document-switcher-file"><FileText size={16} /></span>
+                    <span><b>{item.title}</b><small>{formatRecentEditedMeta(item)}</small></span>
+                    {current ? <Check size={15} /> : null}
+                  </button>
+                )
+              }) : <div className="document-switcher-empty">暂无最近编辑的练习</div>}
+            </div>
+          ) : null}
+        </div>
+        <DocumentEditorControls document={document} variant="compact" onKindChange={onKindChange} />
       </div>
       {answerSheetPaper ? (
         <>
@@ -222,31 +219,22 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
             type="borderless"
             icon={<Maximize2 size={16} />}
             onClick={onExpand}
-            data-track="/click/aiQuestionHome/enterFocusEditor | 展开题单编辑 | 无"
+            data-track="/click/aiQuestionHome/enterFocusEditor | 展开练习编辑 | 无"
           >展开</MetisButton>
         </span>
       ) : null}
-      <span className="document-action-item is-save" ref={saveRef}>
+      <span className="document-action-item is-save">
         <MetisButton
           type="borderless"
           icon={<Save size={16} />}
           disabled={!canSave || saving || contentBusy || savePending}
-          aria-expanded={saveAsOpen}
           onClick={() => {
             setAssignOpen(false)
             setMoreOpen(false)
-            setSaveForNew(false)
-            if (requiresSaveKind) setSaveAsOpen((open) => !open)
-            else void saveDocument()
+            void saveDocument()
           }}
           data-track="/click/aiQuestionHome/save | 保存当前草稿 | 无"
         >{saving ? '保存中…' : '保存'}</MetisButton>
-        <SaveAsDialog
-          open={saveAsOpen}
-          pending={savePending || saving}
-          onClose={() => { if (!savePending && !saving) setSaveAsOpen(false) }}
-          onSelect={(kind) => { void saveDocument(kind) }}
-        />
       </span>
       {getDocumentKind(document) !== '试卷' ? <span className="document-action-item is-assign" ref={assignRef}>
         <MetisButton
@@ -262,8 +250,8 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
           data-track="/click/aiQuestionHome/assign | 布置当前内容 | 无"
         >布置</MetisButton>
         {assignOpen ? (
-          <div className="document-action-popover" role="dialog" aria-label="确认布置题单">
-            <strong>{assignmentOutdated ? '确认更新布置' : '确认布置题单'}</strong>
+          <div className="document-action-popover" role="dialog" aria-label="确认布置练习">
+            <strong>{assignmentOutdated ? '确认更新布置' : '确认布置练习'}</strong>
             <span>{assignmentOutdated ? `将保存 ${document.questions.length} 道题的最新修改，并更新已布置版本。` : `当前共 ${document.questions.length} 道题，确认后将保存最新内容并进入布置状态。`}</span>
             <div><button type="button" onClick={() => setAssignOpen(false)}>取消</button><button type="button" className="is-primary" onClick={() => { onAssign(); setAssignOpen(false) }}>确认布置</button></div>
           </div>
@@ -282,9 +270,9 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
       <span className="document-action-item is-more" ref={moreRef}>
         <MetisButton type="borderless" icon={<MoreHorizontal size={17} />} aria-label="更多" aria-expanded={moreOpen} disabled={!hasQuestions || saving || contentBusy} onClick={() => { setMoreOpen((open) => !open); setAssignOpen(false) }}>更多</MetisButton>
         {moreOpen ? (
-          <div className="document-action-popover document-action-more-menu" role="menu" aria-label="更多题单操作">
-            <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { downloadDocument(); setMoreOpen(false) }}><Download size={16} />下载</button>
-            <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { printDocument(); setMoreOpen(false) }}><Printer size={16} />打印</button>
+          <div className="document-action-popover document-action-more-menu" role="menu" aria-label="更多练习操作">
+            <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { void downloadDocument(); setMoreOpen(false) }}><Download size={16} />下载</button>
+            <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { void printDocument(); setMoreOpen(false) }}><Printer size={16} />打印</button>
             <button type="button" role="menuitem" disabled={!hasQuestions} onClick={() => { void shareDocument(); setMoreOpen(false) }}><Share2 size={16} />共享到校本库</button>
           </div>
         ) : null}

@@ -87,7 +87,7 @@ export function CompositionHub(props: CompositionHubProps) {
       <div className="composition-hub-scroll">
         <div className="composition-overview">
           <header className="composition-overview-heading">
-            <div><strong>从左侧添加内容</strong><small>选中的题目会加入右侧当前题单</small></div>
+            <div><strong>从左侧添加内容</strong><small>选中的题目会加入右侧当前练习</small></div>
           </header>
 
           <section className="composition-resource-grid" aria-label="题库资源入口">

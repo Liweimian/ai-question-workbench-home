@@ -78,7 +78,7 @@ const commandOptions: Array<{
   tag: string
   icon: typeof Search
 }> = [
-  { mode: 'resource', title: '飞象题库选题', description: '浏览练习册、试卷、同步题单和专题', tag: '平台资源', icon: Search },
+  { mode: 'resource', title: '飞象题库选题', description: '浏览练习册、试卷、同步练习和专题', tag: '平台资源', icon: Search },
   { mode: 'district', title: '区本题库选题', description: '浏览区域沉淀的试卷、练习册和章节题目', tag: '区域资源', icon: School },
   { mode: 'school', title: '校本题库选题', description: '浏览本校沉淀的试卷、练习册和章节题目', tag: '本校资源', icon: School },
   { mode: 'upload', title: '上传文件 AI 录题', description: '上传 PDF、Word 或图片，识别并录入原题', tag: '文件识别', icon: FileUp },
@@ -328,7 +328,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
                 {props.createError ? <div className="inline-error" role="alert">{props.createError}</div> : null}
                 {props.createPreview.length > 0 ? (
                   <div className="create-preview-block structured-create-preview">
-                    <div className="create-preview-heading"><strong>生成预览</strong><span>{props.createPreview.length} 道 · 确认后添加到题单</span></div>
+                    <div className="create-preview-heading"><strong>生成预览</strong><span>{props.createPreview.length} 道 · 确认后添加到练习</span></div>
                     <div className="create-preview-list">
                       {props.createPreview.map((question, index) => (
                         <article key={question.id}><span>{index + 1}</span><p>{question.stem}</p></article>

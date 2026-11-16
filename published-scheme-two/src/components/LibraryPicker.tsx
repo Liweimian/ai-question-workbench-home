@@ -1064,7 +1064,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
 
           <div className="library-record-scroll">
             {props.listStatus === 'loading' ? <div className="library-loading"><span /><span /><span /><span /></div> : null}
-            {props.listStatus === 'error' ? <div className="library-feedback"><strong>资源加载失败</strong><p>当前题单不受影响。</p><MetisButton onClick={() => props.onResourceTypeChange(props.resourceType)}>重新加载</MetisButton></div> : null}
+            {props.listStatus === 'error' ? <div className="library-feedback"><strong>资源加载失败</strong><p>当前练习不受影响。</p><MetisButton onClick={() => props.onResourceTypeChange(props.resourceType)}>重新加载</MetisButton></div> : null}
             {props.listStatus === 'success' && visibleRecords.length === 0 ? <div className="library-feedback"><strong>没有找到匹配资源</strong><p>换个关键词或减少筛选条件试试。</p></div> : null}
             {props.listStatus === 'success' ? (
               <div className={`library-record-grid library-record-grid--${isAll ? 'all' : props.resourceType}`}>

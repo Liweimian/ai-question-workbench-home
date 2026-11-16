@@ -514,7 +514,7 @@ export function GlobalResourceSearchWorkspace({
         <div className="global-resource-search-state is-error" role="alert">
           <AlertCircle size={28} />
           <strong>搜索失败</strong>
-          <p>{errorMessage || '请稍后重试，当前题单不受影响。'}</p>
+          <p>{errorMessage || '请稍后重试，当前练习不受影响。'}</p>
           <MetisButton type="primary" onClick={onRetry}>重新搜索</MetisButton>
         </div>
       ) : null}
@@ -523,8 +523,8 @@ export function GlobalResourceSearchWorkspace({
         <div className="global-resource-search-compose-handoff">
           <span><Sparkles size={21} /></span>
           <div>
-            <strong>这句话更像是在组一份题单</strong>
-            <p>AI 组题会继续询问题量、难度和题型，并生成题单预览。</p>
+            <strong>这句话更像是在组一份练习</strong>
+            <p>AI 组题会继续询问题量、难度和题型，并生成练习预览。</p>
             <div>
               <MetisButton type="primary" onClick={() => onOpenCompose(submittedQuery)}>前往 AI 组题</MetisButton>
               <MetisButton type="bordered" onClick={() => onSearchExisting(submittedQuery)}>仍然搜索现有资源</MetisButton>

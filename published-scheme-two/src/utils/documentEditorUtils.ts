@@ -1,7 +1,7 @@
 import type { PaperAnswerMode, Question, WorkbenchDocument, WorkbenchDocumentKind } from '../prototype/types'
 
 export function getDocumentKind(document: WorkbenchDocument): WorkbenchDocumentKind {
-  return document.kind ?? '题单'
+  return document.kind ?? '练习'
 }
 
 export function getPaperAnswerMode(document: WorkbenchDocument): PaperAnswerMode {

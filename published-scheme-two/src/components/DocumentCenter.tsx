@@ -152,7 +152,7 @@ export function DocumentCenter({ embedded = false, draftContent, onOpenMyResourc
   return (
     <div className={`document-center${embedded ? ' is-embedded' : ''} is-layout-2`}>
       <aside className="document-center-sidebar">
-        {!embedded ? <div className="document-center-brand"><FeixiangAiLibraryLogo /><strong>AI 题单</strong></div> : null}
+        {!embedded ? <div className="document-center-brand"><FeixiangAiLibraryLogo /><strong>AI 练习</strong></div> : null}
         <DocumentCenterNavigation
           onOpenMyResources={onOpenMyResources}
           onOpenSource={onOpenSource}
@@ -164,7 +164,7 @@ export function DocumentCenter({ embedded = false, draftContent, onOpenMyResourc
 
       <main className="document-center-main">
         <header className="document-center-heading">
-          <div>{!embedded ? <span>题单工作台</span> : null}<h1>最近编辑</h1>{!embedded ? <p>继续上次的题单，或创建一份新题单。</p> : null}</div>
+          <div>{!embedded ? <span>练习工作台</span> : null}<h1>最近编辑</h1>{!embedded ? <p>继续上次的练习，或创建一份新练习。</p> : null}</div>
         </header>
 
         <div className="document-layout-two is-recent-hidden">

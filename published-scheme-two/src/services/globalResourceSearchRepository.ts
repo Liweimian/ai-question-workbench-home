@@ -125,7 +125,7 @@ const gradePattern = /(?:[一二三四五六七八九]年级|初[一二三]|高[
 const textbookPattern = /(?:人教版|北京课改版|北京版|北师大版|苏教版)/
 const questionTypePattern = /(?:选择题|填空题|解答题|计算题|应用题)/
 const difficultyPattern = /(?:基础|中等|提升|较难|困难)/
-const composePattern = /(?:(?:组|生成|编|出)(?:一|1)?(?:份|套|张)?[^，。，。]{0,12}(?:题单|作业|练习卷|试卷|卷子)|(?:AI\s*)?组题|组卷)/i
+const composePattern = /(?:(?:组|生成|编|出)(?:一|1)?(?:份|套|张)?[^，。，。]{0,12}(?:练习|作业|练习卷|试卷|卷子)|(?:AI\s*)?组题|组卷)/i
 const genericExercisePattern = /(?:章节练习|课时练习|单元练习|练习资源|(?:章节|课时|单元)?作业|练习)/
 const questionIntentPattern = /(?:单题|题目|找题|搜题|一道|一题|\d+道|选择题|填空题|解答题|计算题|应用题)/
 

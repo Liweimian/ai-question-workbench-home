@@ -29,7 +29,7 @@ export function EditorStudioShell({
   const [deletedPanelOpen, setDeletedPanelOpen] = useState(false)
 
   return (
-    <div className="editor-studio" aria-label="线上题单编辑器">
+    <div className="editor-studio" aria-label="线上练习编辑器">
       <div className="editor-studio-toolbar-row">
         <ExpandedDocumentToolbar
           document={document}
