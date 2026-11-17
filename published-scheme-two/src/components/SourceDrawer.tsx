@@ -87,7 +87,7 @@ const commandOptions: Array<{
 ]
 
 const modeTitles: Record<AddQuestionMode, string> = {
-  menu: '添加题目',
+  menu: '从以下方式添加题目：',
   resource: '从飞象题库选题',
   district: '从区本题库选题',
   school: '从校本题库选题',

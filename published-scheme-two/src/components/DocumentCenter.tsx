@@ -73,7 +73,7 @@ export function DocumentCenterNavigation({ activeKey, onOpenMyResources, onOpenS
 
   return (
     <nav className="document-center-nav" aria-label="添加题目导航">
-      <div className="document-center-nav-title">添加题目</div>
+      <div className="document-center-nav-title">从以下方式添加题目：</div>
       <section className="document-center-nav-group is-feixiang" aria-label="飞象资源">
         <button type="button" className={`is-library-task${activeKey === 'chapter' ? ' is-active' : ''}`} onClick={run(() => onOpenSource('resource', { libraryView: 'chapter' }))}><ListTree size={17} /><span>按章节/知识点选题</span></button>
         <button type="button" className={`is-library-task${activeKey === 'sync' ? ' is-active' : ''}`} onClick={run(() => onOpenSource('resource', { libraryView: 'sync' }))}><Layers3 size={17} /><span>从同步练习选题</span></button>

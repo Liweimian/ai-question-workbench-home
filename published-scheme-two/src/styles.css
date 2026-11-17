@@ -5476,6 +5476,12 @@
 
 .block-command-group + .block-command-group {
   padding-top: 7px;
+  border-top: 1px solid var(--fx-line-subtle);
+}
+
+.block-command-group.is-continuation {
+  padding-top: 0;
+  border-top: 0;
 }
 
 .block-command-group h4 {

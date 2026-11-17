@@ -27,6 +27,8 @@ interface EmptyCanvasProps {
   onOpenAssistant: (prompt?: string) => void
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onOpenMyResources?: () => void
+  onOpenAiSearch?: () => void
+  onOpenRecentBrowse?: () => void
   hideActionToolbar?: boolean
   onKindChange: (kind: WorkbenchDocumentKind) => void
   onAnswerModeChange: (mode: PaperAnswerMode) => void
@@ -216,7 +218,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         <div className="empty-block-list">
           {blockIds.map((blockId) => (
             <div className={`empty-first-block${blockId === 'initial' && !props.document.intro ? ' is-add-only' : ''}`} role="group" aria-label="练习内容块" key={blockId}>
-              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenMyResources={props.onOpenMyResources} />
+              <BlockAddMenu empty openRequest={addMenuRequests[blockId] ?? 0} onOpenAdd={props.onOpenAdd} onInsertUtility={insertUtility} onOpenMyResources={props.onOpenMyResources} onOpenAiSearch={props.onOpenAiSearch} onOpenRecentBrowse={props.onOpenRecentBrowse} />
               {blockId !== 'initial' || props.document.intro ? (
                 <div
                   className="empty-block-input"

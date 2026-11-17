@@ -5,6 +5,7 @@ import {
   GripVertical,
   Plus,
   RefreshCw,
+  Search,
 } from 'lucide-react'
 import type { AddQuestionMode, OpenAddOptions } from '../prototype/types'
 import { aiQuestionEntries, libraryQuestionEntries } from '../data/addQuestionEntries'
@@ -17,13 +18,15 @@ interface BlockAddMenuProps {
   onOpenAdd: (mode: AddQuestionMode, options?: OpenAddOptions) => void
   onInsertUtility?: (action: UtilityAction) => void
   onOpenMyResources?: () => void
+  onOpenAiSearch?: () => void
+  onOpenRecentBrowse?: () => void
 }
 
 function isAiEntry(mode: AddQuestionMode) {
   return mode === 'create' || mode === 'compose'
 }
 
-export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onOpenMyResources }: BlockAddMenuProps) {
+export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onOpenMyResources, onOpenAiSearch, onOpenRecentBrowse }: BlockAddMenuProps) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -50,9 +53,8 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onOpen
     onOpenAdd(mode, view ? { libraryView: view } : undefined)
   }
 
-  const renderQuestionEntries = (entries: typeof libraryQuestionEntries, groupTitle: string) => (
-    <section className="block-command-group" key={groupTitle}>
-      <h4>{groupTitle}</h4>
+  const renderQuestionEntries = (entries: typeof libraryQuestionEntries, groupKey: string) => (
+    <section className="block-command-group" key={groupKey}>
       {entries.map(({ mode, view, label, icon: Icon }) => (
         <button
           type="button"
@@ -71,17 +73,32 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onOpen
   return (
     <div className={`block-add${empty ? ' block-add--empty' : ''}`} ref={rootRef}>
       <div className="block-add-control-row">
-        <button type="button" className="block-add-trigger" aria-expanded={open} aria-label="插入内容" title="插入内容" onClick={() => setOpen((current) => !current)}><Plus size={18} /></button>
+        <button type="button" className="block-add-trigger" aria-expanded={open} aria-label="添加题目" title="添加题目" onClick={() => setOpen((current) => !current)}><Plus size={18} /></button>
         {!empty ? <button type="button" className="block-drag-handle" draggable aria-label="拖动内容块"><GripVertical size={18} /></button> : null}
       </div>
       {open ? (
-        <div className="block-command-menu" role="menu" aria-label="插入内容">
-          <div className="block-command-heading"><strong>插入内容</strong></div>
+        <div className="block-command-menu" role="menu" aria-label="添加题目">
+          <div className="block-command-heading"><strong>从以下方式添加题目：</strong></div>
           <div className="block-command-scroll">
-            {renderQuestionEntries(libraryQuestionEntries, '题库选题')}
-            {renderQuestionEntries(aiQuestionEntries, 'AI 工具')}
+            {renderQuestionEntries(libraryQuestionEntries.slice(0, 5), 'feixiang')}
+            {renderQuestionEntries(libraryQuestionEntries.slice(5), 'library')}
+            {renderQuestionEntries(aiQuestionEntries, 'ai')}
+            <section className="block-command-group is-continuation">
+              <button
+                type="button"
+                role="menuitem"
+                className="is-ai"
+                onClick={() => {
+                  setOpen(false)
+                  if (onOpenAiSearch) onOpenAiSearch()
+                  else MetisMessage.info('请从左侧打开 AI智搜')
+                }}
+              >
+                <span className="block-command-icon"><Search size={16} /></span>
+                <span><strong>AI智搜</strong></span>
+              </button>
+            </section>
             <section className="block-command-group">
-              <h4>个人资源</h4>
               <button
                 type="button"
                 role="menuitem"
@@ -99,7 +116,8 @@ export function BlockAddMenu({ empty = false, openRequest = 0, onOpenAdd, onOpen
                 role="menuitem"
                 onClick={() => {
                   setOpen(false)
-                  MetisMessage.info('近期浏览记录会在这里展示')
+                  if (onOpenRecentBrowse) onOpenRecentBrowse()
+                  else MetisMessage.info('请从左侧打开最近浏览')
                 }}
               >
                 <span className="block-command-icon"><RefreshCw size={16} /></span>

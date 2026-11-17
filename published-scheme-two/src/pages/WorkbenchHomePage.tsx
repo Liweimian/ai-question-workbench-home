@@ -783,6 +783,8 @@ export function WorkbenchHomePage() {
         onOpenAssistant={openAssistant}
         onOpenAdd={openAdd}
         onOpenMyResources={() => openMyResources('全部')}
+        onOpenAiSearch={activateAiSearch}
+        onOpenRecentBrowse={openRecentBrowse}
         onKindChange={workbench.setDocumentKind}
         onAnswerModeChange={workbench.setAnswerMode}
         studioLayout={studioLayout}
@@ -821,6 +823,8 @@ export function WorkbenchHomePage() {
         onInsertUtility={workbench.insertUtility}
         onAdd={openAdd}
         onOpenMyResources={() => openMyResources('全部')}
+        onOpenAiSearch={activateAiSearch}
+        onOpenRecentBrowse={openRecentBrowse}
         onKindChange={workbench.setDocumentKind}
         onAnswerModeChange={workbench.setAnswerMode}
         onGenerateAnswerSheet={tryGenerateAnswerSheet}

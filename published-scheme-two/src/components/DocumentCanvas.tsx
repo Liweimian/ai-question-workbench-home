@@ -37,6 +37,8 @@ interface DocumentCanvasProps {
   onSectionTitleChange: (questionType: QuestionType, title: string) => void
   onAdd: (mode?: AddQuestionMode, options?: OpenAddOptions) => void
   onOpenMyResources?: () => void
+  onOpenAiSearch?: () => void
+  onOpenRecentBrowse?: () => void
   onInsertUtility: (action: UtilityAction) => void
   hideActionToolbar?: boolean
   onRequirePaperScores?: (action: 'preview' | 'assign' | 'download' | 'print' | 'share') => boolean
@@ -374,7 +376,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
       </div>
 
       <div className="editor-add-row">
-        <BlockAddMenu onOpenAdd={props.onAdd} onInsertUtility={props.onInsertUtility} onOpenMyResources={props.onOpenMyResources} />
+        <BlockAddMenu onOpenAdd={props.onAdd} onInsertUtility={props.onInsertUtility} onOpenMyResources={props.onOpenMyResources} onOpenAiSearch={props.onOpenAiSearch} onOpenRecentBrowse={props.onOpenRecentBrowse} />
       </div>
       </div>
     </article>
