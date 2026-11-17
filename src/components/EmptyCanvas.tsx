@@ -165,19 +165,10 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
         ) : null}
         <div className="document-title-with-save-state">
           <MetisInput value={props.document.title} onChange={(event) => props.onTitleChange(event.target.value)} className="empty-title-input" aria-label="题单标题" />
-          {props.syncState !== 'dirty' ? (
-            <span className={`document-auto-save-state is-${props.syncState}`} role="status">{props.syncState === 'saving' ? '保存中…' : props.syncState === 'error' ? '保存失败' : '已保存'}</span>
-          ) : null}
         </div>
       </header>
 
       <div className="editor-empty-content" onPointerDown={() => setShowExampleContent(false)}>
-        {props.studioLayout && props.document.questions.length === 0 ? (
-          <div className="editor-studio-paper-empty" role="status">
-            <h3>题单中还没有题目</h3>
-            <p>请先返回题目浏览区添加内容</p>
-          </div>
-        ) : null}
         <div className="empty-add-guide" role="note">
           <span className="empty-add-guide-icon"><ArrowLeft size={18} /></span>
           <span><strong>以下为示意内容，请从左侧添加题目</strong></span>

@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronRight,
   Download,
+  Eye,
   FileDown,
   FileText,
   History,
@@ -65,6 +66,7 @@ interface WorkspaceHeaderProps {
   currentDocumentId?: string
   onOpenRecentDocument?: (documentId: string) => void
   onKindChange: (kind: WorkbenchDocumentKind) => void
+  onAnswerModeChange: (mode: PaperAnswerMode) => void
 }
 
 export function WorkspaceHeader({
@@ -103,6 +105,7 @@ export function WorkspaceHeader({
   currentDocumentId,
   onOpenRecentDocument,
   onKindChange,
+  onAnswerModeChange,
 }: WorkspaceHeaderProps) {
   const hasQuestions = questionCount > 0
   const compactAnswerSheetPaper = !studioEditorOpen
@@ -228,6 +231,12 @@ export function WorkspaceHeader({
     MetisMessage.success('已生成打印预览（原型演示）')
   }
 
+  const previewDocument = () => {
+    if (!hasQuestions) return MetisMessage.error('请先添加题目')
+    if (onRequirePaperScores && !onRequirePaperScores('preview')) return
+    MetisMessage.info('预览面板已打开（原型演示）')
+  }
+
   const downloadWord = async () => {
     if (!hasQuestions) return MetisMessage.error('请先添加题目')
     if (onRequirePaperScores && !onRequirePaperScores('download')) return
@@ -312,7 +321,12 @@ export function WorkspaceHeader({
           ) : null}
         </div>
         {!studioEditorOpen ? (
-          <DocumentEditorControls document={currentDocument} variant="compact" onKindChange={onKindChange} />
+          <DocumentEditorControls
+            document={currentDocument}
+            variant="compact"
+            onKindChange={onKindChange}
+            onAnswerModeChange={onAnswerModeChange}
+          />
         ) : null}
       </div>
       <div className="header-actions">
@@ -326,6 +340,38 @@ export function WorkspaceHeader({
             onClick={onSidePanelOpen}
             data-track="/click/aiQuestionHome/openCompositionHub | 打开添加题目工作区 | 无"
           >添加题目</MetisButton>
+        ) : null}
+        {!studioEditorOpen ? (
+          <span className="header-icon-action" data-tooltip="展开编辑">
+            <MetisButton
+              type="borderless"
+              icon={<Maximize2 size={17} />}
+              aria-label="展开编辑"
+              onClick={() => {
+                setAssignOpen(false)
+                setMoreOpen(false)
+                onEnterEdit()
+              }}
+              data-track="/click/aiQuestionHome/enterFocusEditor | 展开练习编辑 | 无"
+            />
+          </span>
+        ) : null}
+        {!studioEditorOpen && documentKind === '试卷' ? (
+          <span className="header-icon-action" data-tooltip="预览">
+            <MetisButton type="borderless" icon={<Eye size={17} />} aria-label="预览" disabled={!hasQuestions || syncState === 'saving' || contentBusy} onClick={previewDocument} />
+          </span>
+        ) : null}
+        {!studioEditorOpen ? (
+          <span className="header-save header-icon-action" data-tooltip={syncState === 'saving' ? '保存中' : '保存'}>
+            <MetisButton
+              type="borderless"
+              icon={syncState === 'saving' ? <LoaderCircle className="is-spinning" size={17} /> : <Save size={17} />}
+              aria-label={syncState === 'saving' ? '保存中' : '保存'}
+              disabled={!canSave || syncState === 'saving' || contentBusy}
+              onClick={handleSaveClick}
+              data-track="/click/aiQuestionHome/save | 保存当前草稿 | 无"
+            />
+          </span>
         ) : null}
         <span className="header-icon-action" data-tooltip="新建练习">
           <MetisButton
@@ -341,18 +387,6 @@ export function WorkspaceHeader({
             {studioEditorOpen ? '新建' : undefined}
           </MetisButton>
         </span>
-        {!studioEditorOpen && !compactAnswerSheetPaper ? (
-          <span className="header-save header-icon-action" data-tooltip={syncState === 'saving' ? '保存中' : '保存'}>
-            <MetisButton
-              type="borderless"
-              icon={syncState === 'saving' ? <LoaderCircle className="is-spinning" size={17} /> : <Save size={17} />}
-              aria-label={syncState === 'saving' ? '保存中' : '保存'}
-              disabled={!canSave || syncState === 'saving' || contentBusy}
-              onClick={handleSaveClick}
-              data-track="/click/aiQuestionHome/save | 保存当前草稿 | 无"
-            />
-          </span>
-        ) : null}
         {!studioEditorOpen && documentKind !== '试卷' ? (
           <>
             <div className="header-assign header-icon-action" data-tooltip={assignmentOutdated ? '更新布置' : '布置练习'} ref={assignRef}>
@@ -379,21 +413,6 @@ export function WorkspaceHeader({
               ) : null}
             </div>
           </>
-        ) : null}
-        {!studioEditorOpen ? (
-          <span className="header-icon-action" data-tooltip="展开编辑">
-            <MetisButton
-              type="borderless"
-              icon={<Maximize2 size={17} />}
-              aria-label="展开编辑"
-              onClick={() => {
-                setAssignOpen(false)
-                setMoreOpen(false)
-                onEnterEdit()
-              }}
-              data-track="/click/aiQuestionHome/enterFocusEditor | 展开练习编辑 | 无"
-            />
-          </span>
         ) : null}
         {!studioEditorOpen ? (
           <div className="header-more header-icon-action" data-tooltip="更多" ref={moreRef}>

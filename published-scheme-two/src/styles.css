@@ -1362,8 +1362,8 @@
   z-index: 96;
   top: calc(100% + 7px);
   left: 0;
-  width: 238px;
-  padding: 6px;
+  width: 184px;
+  padding: 5px;
   border: 1px solid var(--fx-line-strong);
   border-radius: 10px;
   background: var(--common_bg2_color);
@@ -1374,9 +1374,8 @@
   display: flex;
   width: 100%;
   min-height: 48px;
-  padding: 8px 10px;
-  flex-direction: column;
-  align-items: flex-start;
+  padding: 8px;
+  align-items: center;
   justify-content: center;
   gap: 3px;
   border: 0;
@@ -1385,6 +1384,57 @@
   background: transparent;
   cursor: pointer;
   text-align: left;
+}
+
+.document-kind-compact-menu > button {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.document-kind-menu-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.document-kind-compact-menu > button.is-submenu-open {
+  background: var(--fx-primary-selected);
+}
+
+.document-kind-answer-submenu {
+  position: absolute;
+  z-index: 2;
+  top: 54px;
+  left: calc(100% + 4px);
+  width: 128px;
+  padding: 5px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: 10px;
+  background: var(--common_bg2_color);
+  box-shadow: 0 12px 30px rgb(31 45 61 / .16);
+  pointer-events: auto;
+}
+
+.document-kind-answer-submenu > button {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  border-radius: 7px;
+  color: var(--fx-text-primary);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.document-kind-answer-submenu > button:hover,
+.document-kind-answer-submenu > button.is-selected {
+  background: var(--fx-primary-selected);
 }
 
 .document-kind-compact-menu > button:hover,

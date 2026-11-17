@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronDown } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight } from 'lucide-react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
 import type { PaperAnswerMode, WorkbenchDocument, WorkbenchDocumentKind } from '../prototype/types'
 import { canSwitchAnswerMode, canSwitchDocumentKind, countUnsetScores, getDocumentKind, getPaperAnswerMode, needsPaperScoreSettings, sumQuestionScores } from '../utils/documentEditorUtils'
@@ -24,6 +24,7 @@ export function DocumentEditorControls({ document, variant, hideScoreHint = fals
   const totalScore = sumQuestionScores(document.questions)
   const scoreSettingsPending = needsPaperScoreSettings(document, kind)
   const [kindMenuOpen, setKindMenuOpen] = useState(false)
+  const [compactMenuLevel, setCompactMenuLevel] = useState<'kind' | 'answer-mode'>('kind')
   const [answerMenuOpen, setAnswerMenuOpen] = useState(false)
   const [menuRect, setMenuRect] = useState<{ top: number; left: number; width: number } | null>(null)
   const kindTriggerRef = useRef<HTMLButtonElement>(null)
@@ -37,14 +38,18 @@ export function DocumentEditorControls({ document, variant, hideScoreHint = fals
       if (!triggerRef.current?.contains(target) && !(event.target as HTMLElement).closest?.('.document-answer-mode-menu')) {
         setAnswerMenuOpen(false)
       }
-      if (!kindTriggerRef.current?.contains(target) && !kindMenuRef.current?.contains(target)) {
+      const insideCompactKindMenu = kindMenuRef.current?.contains(target)
+        || Boolean((event.target as HTMLElement).closest?.('.document-kind-answer-submenu'))
+      if (!kindTriggerRef.current?.contains(target) && !insideCompactKindMenu) {
         setKindMenuOpen(false)
+        setCompactMenuLevel('kind')
       }
     }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setAnswerMenuOpen(false)
         setKindMenuOpen(false)
+        setCompactMenuLevel('kind')
       }
     }
     window.document.addEventListener('mousedown', closeOnOutside)
@@ -69,6 +74,7 @@ export function DocumentEditorControls({ document, variant, hideScoreHint = fals
     }
     onKindChange(nextKind)
     setKindMenuOpen(false)
+    setCompactMenuLevel('kind')
   }
 
   const trySwitchAnswerMode = (mode: PaperAnswerMode) => {
@@ -79,6 +85,32 @@ export function DocumentEditorControls({ document, variant, hideScoreHint = fals
     }
     onAnswerModeChange?.(mode)
     setAnswerMenuOpen(false)
+    setKindMenuOpen(false)
+    setCompactMenuLevel('kind')
+  }
+
+  const openCompactKindMenu = () => {
+    setCompactMenuLevel('kind')
+    setKindMenuOpen((open) => !open)
+  }
+
+  const openCompactAnswerModes = () => {
+    if (typeLocked && kind !== '试卷') {
+      MetisMessage.info('当前文档已输出或生成答题卡，不能再切换练习 / 试卷类型')
+      return
+    }
+    setCompactMenuLevel('answer-mode')
+  }
+
+  const selectCompactAnswerMode = (mode: PaperAnswerMode) => {
+    if (mode !== answerMode && answerModeLocked) {
+      MetisMessage.info('当前不能切换作答方式')
+      return
+    }
+    if (kind !== '试卷') onKindChange('试卷')
+    onAnswerModeChange?.(mode)
+    setKindMenuOpen(false)
+    setCompactMenuLevel('kind')
   }
 
   if (variant === 'compact') {
@@ -88,26 +120,46 @@ export function DocumentEditorControls({ document, variant, hideScoreHint = fals
           type="button"
           ref={kindTriggerRef}
           className={`document-kind-compact-trigger${scoreSettingsPending ? ' has-pending-settings' : ''}`}
-          aria-label={`当前为${kind}，点击切换`}
+          aria-label={kind === '试卷' ? `当前为试卷，${answerMode}` : '当前为练习，点击切换'}
           aria-haspopup="listbox"
           aria-expanded={kindMenuOpen}
           title={scoreSettingsPending ? '试卷分值将在保存或输出时设置' : `当前为${kind}`}
-          onClick={() => setKindMenuOpen((open) => !open)}
+          onClick={openCompactKindMenu}
         >
-          <span>{kind}</span>
+          <span>{kind === '试卷' ? `试卷 · ${answerMode === '答题卡作答' ? '答题卡' : '原卷'}` : '练习'}</span>
           {scoreSettingsPending ? <i aria-hidden="true" /> : null}
           <ChevronDown size={13} />
         </button>
         {kindMenuOpen ? (
           <div className="document-kind-compact-menu" role="listbox" aria-label="切换文档类型" ref={kindMenuRef}>
             <button type="button" role="option" aria-selected={kind === '练习'} className={kind === '练习' ? 'is-selected' : undefined} onClick={() => trySwitchKind('练习')}>
-              <b>练习</b>
-              <small>日常练习，保存无需设置分值</small>
+              <span className="document-kind-menu-copy"><b>练习</b><small>日常练习，保存无需设置分值</small></span>
+              {kind === '练习' ? <Check size={15} aria-hidden="true" /> : null}
             </button>
-            <button type="button" role="option" aria-selected={kind === '试卷'} className={kind === '试卷' ? 'is-selected' : undefined} onClick={() => trySwitchKind('试卷')}>
-              <b>试卷</b>
-              <small>保存、下载、打印或共享时设置分值</small>
+            <button type="button" role="option" aria-selected={kind === '试卷'} className={`${kind === '试卷' ? 'is-selected ' : ''}${compactMenuLevel === 'answer-mode' ? 'is-submenu-open' : ''}`.trim() || undefined} onClick={openCompactAnswerModes}>
+              <span className="document-kind-menu-copy"><b>试卷</b><small>继续选择作答方式</small></span>
+              <ChevronRight size={15} aria-hidden="true" />
             </button>
+            {compactMenuLevel === 'answer-mode' ? (
+              <div className="document-kind-answer-submenu" role="listbox" aria-label="选择作答方式">
+                {answerModes.map((mode) => (
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={kind === '试卷' && mode === answerMode}
+                    className={kind === '试卷' && mode === answerMode ? 'is-selected' : undefined}
+                    key={mode}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      selectCompactAnswerMode(mode)
+                    }}
+                  >
+                    <span className="document-kind-menu-copy"><b>{mode}</b></span>
+                    {kind === '试卷' && mode === answerMode ? <Check size={15} aria-hidden="true" /> : null}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>

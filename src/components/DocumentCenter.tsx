@@ -1,5 +1,5 @@
 import { MetisButton } from '@yuanfudao/metis-web-component'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   BrainCircuit,
   BookOpen,
@@ -23,7 +23,32 @@ import { FeixiangAiLibraryLogo } from './ElephantIcon'
 import { formatRecentEditedMeta, selectRecentEditedSummaries } from '../utils/recentEditedDocuments'
 import { isRecentEditedPanelClosed, setRecentEditedPanelClosed } from '../utils/recentEditedPanelPreference'
 
-interface DocumentCenterProps {
+export interface DocumentCenterNavigationProps {
+  hasRecentContent?: boolean
+  recentPanelDismissed?: boolean
+  onOpenRecentPanel?: () => void
+  onOpenMyResources: () => void
+  onOpenSource: (mode: AddQuestionMode, options?: OpenAddOptions) => void
+  onOpenAiSearch: () => void
+  onOpenRecentBrowse: () => void
+  onNavigate?: () => void
+}
+
+export type DocumentCenterNavigationKey =
+  | 'chapter'
+  | 'workbook'
+  | 'paper'
+  | 'sync'
+  | 'special'
+  | 'school'
+  | 'my-resources'
+  | 'recent'
+  | 'upload'
+  | 'create'
+  | 'compose'
+  | 'ai-search'
+
+interface DocumentCenterProps extends Omit<DocumentCenterNavigationProps, 'hasRecentContent' | 'recentPanelDismissed' | 'onOpenRecentPanel' | 'onNavigate'> {
   embedded?: boolean
   draftContent?: ReactNode
   histories: HistoryDocumentSummary[]
@@ -42,6 +67,99 @@ const aiTaskEntries: Array<{ mode: AddQuestionMode; label: string; description: 
   { mode: 'create', label: 'AI 出题', description: '设置教材、知识点、题型和题量，生成几道新题', icon: Sparkles },
   { mode: 'compose', label: 'AI 组题', description: '直接说作业或试卷要求，从题库配题组卷', icon: BrainCircuit },
 ]
+
+export function DocumentCenterNavigation({ hasRecentContent = false, recentPanelDismissed = false, onOpenRecentPanel, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse, onNavigate }: DocumentCenterNavigationProps) {
+  const [isCollapsing, setIsCollapsing] = useState(false)
+  const collapseTimerRef = useRef<number | null>(null)
+
+  useEffect(() => () => {
+    if (collapseTimerRef.current !== null) window.clearTimeout(collapseTimerRef.current)
+  }, [])
+
+  const run = (action: () => void) => () => {
+    if (isCollapsing) return
+    setIsCollapsing(true)
+    collapseTimerRef.current = window.setTimeout(() => {
+      action()
+      onNavigate?.()
+    }, 180)
+  }
+
+  return (
+    <nav className={`document-center-nav${isCollapsing ? ' is-collapsing' : ''}`} aria-label="添加题目导航" aria-busy={isCollapsing || undefined}>
+      <section className="document-center-nav-group is-feixiang" aria-label="飞象资源">
+        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('resource', { libraryView: 'chapter' }))}><ListTree size={17} /><span>按章节/知识点选题</span></button>
+        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('resource', { libraryView: 'sync' }))}><Layers3 size={17} /><span>从同步练习选题</span></button>
+        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('resource', { libraryView: 'workbook' }))}><BookOpen size={17} /><span>从练习册选题</span></button>
+        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('resource', { libraryView: 'special' }))}><Target size={17} /><span>从专题练习选题</span></button>
+        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('resource', { libraryView: 'paper' }))}><FileText size={17} /><span>从试卷选题</span></button>
+      </section>
+      <section className="document-center-nav-group is-school" aria-label="校本资源">
+        <button type="button" className="is-library-task" onClick={run(() => onOpenSource('school'))}><School size={17} /><span>从校本题库选题</span></button>
+      </section>
+      <section className="document-center-nav-group is-ai" aria-label="AI 工具">
+        {aiTaskEntries.map(({ mode, label, description, icon: Icon }) => (
+          <button type="button" className="is-ai-task" key={mode} title={description} aria-label={label} onClick={run(() => onOpenSource(mode))}><Icon size={17} /><span>{label}</span></button>
+        ))}
+        <button type="button" className="is-ai-task" title="用一句话查找全站已有题目、练习和试卷" aria-label="AI智搜" onClick={run(onOpenAiSearch)} data-track="/click/aiQuestionHome/openAiSearch | 打开AI智搜 | 无"><Search size={17} /><span>AI智搜</span></button>
+      </section>
+      <section className="document-center-nav-group is-personal" aria-label="个人资源">
+        <button type="button" className="is-personal-task" onClick={run(onOpenMyResources)} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><FolderHeart size={17} /><span>从我的资源选题</span></button>
+        <button type="button" className="is-personal-task" onClick={run(onOpenRecentBrowse)} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><RefreshCw size={17} /><span>继续最近浏览</span></button>
+        {hasRecentContent && recentPanelDismissed && onOpenRecentPanel ? (
+          <button type="button" className="is-personal-task is-recent-edited-reopen" onClick={run(onOpenRecentPanel)}><Clock3 size={17} /><span>最近编辑</span></button>
+        ) : null}
+      </section>
+    </nav>
+  )
+}
+
+interface DocumentCenterIconNavigationProps extends Omit<DocumentCenterNavigationProps, 'hasRecentContent' | 'recentPanelDismissed' | 'onOpenRecentPanel' | 'onNavigate'> {
+  activeKey?: DocumentCenterNavigationKey
+}
+
+export function DocumentCenterIconNavigation({ activeKey, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse }: DocumentCenterIconNavigationProps) {
+  const item = (key: DocumentCenterNavigationKey, label: string, shortLabel: ReactNode, icon: ReactNode, action: () => void) => (
+    <button
+      key={key}
+      type="button"
+      className={`source-navigation-icon-button${activeKey === key ? ' is-active' : ''}`}
+      aria-label={label}
+      title={label}
+      aria-current={activeKey === key ? 'page' : undefined}
+      data-tooltip={label}
+      onClick={action}
+    >
+      <span className="source-navigation-short-icon" aria-hidden="true">{icon}</span>
+      <span className="source-navigation-short-label">{shortLabel}</span>
+    </button>
+  )
+
+  return (
+    <nav className="source-navigation-icon-nav" aria-label="添加题目快捷导航">
+      <section className="is-feixiang" aria-label="飞象资源">
+        {item('chapter', '章节/知识点选题', <>章节<br />知识点</>, <ListTree size={16} />, () => onOpenSource('resource', { libraryView: 'chapter' }))}
+        {item('sync', '同步练习选题', '同步', <Layers3 size={16} />, () => onOpenSource('resource', { libraryView: 'sync' }))}
+        {item('workbook', '练习册选题', '练习册', <BookOpen size={16} />, () => onOpenSource('resource', { libraryView: 'workbook' }))}
+        {item('special', '专题练习选题', '专题', <Target size={16} />, () => onOpenSource('resource', { libraryView: 'special' }))}
+        {item('paper', '试卷选题', '试卷', <FileText size={16} />, () => onOpenSource('resource', { libraryView: 'paper' }))}
+      </section>
+      <section className="is-school" aria-label="校本资源">
+        {item('school', '校本题库选题', '校本', <School size={16} />, () => onOpenSource('school'))}
+      </section>
+      <section className="is-ai" aria-label="AI 工具">
+        {item('upload', '上传文件 AI 录题', '录题', <FileInput size={16} />, () => onOpenSource('upload'))}
+        {item('create', 'AI 出题', '出题', <Sparkles size={16} />, () => onOpenSource('create'))}
+        {item('compose', 'AI 组题', '组题', <BrainCircuit size={16} />, () => onOpenSource('compose'))}
+        {item('ai-search', 'AI智搜', '智搜', <Search size={16} />, onOpenAiSearch)}
+      </section>
+      <section className="is-personal" aria-label="个人资源">
+        {item('my-resources', '我的资源选题', '我的', <FolderHeart size={16} />, onOpenMyResources)}
+        {item('recent', '最近浏览', '最近', <RefreshCw size={16} />, onOpenRecentBrowse)}
+      </section>
+    </nav>
+  )
+}
 
 export function DocumentCenter({ embedded = false, draftContent, histories, currentDocumentId, historyStatus, onOpenDocument, onOpenMyResources, onOpenSource, onOpenAiSearch, onOpenRecentBrowse, onReload }: DocumentCenterProps) {
   const [recentPanelClosed, setRecentPanelClosed] = useState(() => isRecentEditedPanelClosed())
@@ -107,26 +225,15 @@ export function DocumentCenter({ embedded = false, draftContent, histories, curr
     <div className={`document-center${embedded ? ' is-embedded' : ''} is-layout-2`}>
       <aside className="document-center-sidebar">
         {!embedded ? <div className="document-center-brand"><FeixiangAiLibraryLogo /><strong>AI 题单</strong></div> : null}
-        <nav className="document-center-nav" aria-label="题单导航">
-          <p>添加题目</p>
-          <button type="button" className="is-library-task" onClick={() => onOpenSource('resource', { libraryView: 'chapter' })}><ListTree size={17} /><span>按章节/知识点选题</span></button>
-          <button type="button" className="is-library-task" onClick={() => onOpenSource('resource', { libraryView: 'workbook' })}><BookOpen size={17} /><span>从练习册选题</span></button>
-          <button type="button" className="is-library-task" onClick={() => onOpenSource('resource', { libraryView: 'paper' })}><FileText size={17} /><span>从试卷选题</span></button>
-          <button type="button" className="is-library-task" onClick={() => onOpenSource('resource', { libraryView: 'sync' })}><Layers3 size={17} /><span>从同步练习选题</span></button>
-          <button type="button" className="is-library-task" onClick={() => onOpenSource('resource', { libraryView: 'special' })}><Target size={17} /><span>从专题练习选题</span></button>
-          <button type="button" className="is-library-task" onClick={() => onOpenSource('school')}><School size={17} /><span>从校本题库选题</span></button>
-          {aiTaskEntries.map(({ mode, label, description, icon: Icon }) => (
-            <button type="button" className="is-ai-task" key={mode} title={description} aria-label={label} onClick={() => onOpenSource(mode)}><Icon size={17} /><span>{label}</span></button>
-          ))}
-          <button type="button" className="is-ai-task" title="用一句话查找全站已有题目、练习和试卷" aria-label="AI智搜" onClick={onOpenAiSearch} data-track="/click/aiQuestionHome/openAiSearch | 打开AI智搜 | 无"><Search size={17} /><span>AI智搜</span></button>
-          <button type="button" className="is-personal-task" onClick={onOpenMyResources} data-track="/click/aiQuestionHome/openMyResources | 打开我的资源 | 无"><FolderHeart size={17} /><span>从我的资源选题</span></button>
-          <button type="button" className="is-personal-task" onClick={onOpenRecentBrowse} data-track="/click/aiQuestionHome/openRecentBrowse | 打开最近浏览 | 无"><RefreshCw size={17} /><span>继续最近浏览</span></button>
-          {hasRecentContent && panelDismissed ? (
-            <button type="button" className="is-personal-task is-recent-edited-reopen" onClick={openRecentPanel}>
-              <Clock3 size={17} /><span>最近编辑</span>
-            </button>
-          ) : null}
-        </nav>
+        <DocumentCenterNavigation
+          hasRecentContent={hasRecentContent}
+          recentPanelDismissed={panelDismissed}
+          onOpenRecentPanel={openRecentPanel}
+          onOpenMyResources={onOpenMyResources}
+          onOpenSource={onOpenSource}
+          onOpenAiSearch={onOpenAiSearch}
+          onOpenRecentBrowse={onOpenRecentBrowse}
+        />
       </aside>
 
       <main className="document-center-main">

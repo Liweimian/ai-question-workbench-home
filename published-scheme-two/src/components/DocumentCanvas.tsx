@@ -203,6 +203,7 @@ export function DocumentCanvas(props: DocumentCanvasProps) {
             assignmentOutdated={props.assignmentOutdated}
             onSave={props.onSave}
             onKindChange={props.onKindChange}
+            onAnswerModeChange={props.onAnswerModeChange}
             onAssign={props.onAssign}
             onMarkOutput={props.onMarkOutput}
             onRequirePaperScores={props.onRequirePaperScores}

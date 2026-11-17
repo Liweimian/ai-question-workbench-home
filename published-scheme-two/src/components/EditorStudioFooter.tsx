@@ -127,6 +127,13 @@ export function EditorStudioFooter({
         </MetisButton>
         <MetisButton
           type="borderless"
+          className="editor-studio-footer-btn"
+          icon={<Save size={17} />}
+          disabled={!canSave || saving || contentBusy || savePending}
+          onClick={() => { void saveDocument() }}
+        >{saving ? '保存中…' : '保存'}</MetisButton>
+        <MetisButton
+          type="borderless"
           className="editor-studio-footer-btn editor-studio-footer-answer-sheet"
           disabled={!hasQuestions || saving || contentBusy}
           onClick={onGenerateAnswerSheet}
@@ -139,6 +146,11 @@ export function EditorStudioFooter({
 
   return (
     <Tag className={`editor-studio-actions${placement === 'header' ? ' is-header' : ' is-footer'}`} aria-label="练习操作">
+      {getDocumentKind(document) === '试卷' ? (
+        <MetisButton type="borderless" className="editor-studio-footer-btn" icon={<Eye size={17} />} disabled={!hasQuestions} onClick={previewDocument}>
+          预览
+        </MetisButton>
+      ) : null}
       <span className="editor-studio-footer-save">
         <MetisButton
           type="borderless"
@@ -152,9 +164,11 @@ export function EditorStudioFooter({
           }}
         >{saving ? '保存中…' : '保存'}</MetisButton>
       </span>
-      <MetisButton type="borderless" className="editor-studio-footer-btn" icon={<Eye size={17} />} disabled={!hasQuestions} onClick={previewDocument}>
-        预览
-      </MetisButton>
+      {getDocumentKind(document) !== '试卷' ? (
+        <MetisButton type="borderless" className="editor-studio-footer-btn" icon={<Eye size={17} />} disabled={!hasQuestions} onClick={previewDocument}>
+          预览
+        </MetisButton>
+      ) : null}
       {getDocumentKind(document) !== '试卷' ? <span className="editor-studio-footer-assign" ref={assignRef}>
         <MetisButton
           type="borderless"

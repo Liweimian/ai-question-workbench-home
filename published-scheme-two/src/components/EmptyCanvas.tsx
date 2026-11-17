@@ -175,6 +175,7 @@ export function EmptyCanvas(props: EmptyCanvasProps) {
             assignmentOutdated={props.assignmentOutdated}
             onSave={props.onSave}
             onKindChange={props.onKindChange}
+            onAnswerModeChange={props.onAnswerModeChange}
             onAssign={props.onAssign}
             onMarkOutput={props.onMarkOutput}
             onRequirePaperScores={props.onRequirePaperScores}

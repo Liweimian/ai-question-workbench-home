@@ -249,6 +249,7 @@ export function SourceDrawer(props: SourceDrawerProps) {
           {props.mode === 'resource' || props.mode === 'school' ? (
             <LibraryPicker
               libraryKind={props.mode === 'school' ? 'school' : 'fly'}
+              hideResourceTabs={docked && props.mode === 'resource'}
               initialView={props.libraryInitialView}
               initialSearchKeyword={props.librarySearchKeyword}
               initialChapterNode={props.libraryChapterNode}

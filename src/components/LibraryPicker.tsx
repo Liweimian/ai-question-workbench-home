@@ -36,6 +36,7 @@ import {
 interface LibraryPickerProps {
   variant?: 'dialog' | 'home'
   libraryKind: 'fly' | 'school'
+  hideResourceTabs?: boolean
   initialView?: LibraryInitialView
   initialSearchKeyword?: string
   initialChapterNode?: string
@@ -847,7 +848,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
     <>
     {detailView}
     <div className={`library-picker ${variant === 'home' ? 'is-home' : 'is-dialog'}${detailRecord ? ' is-behind-detail' : ''}`} aria-hidden={Boolean(detailRecord)}>
-      {variant === 'dialog' ? <nav className="library-resource-tabs" aria-label="题库资源类型" role="tablist">
+      {variant === 'dialog' && !props.hideResourceTabs ? <nav className="library-resource-tabs" aria-label="题库资源类型" role="tablist">
         {visibleSourceOptions.map((option) => {
           const Icon = resourceIcons[option.type]
           const isActive = !isAll && !dialogChapter && props.resourceType === option.type

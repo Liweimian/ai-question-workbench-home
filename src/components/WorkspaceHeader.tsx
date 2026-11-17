@@ -4,6 +4,7 @@ import {
   Download,
   FileDown,
   LoaderCircle,
+  ListPlus,
   Maximize2,
   MoreHorizontal,
   PanelRightClose,
@@ -15,7 +16,7 @@ import {
 } from 'lucide-react'
 import { formatDefaultDocumentTitle } from '../data/workbenchData'
 import type { DocumentOutputLock, DocumentStatus, DocumentSyncState, PaperAnswerMode, WorkbenchDocumentKind } from '../prototype/types'
-import { ElephantIcon } from './ElephantIcon'
+import { FeixiangAiLibraryLogo } from './ElephantIcon'
 import { SaveAsDialog } from './SaveAsDialog'
 import { EditorStudioFooter } from './EditorStudioFooter'
 import type { WorkbenchDocument } from '../prototype/types'
@@ -280,20 +281,28 @@ export function WorkspaceHeader({
       ) : (
       <>
       <div className="header-workbench-brand" aria-label="当前题单">
-        <span className="header-workbench-mark"><ElephantIcon /></span>
+        <button
+          type="button"
+          className="header-workbench-mark header-workbench-home-trigger"
+          aria-label="返回题目浏览"
+          title="返回题目浏览"
+          onClick={onSidePanelOpen}
+        >
+          <FeixiangAiLibraryLogo />
+        </button>
         <div className="header-title-summary" title={`${documentTitle || fallbackTitle} · ${syncLabel}`}>
           <strong>{documentTitle?.trim() || fallbackTitle}</strong>
           <small className="header-save-summary">{saveSummary}</small>
         </div>
       </div>
       <div className="header-actions">
-        {!sidePanelOpen ? (
+        {studioEditorOpen && !sidePanelOpen ? (
           <MetisButton
-            type="bordered"
-            className={studioEditorOpen ? 'header-browse-back' : undefined}
-            icon={<PanelRightOpen size={17} />}
+            type="borderless"
+            className="header-browse-back header-create-with-label"
+            icon={<ListPlus size={17} />}
             aria-label="添加题目"
-            title="添加题目"
+            title="添加题目，返回题目浏览"
             onClick={onSidePanelOpen}
             data-track="/click/aiQuestionHome/openCompositionHub | 打开添加题目工作区 | 无"
           >添加题目</MetisButton>
@@ -419,6 +428,16 @@ export function WorkspaceHeader({
             onGenerateAnswerSheet={onStudioGenerateAnswerSheet}
             onRequirePaperScores={onRequirePaperScores}
           />
+        ) : null}
+        {studioEditorOpen && !sidePanelOpen ? (
+          <MetisButton
+            type="borderless"
+            className="header-create-with-label"
+            icon={<PanelRightClose size={17} />}
+            aria-label="收起编辑"
+            title="收起编辑，返回题目浏览"
+            onClick={onSidePanelOpen}
+          >收起</MetisButton>
         ) : null}
         {sidePanelOpen && !compactAnswerSheetPaper ? (
           <MetisButton

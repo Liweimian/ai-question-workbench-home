@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { MetisButton, MetisMessage } from '@yuanfudao/metis-web-component'
-import { Check, Download, FileText, History, Maximize2, MoreHorizontal, Plus, Printer, Save, Send, Share2 } from 'lucide-react'
-import type { DocumentOutputLock, DocumentSyncState, HistoryDocumentSummary, WorkbenchDocument, WorkbenchDocumentKind } from '../prototype/types'
+import { Check, Download, Eye, FileText, History, Maximize2, MoreHorizontal, Plus, Printer, Save, Send, Share2 } from 'lucide-react'
+import type { DocumentOutputLock, DocumentSyncState, HistoryDocumentSummary, PaperAnswerMode, WorkbenchDocument, WorkbenchDocumentKind } from '../prototype/types'
 import { getDocumentKind, getPaperAnswerMode } from '../utils/documentEditorUtils'
 import { formatRecentEditedMeta, selectRecentEditedSummaries } from '../utils/recentEditedDocuments'
 import { DocumentEditorControls } from './DocumentEditorControls'
@@ -14,6 +14,7 @@ interface DocumentActionToolbarProps {
   assignmentOutdated: boolean
   onSave: (kind?: WorkbenchDocumentKind) => void | Promise<boolean | void>
   onKindChange: (kind: WorkbenchDocumentKind) => void
+  onAnswerModeChange: (mode: PaperAnswerMode) => void
   onAssign: () => void
   onMarkOutput: (lock: DocumentOutputLock) => void
   onRequirePaperScores?: (action: 'preview' | 'assign' | 'download' | 'print' | 'share') => boolean
@@ -34,7 +35,7 @@ function escapeHtml(value: string) {
     .replace(/'/g, '&#039;')
 }
 
-export function DocumentActionToolbar({ document, canSave, contentBusy, syncState, assignmentOutdated, onSave, onKindChange, onAssign, onMarkOutput, onRequirePaperScores, onExpand, onCreateNew, onSaveAndCreateNew, onGenerateAnswerSheet, recentDocuments = [], onOpenRecentDocument }: DocumentActionToolbarProps) {
+export function DocumentActionToolbar({ document, canSave, contentBusy, syncState, assignmentOutdated, onSave, onKindChange, onAnswerModeChange, onAssign, onMarkOutput, onRequirePaperScores, onExpand, onCreateNew, onSaveAndCreateNew, onGenerateAnswerSheet, recentDocuments = [], onOpenRecentDocument }: DocumentActionToolbarProps) {
   const [assignOpen, setAssignOpen] = useState(false)
   const [savePending, setSavePending] = useState(false)
   const [newDocumentOpen, setNewDocumentOpen] = useState(false)
@@ -112,6 +113,12 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
     return saved !== false
   }
 
+  const previewDocument = () => {
+    if (!hasQuestions) return MetisMessage.error('请先添加题目')
+    if (onRequirePaperScores && !onRequirePaperScores('preview')) return
+    MetisMessage.info('预览面板已打开（原型演示）')
+  }
+
   const downloadDocument = async () => {
     if (!hasQuestions) return
     if (onRequirePaperScores && !onRequirePaperScores('download')) return
@@ -184,10 +191,23 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
             </div>
           ) : null}
         </div>
-        <DocumentEditorControls document={document} variant="compact" onKindChange={onKindChange} />
+        <DocumentEditorControls document={document} variant="compact" onKindChange={onKindChange} onAnswerModeChange={onAnswerModeChange} />
       </div>
       {answerSheetPaper ? (
         <>
+          {onExpand ? (
+            <span className="document-action-item is-expand">
+              <MetisButton type="borderless" icon={<Maximize2 size={16} />} onClick={onExpand}>展开</MetisButton>
+            </span>
+          ) : null}
+          <span className="document-action-item is-preview">
+            <MetisButton type="borderless" icon={<Eye size={16} />} disabled={!hasQuestions || saving || contentBusy} onClick={previewDocument}>预览</MetisButton>
+          </span>
+          <span className="document-action-item is-save">
+            <MetisButton type="borderless" icon={<Save size={16} />} disabled={!canSave || saving || contentBusy || savePending} onClick={() => { setMoreOpen(false); void saveDocument() }}>
+              {saving ? '保存中…' : '保存'}
+            </MetisButton>
+          </span>
           {onCreateNew ? (
             <span className="document-action-item">
               <MetisButton type="borderless" icon={<Plus size={16} />} disabled={contentBusy || saving || savePending} onClick={() => {
@@ -195,11 +215,6 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
                 if (hasUnsavedChanges) setNewDocumentOpen(true)
                 else onCreateNew(true)
               }} data-track="/click/aiQuestionHome/createBlank | 新建空白草稿 | 无">新建</MetisButton>
-            </span>
-          ) : null}
-          {onExpand ? (
-            <span className="document-action-item is-expand">
-              <MetisButton type="borderless" icon={<Maximize2 size={16} />} onClick={onExpand}>展开</MetisButton>
             </span>
           ) : null}
           <span className="document-action-item is-more" ref={moreRef}>
@@ -221,6 +236,11 @@ export function DocumentActionToolbar({ document, canSave, contentBusy, syncStat
             onClick={onExpand}
             data-track="/click/aiQuestionHome/enterFocusEditor | 展开练习编辑 | 无"
           >展开</MetisButton>
+        </span>
+      ) : null}
+      {getDocumentKind(document) === '试卷' ? (
+        <span className="document-action-item is-preview">
+          <MetisButton type="borderless" icon={<Eye size={16} />} disabled={!hasQuestions || saving || contentBusy} onClick={previewDocument}>预览</MetisButton>
         </span>
       ) : null}
       <span className="document-action-item is-save">

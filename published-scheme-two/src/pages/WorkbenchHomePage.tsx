@@ -958,6 +958,7 @@ export function WorkbenchHomePage() {
             currentDocumentId={workbench.document.id}
             onOpenRecentDocument={(documentId) => { void workbench.openHistoryDocument(documentId) }}
             onKindChange={workbench.setDocumentKind}
+            onAnswerModeChange={workbench.setAnswerMode}
           />
 
           <section className={`${shellClassName}${alternateHomeLayout ? ' is-alternate-home is-home-layout-2' : ''}`} aria-label="飞象AI题库编辑器">
