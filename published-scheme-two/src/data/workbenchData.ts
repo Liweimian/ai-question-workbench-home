@@ -202,6 +202,24 @@ export const blankDocument: WorkbenchDocument = {
 }
 
 export const historyDocuments: WorkbenchDocument[] = [
+  {
+    id: 'doc-answer-sheet-demo',
+    title: '2024年北京市初中学业水平考试：语文',
+    gradeSubject: '初中语文',
+    kind: '试卷',
+    answerMode: '答题卡作答',
+    answerSheet: {
+      generatedAt: '2026-11-16T09:30:00.000Z',
+      updatedAt: '2026-11-16T09:30:00.000Z',
+      layout: 'a3-double',
+      infoOpen: true,
+    },
+    questions: Array.from({ length: 9 }, (_, index) => ({
+      ...baseQuestions[index % baseQuestions.length],
+      id: `answer-sheet-demo-${index + 1}`,
+    })),
+    updatedAt: '11 月 16 日',
+  },
   recentDocument,
   {
     id: 'doc-layered',
@@ -229,6 +247,27 @@ export const historyDocuments: WorkbenchDocument[] = [
 const recentEditedDemoNow = Date.now()
 
 export const historySummaries: HistoryDocumentSummary[] = [
+  {
+    id: 'doc-answer-sheet-demo',
+    title: '2024年北京市初中学业水平考试：语文',
+    gradeSubject: '初中语文',
+    schoolStage: '初中',
+    subjectName: '语文',
+    questionCount: 9,
+    updatedAt: '11 月 16 日',
+    savedAtMs: recentEditedDemoNow - 60 * 60 * 1000,
+    estimatedMinutes: 45,
+    status: '已保存',
+    origin: '手工组题',
+    kind: '试卷',
+    answerMode: '答题卡作答',
+    answerSheet: {
+      generatedAt: '2026-11-16T09:30:00.000Z',
+      updatedAt: '2026-11-16T09:30:00.000Z',
+      layout: 'a3-double',
+      infoOpen: true,
+    },
+  },
   {
     id: 'doc-recent',
     title: '一次函数 · 随堂练习',

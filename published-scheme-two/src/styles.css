@@ -3615,6 +3615,7 @@
 .resource-item-copy strong { overflow: hidden; color: var(--fx-text-primary); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .resource-item-copy span { overflow: hidden; color: var(--fx-text-secondary); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .resource-item-copy small { color: var(--fx-text-tertiary); font-size: 10px; }
+.resource-item-copy .resource-usage-stats { display: flex; align-items: center; gap: 12px; }
 .resource-online-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 .resource-pill { display: inline-flex; height: 32px; padding: 0 12px; align-items: center; gap: 6px; border: 1px solid var(--fx-line-strong); border-radius: 999px; color: var(--fx-text-secondary); background: var(--common_bg2_color); cursor: pointer; font-size: 12px; white-space: nowrap; }
 .resource-pill:hover { color: var(--fx-primary); border-color: var(--fx-primary); background: var(--fx-primary-selected); }
@@ -12168,6 +12169,55 @@
 /* 阶段一 · 迭代 144：资源量首页 + 窄题稿 + 最近编辑 */
 .workbench-page { --draft-pane-width: clamp(520px, 40vw, 600px); }
 .workspace-shell.is-split-source { grid-template-columns: minmax(0, 1fr) var(--draft-pane-width); }
+.workspace-shell.is-split-source.is-my-resources-picker {
+  --draft-pane-width: clamp(560px, 46vw, 680px);
+}
+.workspace-shell.is-split-source.is-my-resources-picker .add-workspace,
+.workspace-shell.is-split-source.is-my-resources-picker .my-resources-page,
+.workspace-shell.is-split-source.is-my-resources-picker .resource-workbench-main {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.workspace-shell.is-split-source.is-my-resources-picker .my-resources-page {
+  width: auto;
+  align-self: stretch;
+  grid-template-columns: 160px minmax(0, 1fr);
+}
+.workspace-shell.is-split-source.is-my-resources-picker .resource-workbench-main {
+  width: 100%;
+}
+.workspace-shell.is-split-source.is-my-resources-picker .resource-content-toolbar {
+  padding-right: 10px;
+  padding-left: 10px;
+}
+.workspace-shell.is-split-source.is-my-resources-picker .resource-kind-tabs {
+  gap: 8px;
+}
+.workspace-shell.is-split-source.is-my-resources-picker .resource-search {
+  min-width: 0;
+  max-width: none;
+  flex-basis: 96px;
+}
+.workspace-shell.is-split-source.is-my-resources-picker .resource-manage-list {
+  padding-right: 10px;
+  padding-left: 10px;
+}
+.workspace-shell.is-split-source.is-my-resources-picker .resource-manage-list article {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  grid-template-columns: 34px minmax(0, 1fr) 32px;
+  gap: 8px;
+}
+.workspace-shell.is-split-source.is-my-resources-picker .resource-type-icon {
+  width: 34px;
+  height: 34px;
+}
+.workspace-shell.is-split-source.is-my-resources-picker .resource-favorite-only {
+  width: 32px;
+  height: 32px;
+}
 .workspace-header.is-split { width: var(--draft-pane-width); }
 .workspace-header.is-split .header-document-state { display: none; }
 .workspace-header.is-split .header-actions .metis-button { padding-right: 6px !important; padding-left: 6px !important; }

@@ -24,7 +24,7 @@ import { RequirementSpecControls } from '../components/RequirementSpecControls'
 import { GlobalResourceSearch } from '../components/GlobalResourceSearch'
 import { readRecentBrowseEntries, recordRecentBrowse, type RecentBrowseEntry } from '../utils/recentBrowseHistory'
 import type { GlobalResourceSearchHit } from '../services/globalResourceSearchRepository'
-import { sourceRecords as allSourceRecords } from '../data/workbenchData'
+import { historyDocuments as seededHistoryDocuments, sourceRecords as allSourceRecords } from '../data/workbenchData'
 import { persistDocumentNow, readStoredDocument } from '../services/workbenchRepository'
 
 type AddTabMode = Exclude<AddQuestionMode, 'menu' | 'compose' | 'personalized'>
@@ -475,7 +475,9 @@ export function WorkbenchHomePage() {
   }
 
   const openResourceAnswerSheet = (resource: MyResourceSummary) => {
-    const storedDocument = resource.documentId ? readStoredDocument(resource.documentId) : null
+    const storedDocument = resource.documentId
+      ? readStoredDocument(resource.documentId) ?? seededHistoryDocuments.find((item) => item.id === resource.documentId) ?? null
+      : null
     if (!storedDocument) {
       MetisMessage.info('未找到这份试卷')
       return
@@ -609,7 +611,7 @@ export function WorkbenchHomePage() {
   const reviewMode = new URLSearchParams(window.location.search).get('mode') === 'review'
   const libraryDetailRecord = activeLibraryDetail?.record ?? null
   const shellClassName = sidePanelOpen
-    ? `workspace-shell is-split-source${draftCollapsed ? ' is-draft-collapsed' : ''}`
+    ? `workspace-shell is-split-source${draftCollapsed ? ' is-draft-collapsed' : ''}${myResourcesActive && !opensHomeworkResources ? ' is-my-resources-picker' : ''}`
     : `workspace-shell is-focus-editor is-studio${sortCollapsed ? ' is-sort-collapsed' : ''}${hasQuestions ? '' : ' is-empty'}`
   const hasUnsavedDocumentChanges = workbench.documentSyncState === 'dirty'
     || workbench.documentSyncState === 'error'

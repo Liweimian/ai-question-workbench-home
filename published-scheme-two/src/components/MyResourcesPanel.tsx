@@ -5,37 +5,40 @@ import { BookOpenCheck, BrainCircuit, ChevronDown, ClipboardList, Download, File
 import type { HistoryDocumentSummary, MyResourceKind, MyResourceSummary } from '../prototype/types'
 
 type SpaceTab = 'created' | 'favorites'
-type ResourceKind = '全部' | MyResourceKind
+type ResourceKind = '全部' | MyResourceKind | '试卷/练习'
 type PendingUpload = { id: string; name: string; size: number }
 const FILE_ACCEPT = '.txt,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.epub,.equb,.png,.jpg,.jpeg,.gif,.webp,.mp4,.mov,.mp3,.wav'
 const SUBJECTS = ['小学科学', '初中数学', '初中语文', '初中英语', '高中数学']
 
 const KIND_FOLDER: Record<Exclude<MyResourceKind, '练习册'>, string> = {
-  试卷: '试卷',
-  练习: '练习',
+  试卷: '试卷/练习',
+  练习: '试卷/练习',
   题目: '题目',
   文件: '墨水屏作业',
 }
 
 const FOLDER_KIND: Record<string, ResourceKind> = {
-  试卷: '试卷',
-  练习: '练习',
+  '试卷/练习': '试卷/练习',
+  练习册: '练习册',
   题目: '题目',
   墨水屏作业: '文件',
 }
 
-export const RESOURCE_CREATED_FOLDERS = ['全部资源', '试卷', '练习', '题目', '墨水屏作业']
+export const RESOURCE_CREATED_FOLDERS = ['全部资源', '试卷/练习', '题目', '墨水屏作业']
 
 const seedCreatedResources: MyResourceSummary[] = [
   { id: 'mine-3', title: '教辅扫描题 · 待校对', kind: '题目', detail: '12 道题 · AI 录题', questionCount: 12, updatedAt: '10 月 18 日', folder: '题目' },
-  { id: 'mine-5', title: '一元一次方程周测', kind: '试卷', detail: '18 道题 · 初中数学', questionCount: 18, updatedAt: '10 月 15 日', folder: '试卷' },
+  { id: 'mine-5', title: '一元一次方程周测', kind: '试卷', detail: '18 道题 · 初中数学', questionCount: 18, updatedAt: '10 月 15 日', folder: '试卷/练习' },
 ]
 
 const favoriteResources: MyResourceSummary[] = [
-  { id: 'fav-1', title: '一次函数单元达标卷', kind: '试卷', detail: '25 道题 · 朝阳区教研', questionCount: 25, updatedAt: '今天 08:50', folder: '全部收藏' },
-  { id: 'fav-2', title: '学习探究诊断', kind: '练习册', detail: '36 道题 · 人教版八上', questionCount: 36, updatedAt: '昨天 16:20', folder: '常用练习册' },
-  { id: 'fav-3', title: '真实情境建模专题', kind: '题目', detail: '12 道题 · 应用题', questionCount: 12, updatedAt: '10 月 20 日', folder: '未分类收藏' },
-  { id: 'fav-4', title: '期中易错题精选', kind: '题目', detail: '16 道题 · 中等', updatedAt: '10 月 18 日', folder: '期中复习' },
+  { id: 'fav-1', title: '一次函数单元达标卷', kind: '试卷', detail: '25 道题 · 收藏的试卷', questionCount: 25, updatedAt: '今天 08:50', folder: '试卷/练习' },
+  { id: 'fav-2', title: '学习探究诊断', kind: '练习', detail: '36 道题 · 历史收藏的题单', questionCount: 36, updatedAt: '昨天 16:20', folder: '试卷/练习' },
+  { id: 'fav-3', title: '一次函数随堂巩固', kind: '练习', detail: '12 道题 · 同步练习', questionCount: 12, updatedAt: '10 月 20 日', folder: '试卷/练习' },
+  { id: 'fav-4', title: '真实情境建模专题', kind: '练习', detail: '16 道题 · 专题练习', questionCount: 16, updatedAt: '10 月 18 日', folder: '试卷/练习' },
+  { id: 'fav-5', title: '期中易错题精选', kind: '练习', detail: '10 道题 · 个人练习', questionCount: 10, updatedAt: '10 月 16 日', folder: '试卷/练习' },
+  { id: 'fav-6', title: '函数图像易错题', kind: '题目', detail: '8 道题 · 中等', questionCount: 8, updatedAt: '10 月 15 日', folder: '题目' },
+  { id: 'fav-7', title: '八年级上册数学精练', kind: '练习册', detail: '人教版 · 八年级上册', updatedAt: '10 月 14 日', folder: '练习册' },
 ]
 
 const iconMap = {
@@ -59,6 +62,14 @@ function isMediaFile(name: string) {
 function extensionLabel(name: string) {
   const ext = name.split('.').pop()?.toUpperCase()
   return ext && ext !== name.toUpperCase() ? ext : '文件'
+}
+
+function resourceUsageStats(id: string) {
+  const seed = Array.from(id).reduce((total, character) => total + character.charCodeAt(0), 0)
+  return {
+    favoriteCount: seed % 4,
+    downloadCount: seed % 7,
+  }
 }
 
 function formatToday() {
@@ -142,7 +153,7 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
       detail: `${item.questionCount} 道题 · ${item.status === '草稿' ? '已保存' : item.status}`,
       questionCount: item.questionCount,
       updatedAt: item.updatedAt,
-      folder: inferredKind,
+      folder: '试卷/练习',
       documentId: item.id,
       answerMode: inferredAnswerMode,
       hasAnswerSheet: Boolean(item.answerSheet?.generatedAt) || inferredAnswerMode === '答题卡作答',
@@ -152,22 +163,22 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
   const resources = space === 'created' ? [...historyResources, ...ownedResources] : favoriteResources
   const rootFolder = space === 'created' ? '全部资源' : '全部收藏'
   const folderNames = space === 'created'
-    ? ['试卷', '练习', '题目']
-    : ['常用练习册', '期中复习', '未分类收藏']
+    ? ['试卷/练习', '题目']
+    : ['试卷/练习', '练习册', '题目']
   const folders = [
     { name: rootFolder, root: true },
     ...folderNames.map((name) => ({ name, root: false })),
     ...customFolders.map((name) => ({ name, root: false })),
   ]
   const kinds: ResourceKind[] = space === 'created'
-    ? ['试卷', '练习', '题目']
-    : ['题目', '练习册', '试卷']
+    ? ['试卷/练习', '题目']
+    : ['试卷/练习', '练习册', '题目']
   const visible = useMemo(() => {
     const query = keyword.trim().toLowerCase()
     return resources.filter((item) => (
       (folder === rootFolder || item.folder === folder)
       && item.kind !== '文件'
-      && (kind === '全部' || item.kind === kind)
+      && (kind === '全部' || (kind === '试卷/练习' ? item.kind === '试卷' || item.kind === '练习' : item.kind === kind))
       && (!query || `${item.title}${item.kind}${item.detail}`.toLowerCase().includes(query))
     ))
   }, [folder, keyword, kind, resources, rootFolder])
@@ -349,7 +360,7 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
               <button type="button" role="menuitem" disabled={sharedIds.has(resource.id)} onClick={() => openShare(resource)}>{sharedIds.has(resource.id) ? '已共享到校本库' : '共享到校本库'}</button>
               <button type="button" role="menuitem" onClick={() => openMove(resource)}>移动</button>
               <button type="button" role="menuitem" onClick={() => toggleFavorite(resource.id)}><Star size={14} fill={favorited ? 'currentColor' : 'none'} />{favorited ? '取消收藏' : '收藏'}</button>
-              <button type="button" role="menuitem" onClick={() => openRename(resource)}>编辑</button>
+              <button type="button" role="menuitem" onClick={() => openRename(resource)}>重命名</button>
               <button type="button" role="menuitem" className="is-danger" onClick={() => removeResource(resource.id)}>删除</button>
             </div>,
             document.body,
@@ -397,7 +408,7 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
     <div className="resource-workbench-main">
       <div className="resource-content-toolbar">
         <div className="resource-kind-tabs" role="tablist" aria-label="资源类型">
-          {kinds.map((item) => <button key={item} type="button" role="tab" aria-selected={kind === item} onClick={() => { setKind(item); if (space === 'created') setFolder(item === '全部' ? '全部资源' : KIND_FOLDER[item as Exclude<MyResourceKind, '练习册'>] ?? '全部资源') }}>{item}</button>)}
+          {kinds.map((item) => <button key={item} type="button" role="tab" aria-selected={kind === item} onClick={() => { setKind(item); setFolder(item) }}>{item}</button>)}
           <label className="resource-search"><Search size={15} /><MetisInput value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="搜索资源" /></label>
         </div>
         {readOnlyPicker ? <div className="resource-batch-actions" /> : (
@@ -411,15 +422,27 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
 
       <section className={`resource-manage-list${kind === '文件' ? ' is-file-list' : ''}${readOnlyPicker ? ' is-picker' : ''}`} aria-label="资源列表">
           {visible.length ? visible.map((resource) => {
-            const { id, title, kind: itemKind, detail, updatedAt } = resource
+            const { id, title, kind: itemKind, detail } = resource
             const Icon = iconMap[itemKind]
+            const isPaperOrPractice = itemKind === '试卷' || itemKind === '练习'
+            const usageStats = resourceUsageStats(id)
             return <article key={id} className={selectedIds.has(id) ? 'is-selected' : ''}>
               {readOnlyPicker ? null : <label className="resource-select"><input type="checkbox" checked={selectedIds.has(id)} onChange={() => toggleSelected(id)} /><span /></label>}
               <span className="resource-type-icon"><Icon size={21} /></span>
               <button type="button" className="resource-item-copy is-openable" onClick={() => openResource(resource)}>
                 <strong>{resource.kind === '试卷' && resource.answerMode === '答题卡作答' ? <em className="resource-answer-sheet-tag">答题卡</em> : null}{title}</strong>
-                <span>{itemKind} · {detail}</span>
-                <small>{itemKind === '文件' ? `上传于 ${updatedAt}` : `更新于 ${updatedAt}`}</small>
+                {isPaperOrPractice ? (
+                  <span>初中 / 数学 / {resource.questionCount ?? 0}题</span>
+                ) : (
+                  <span>{itemKind} · {detail}</span>
+                )}
+                {readOnlyPicker ? null : (
+                  <small className="resource-usage-stats">
+                    <span>{space === 'created' ? '我创建' : '资源库'}</span>
+                    <span>{usageStats.favoriteCount}人收藏</span>
+                    <span>{usageStats.downloadCount}次下载</span>
+                  </small>
+                )}
               </button>
               {renderRowActions(resource)}
             </article>
@@ -519,8 +542,8 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
 
     {renameTarget ? (
       <div className="resource-modal-mask" role="presentation" onClick={() => setRenameTarget(null)}>
-        <div className="resource-simple-modal" role="dialog" aria-label="编辑名称" onClick={(event) => event.stopPropagation()}>
-          <strong>编辑</strong>
+        <div className="resource-simple-modal" role="dialog" aria-label="重命名" onClick={(event) => event.stopPropagation()}>
+          <strong>重命名</strong>
           <p className="resource-edit-hint">修改资源名称</p>
           <MetisInput value={renameValue} onChange={(event) => setRenameValue(event.target.value)} aria-label="资源名称" />
           <div><button type="button" onClick={() => setRenameTarget(null)}>取消</button><button type="button" className="is-primary" onClick={confirmRename}>确定</button></div>
