@@ -444,11 +444,10 @@ export function WorkbenchHomePage() {
     window.open(url.toString(), '_blank')
   }
 
-  const leaveHomeworkResources = (target?: 'ai-recording') => {
+  const leaveHomeworkResources = () => {
     const url = new URL(window.location.href)
     url.searchParams.delete('view')
-    if (target) url.searchParams.set('open', target)
-    else url.searchParams.delete('open')
+    url.searchParams.delete('open')
     window.location.assign(url.toString())
   }
 
@@ -1226,7 +1225,7 @@ export function WorkbenchHomePage() {
                     onOpenFile={opensHomeworkResources ? openManagedResource : openFileDetail}
                     onOpenAnswerSheet={openResourceAnswerSheet}
                     onOpenHomeworkHome={opensHomeworkResources ? undefined : openHomeworkHome}
-                    onOpenAiRecording={opensHomeworkResources ? () => leaveHomeworkResources('ai-recording') : undefined}
+                    onOpenAiRecording={opensHomeworkResources ? () => MetisMessage.info('同线上我的资源中的 AI 智能录题页面') : undefined}
                     onOpenWorkbench={opensHomeworkResources ? () => leaveHomeworkResources() : undefined}
                   />
                 ) : recentBrowseActive && recentBrowseTabOpen ? (

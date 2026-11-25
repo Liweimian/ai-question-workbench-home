@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MetisInput, MetisMessage } from '@yuanfudao/metis-web-component'
-import { BookOpenCheck, BrainCircuit, ChevronDown, ClipboardList, Download, File, FileQuestion, FileText, Folder, FolderPlus, House, ListChecks, MoreHorizontal, Search, Sparkles, Star } from 'lucide-react'
+import { BookOpenCheck, BrainCircuit, ChevronDown, ClipboardList, Clock, Download, File, FileQuestion, FileText, Folder, FolderPlus, House, ListChecks, MoreHorizontal, Search, Sparkles, Star } from 'lucide-react'
 import type { HistoryDocumentSummary, MyResourceKind, MyResourceSummary } from '../prototype/types'
 
 type SpaceTab = 'created' | 'favorites'
@@ -416,6 +416,7 @@ export function MyResourcesPanel(props: MyResourcesPanelProps) {
             {selectedIds.size > 0 ? <div className="resource-batch-actions"><span>已选 {selectedIds.size} 项</span><button type="button" onClick={() => MetisMessage.info('已下载所选资源')}>下载</button><button type="button" onClick={() => MetisMessage.info('已移动所选资源')}>移动</button></div> : null}
             <button type="button" className="is-primary" onClick={props.onOpenAiRecording}><Sparkles size={16} />AI 智能录题</button>
             <button type="button" onClick={props.onOpenWorkbench}><BrainCircuit size={16} />组题工作台</button>
+            <button type="button" onClick={() => MetisMessage.info('同线上我的资源中历史分享记录页面')}><Clock size={16} />历史分享记录</button>
           </div>
         )}
       </div>
