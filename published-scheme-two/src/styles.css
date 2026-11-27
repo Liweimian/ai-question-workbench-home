@@ -11475,21 +11475,60 @@
   min-width: 0;
   min-height: 0;
   height: 100%;
-  grid-template-columns: 148px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.ai-compose-history {
+.ai-compose-conversation-toolbar {
   display: flex;
-  min-height: 0;
-  padding: 12px 8px;
-  flex-direction: column;
-  gap: 4px;
-  overflow: auto;
-  border-right: 1px solid var(--fx-line-subtle);
-  background: var(--common_bg_z1_color);
+  flex: none;
+  align-items: center;
+  padding: 7px 16px;
+  gap: 6px;
+  border-bottom: 1px solid var(--fx-line-subtle);
 }
 
-.ai-compose-history > button {
+.ai-compose-conversation-toolbar > button,
+.ai-compose-conversation-toolbar > details > summary {
+  display: grid;
+  width: 36px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: var(--fx-text-primary);
+  background: transparent;
+  cursor: pointer;
+  list-style: none;
+}
+.ai-compose-conversation-toolbar summary::-webkit-details-marker { display: none; }
+.ai-compose-conversation-toolbar summary::marker { content: ''; }
+.ai-compose-conversation-toolbar > :is(button:hover, details > summary:hover, details[open] > summary) { background: var(--fx-primary-selected); }
+.ai-compose-conversation-toolbar > strong {
+  min-width: 0;
+  margin-left: 4px;
+  padding-left: 12px;
+  border-left: 1px solid var(--fx-line-strong);
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-compose-conversation-toolbar > details { position: relative; flex: none; }
+.ai-compose-history-dropdown {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(260px, calc(100vw - 120px));
+  max-height: 300px;
+  overflow: auto;
+  padding: 5px;
+  border: 1px solid var(--fx-line-subtle);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: var(--fx-shadow-card);
+}
+.ai-compose-history-dropdown > button {
   display: block;
   width: 100%;
   padding: 8px 10px;
@@ -11505,14 +11544,13 @@
   white-space: nowrap;
 }
 
-.ai-compose-history > button.is-active,
-.ai-compose-history > button:hover {
+.ai-compose-history-dropdown > button:hover {
   color: var(--fx-text-primary);
   background: var(--fx-primary-selected);
 }
 
-.ai-compose-history > p {
-  margin: 10px 8px 0;
+.ai-compose-history-dropdown > p {
+  margin: 8px;
   color: var(--fx-text-tertiary);
   font-size: 11px;
   line-height: 1.5;
@@ -11545,17 +11583,28 @@
 
 .ai-compose-paper-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column-reverse;
+  align-items: center;
   gap: 12px;
   margin-bottom: 12px;
 }
 
+.ai-compose-paper { background: #fff; }
+.ai-compose-paper-header button.is-primary { align-self: flex-end; }
+.ai-compose-paper-actions { align-self: flex-end; display: flex; align-items: center; gap: 8px; }
+.ai-compose-paper-download {
+  display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 12px;
+  border: 1px solid var(--fx-line-strong); border-radius: 999px; background: #fff;
+  color: var(--fx-text-secondary); font-size: 12px; cursor: pointer;
+}
+.ai-compose-paper-download:hover { color: var(--fx-primary); background: var(--fx-primary-selected); }
 .ai-compose-paper-header h3 {
   margin: 0;
   color: var(--fx-text-primary);
-  font-size: 16px;
+  font-size: 19px;
   font-weight: 650;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .ai-compose-paper-header p {
@@ -11590,32 +11639,66 @@
   display: flex;
   flex-direction: column;
   padding: 12px 0;
-  border-top: 1px solid var(--fx-line-subtle);
 }
 
+.ai-compose-section-title { margin: 14px 0 0; font-size: 14px; font-weight: 650; }
 .ai-compose-question-body small {
-  display: block;
+  display: inline-block;
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: #f8f1e2;
   margin-bottom: 6px;
-  color: var(--fx-text-tertiary);
+  color: #80501c;
   font-size: 11px;
 }
 
 .ai-compose-question-body p {
   margin: 0;
   color: var(--fx-text-primary);
-  font-size: 13px;
+  font: 14px/1.8 "Songti SC", SimSun, serif;
   line-height: 1.65;
 }
 
 .ai-compose-question-body ul {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(96px, 100%), 1fr));
   margin: 8px 0 0;
   padding: 0;
   gap: 4px;
   list-style: none;
-  color: var(--fx-text-secondary);
-  font-size: 12px;
+  color: var(--fx-text-primary);
+  font: 14px/1.65 "Songti SC", SimSun, serif;
 }
+
+.ai-assistant-steps li:has(.ai-compose-references) { align-items: flex-start; }
+.ai-compose-references { min-width: 0; flex: 1; padding-left: 10px; border-left: 1px dashed var(--fx-line-strong); }
+.ai-compose-references summary { cursor: pointer; font-weight: 600; }
+.ai-compose-references button {
+  display: flex; width: 100%; align-items: center; gap: 5px; margin-top: 9px; padding: 4px 12px;
+  border: 1px solid var(--fx-line-strong); border-radius: 999px; background: var(--fx-surface-muted);
+  color: var(--fx-text-secondary); font: inherit; text-align: left; cursor: pointer;
+}
+.ai-compose-references button:hover { color: var(--fx-primary); background: var(--fx-primary-selected); }
+.ai-compose-references button svg { flex: none; }
+.ai-compose-references button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-reference-word {
+  width: min(1010px, calc(100vw - 40px)); height: min(640px, calc(100dvh - 48px));
+  padding: 0; border: 1px solid var(--fx-line-subtle); border-radius: 16px;
+  overflow: hidden; background: #fff; color: var(--fx-text-primary);
+}
+.ai-reference-word[open] { display: flex; flex-direction: column; }
+.ai-reference-word::backdrop { background: rgb(20 29 44 / 35%); }
+.ai-reference-word header { display: flex; flex: none; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--fx-line-subtle); }
+.ai-reference-word header strong { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ai-reference-word header button { display: grid; place-items: center; padding: 6px; border: 0; background: transparent; color: inherit; cursor: pointer; }
+.ai-reference-word-icon { padding: 1px 4px; border-radius: 3px; background: var(--fx-primary); color: white; font: 700 12px sans-serif; }
+.ai-reference-paper { flex: 1; min-height: 0; overflow: auto; padding: 44px clamp(24px, 8vw, 110px); color: #111; font: 15px/1.8 "Songti SC", SimSun, serif; }
+.ai-reference-paper h2 { margin: 0 0 16px; text-align: center; font-size: 20px; }
+.ai-reference-paper ol { padding-inline-start: 22px; }
+.ai-reference-paper ol > li { margin-bottom: 18px; }
+.ai-reference-paper ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 16px; padding: 0; list-style: none; }
+.ai-compose-followup-hint { display: block; margin-bottom: 6px; color: var(--fx-text-secondary); }
 
 .ai-compose-question-footer {
   display: flex;

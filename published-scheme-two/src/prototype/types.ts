@@ -194,7 +194,7 @@ export interface WorkbenchRepository {
   addSource(resourceType: ResourceType, sourceId?: EntityId, count?: number, selectedQuestions?: Question[]): Promise<Question[]>
   recognizeUpload(): Promise<Question[]>
   personalizeFromUpload(): Promise<Question[]>
-  composeFromBank(prompt: string): Promise<Question[]>
+  composeFromBank(prompt: string, currentQuestions?: Question[]): Promise<Question[]>
   createQuestions(request: CreateQuestionRequest): Promise<Question[]>
   createManualQuestion(): Promise<Question>
   rewrite(question: Question, request: RewriteRequest): Promise<Question>

@@ -782,7 +782,7 @@ export function useWorkbench() {
     }
   }, [appendQuestions, beginContentOperation, finishContentOperation])
 
-  const composeFromBank = useCallback(async (promptOverride?: string) => {
+  const composeFromBank = useCallback(async (promptOverride?: string, currentQuestions?: Question[]) => {
     const value = (promptOverride ?? composePrompt).trim()
     if (!value) {
       setComposeError('请描述想组题、组卷或查找的内容')
@@ -812,7 +812,7 @@ export function useWorkbench() {
         : current)
     }, delay))
     try {
-      const questions = await workbenchRepository.composeFromBank(value)
+      const questions = await workbenchRepository.composeFromBank(value, currentQuestions)
       if (assistantRequestIdRef.current !== requestId || documentIdRef.current !== targetDocumentId) return
       setComposePreview(questions)
       setComposeStatus('success')
@@ -828,6 +828,12 @@ export function useWorkbench() {
       if (assistantRequestIdRef.current !== requestId) return
       const errorMessage = error instanceof Error ? error.message : 'AI 处理失败，请稍后重试'
       setComposeError(errorMessage)
+      if (currentQuestions && assistantRun?.status === 'success' && documentIdRef.current === targetDocumentId) {
+        setComposePreview(currentQuestions)
+        setAssistantRun(assistantRun)
+        setComposeStatus('success')
+        return
+      }
       setComposeStatus('error')
       setAssistantRun((current) => current ? {
         ...current,
@@ -838,7 +844,7 @@ export function useWorkbench() {
       clearAssistantStepTimers()
       finishContentOperation('compose')
     }
-  }, [beginContentOperation, clearAssistantStepTimers, composePrompt, document.id, finishContentOperation])
+  }, [assistantRun, beginContentOperation, clearAssistantStepTimers, composePrompt, document.id, finishContentOperation])
 
   const confirmComposePreview = useCallback(() => {
     if (composePreview.length === 0 || composeTargetDocumentId !== documentIdRef.current) {

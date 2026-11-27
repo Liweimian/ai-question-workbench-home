@@ -441,11 +441,11 @@ export const workbenchRepository: WorkbenchRepository = {
     }))
   },
 
-  async composeFromBank(prompt: string) {
+  async composeFromBank(prompt: string, currentQuestions?: Question[]) {
     await delay(820)
     if (prompt.includes('模拟失败')) throw new Error('题库检索服务暂时不可用，请稍后重试')
     const plan = getRequestedQuestionPlan(prompt)
-    return Array.from({ length: plan.count }, (_, index) => {
+    const replacements = Array.from({ length: plan.count }, (_, index) => {
       const question = baseQuestions[index % baseQuestions.length]
       return {
         ...cloneQuestion(question, `composed-${Date.now()}-${index}`),
@@ -456,6 +456,28 @@ export const workbenchRepository: WorkbenchRepository = {
         verifyStatus: '已校验' as const,
       }
     })
+    if (!currentQuestions?.length) return replacements
+    const replacementIndex = prompt.match(/(?:换|替换).*?第\s*(\d+)\s*题/)?.[1]
+    if (replacementIndex) {
+      const index = Number(replacementIndex) - 1
+      if (!currentQuestions[index]) throw new Error('题号超出当前组题范围')
+      const others = new Set(currentQuestions.map((question) => question.stem))
+      const candidate = replacements.find((question) => !others.has(question.stem))
+        ?? baseQuestions.find((question) => !others.has(question.stem))
+      if (!candidate) throw new Error('暂未找到可替换的题目')
+      return currentQuestions.map((question, position) => position === index
+        ? cloneQuestion(candidate, `composed-${Date.now()}-${index}`)
+        : question)
+    }
+    if (!/\d+\s*(?:道|题)/.test(prompt)) throw new Error('原型支持按题号换题或调整题量，例如「换第 2 题」')
+    const existingStems = new Set(currentQuestions.map((question) => question.stem))
+    const additional = replacements.filter((question) => {
+      if (existingStems.has(question.stem)) return false
+      existingStems.add(question.stem)
+      return true
+    })
+    if (currentQuestions.length + additional.length < plan.count) throw new Error('当前题库可补充的题目不足，请减少目标题量')
+    return [...currentQuestions, ...additional].slice(0, plan.count)
   },
 
   async createQuestions(request) {

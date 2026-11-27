@@ -396,7 +396,7 @@ export function WorkbenchHomePage() {
     setAiSearchActive(false)
   }
 
-  const submitAssistant = () => {
+  const submitAssistant = (currentQuestions?: Question[]) => {
     if (!workbench.composePrompt.trim() || workbench.isContentBusy || workbench.composeStatus === 'loading') {
       void workbench.composeFromBank()
       return
@@ -407,7 +407,7 @@ export function WorkbenchHomePage() {
     setAssistantTabOpen(true)
     setAssistantActive(true)
     setAiSearchActive(false)
-    void workbench.composeFromBank()
+    void workbench.composeFromBank(undefined, currentQuestions)
   }
 
   const activateAssistantTab = () => {

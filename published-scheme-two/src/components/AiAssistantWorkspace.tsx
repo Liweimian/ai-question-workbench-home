@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { MetisMessage } from '@yuanfudao/metis-web-component'
-import { AlertCircle, BrainCircuit, Check, Circle, Download, FileText, LoaderCircle, SquarePlus } from 'lucide-react'
+import { AlertCircle, BrainCircuit, Check, Circle, Download, FileText, History, Link2, LoaderCircle, SquarePen, SquarePlus, X } from 'lucide-react'
 import type { AiAssistantRun, AsyncStatus, Question } from '../prototype/types'
 import { animateQuestionToDraft } from '../utils/animateQuestionToDraft'
 import { AiComposer } from './AiComposer'
@@ -14,7 +14,7 @@ interface AiAssistantWorkspaceProps {
   questions: Question[]
   addedQuestionIds: Set<string>
   onPromptChange: (value: string) => void
-  onSubmit: () => void
+  onSubmit: (currentQuestions?: Question[]) => void
   onAddQuestions: (questions: Question[]) => boolean
 }
 
@@ -41,23 +41,65 @@ function paperTitleFromPrompt(prompt: string) {
   return compact.length > 0 ? compact : 'AI 组题结果'
 }
 
-export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
-  const run = props.run
-  const steps = getThinkingSteps(run?.prompt ?? '')
-  const [history, setHistory] = useState<Array<{ id: string; prompt: string }>>([])
+const paperSections = [
+  { type: '选择题', label: '单选题' },
+  { type: '填空题', label: '填空题' },
+  { type: '解答题', label: '解答题' },
+] as const
 
-  const unaddedQuestions = useMemo(
-    () => props.questions.filter((question) => !props.addedQuestionIds.has(question.id)),
-    [props.addedQuestionIds, props.questions],
-  )
+type ConversationRecord = { run: AiAssistantRun; questions: Question[] }
+
+export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
+  const [history, setHistory] = useState<ConversationRecord[]>([])
+  const [selectedRecord, setSelectedRecord] = useState<ConversationRecord>()
+  const historyMenu = useRef<HTMLDetailsElement>(null)
+  const run = selectedRecord?.run ?? props.run
+  const sourceQuestions = selectedRecord?.questions ?? props.questions
+  const steps = getThinkingSteps(run?.prompt ?? '')
+  const [newConversation, setNewConversation] = useState(false)
+  const previewRef = useRef<HTMLDialogElement>(null)
+  const [previewTitle, setPreviewTitle] = useState<string>()
+  useEffect(() => {
+    if (previewTitle && !previewRef.current?.open) previewRef.current?.showModal()
+  }, [previewTitle])
+  const questions = sourceQuestions
+  const references = useMemo(() => {
+    const groups = new Map<string, Question[]>()
+    for (const question of sourceQuestions) {
+      const title = question.sourceDetail ?? question.sourceLabel
+      groups.set(title, [...(groups.get(title) ?? []), question])
+    }
+    return groups
+  }, [sourceQuestions])
+  const submitFollowUp = () => {
+    const instruction = props.prompt.trim()
+    if (newConversation || run?.status !== 'success' || !instruction) {
+      if (instruction) {
+        setNewConversation(false)
+        setSelectedRecord(undefined)
+      }
+      props.onSubmit()
+      return
+    }
+    setSelectedRecord(undefined)
+    props.onSubmit(paperQuestions)
+  }
+
+  const sections = paperSections
+    .map((section) => ({ ...section, questions: questions.filter((question) => question.type === section.type) }))
+    .filter((section) => section.questions.length > 0)
+  const paperQuestions = sections.flatMap((section) => section.questions)
+  const unaddedQuestions = paperQuestions.filter((question) => !props.addedQuestionIds.has(question.id))
 
   useEffect(() => {
-    if (run?.status !== 'success' || !run.prompt) return
+    if (run?.status !== 'success' || !run.prompt || questions.length === 0) return
     setHistory((current) => {
-      if (current.some((item) => item.id === run.id)) return current
-      return [{ id: run.id, prompt: run.prompt }, ...current.filter((item) => item.prompt !== run.prompt)].slice(0, 12)
+      const record = { run, questions }
+      const index = current.findIndex((item) => item.run.id === run.id)
+      if (index < 0) return [record, ...current].slice(0, 12)
+      return current.map((item, position) => position === index ? record : item)
     })
-  }, [run?.id, run?.prompt, run?.status])
+  }, [run, questions])
 
   const addQuestions = (questions: Question[], event?: { currentTarget: HTMLElement }) => {
     if (questions.length === 0 || props.contentBusy) return
@@ -68,31 +110,50 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
   return (
     <aside className="ai-assistant-workspace" aria-label="AI 组题">
       <div className="ai-compose-shell">
-        <nav className="ai-compose-history" aria-label="组题记录">
+        <div className="ai-compose-main">
+        <nav className="ai-compose-conversation-toolbar" aria-label="组题对话">
           <button
             type="button"
-            className={!run ? 'is-active' : undefined}
-            onClick={() => props.onPromptChange('')}
+            title="新建对话"
+            aria-label="新建对话"
+            disabled={props.contentBusy}
+            onClick={() => {
+              setNewConversation(true)
+              setSelectedRecord(undefined)
+              if (historyMenu.current) historyMenu.current.open = false
+              props.onPromptChange('')
+            }}
           >
-            新对话
+            <SquarePen size={18} />
           </button>
-          {history.map((item) => (
-            <button
-              type="button"
-              key={item.id}
-              className={run?.id === item.id ? 'is-active' : undefined}
-              onClick={() => props.onPromptChange(item.prompt)}
-              title={item.prompt}
-            >
-              {item.prompt}
-            </button>
-          ))}
-          {history.length === 0 ? <p>发送一次组题需求后，记录会留在这里。</p> : null}
+          <details ref={historyMenu} onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false
+          }} onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.currentTarget.open = false
+              event.currentTarget.querySelector('summary')?.focus()
+            }
+          }}>
+            <summary title="历史对话" aria-label="历史对话"><History size={19} /></summary>
+            <div className="ai-compose-history-dropdown">
+              {history.length === 0 ? <p>暂无历史对话</p> : history.map((item) => (
+                <button type="button" key={item.run.id} title={item.run.prompt} disabled={props.contentBusy} onClick={() => {
+                  setSelectedRecord(item)
+                  setNewConversation(false)
+                  props.onPromptChange('')
+                  if (historyMenu.current) {
+                    historyMenu.current.open = false
+                    historyMenu.current.querySelector('summary')?.focus()
+                  }
+                }}>{item.run.prompt}</button>
+              ))}
+            </div>
+          </details>
+          <strong>{run && !newConversation ? paperTitleFromPrompt(run.prompt) : '新对话'}</strong>
         </nav>
 
-        <div className="ai-compose-main">
           <div className="ai-assistant-conversation" aria-live="polite">
-            {run ? (
+            {run && !newConversation ? (
               <>
                 <div className="ai-assistant-user-message">
                   <span>你的需求</span>
@@ -116,7 +177,16 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
                             <span aria-hidden="true">
                               {completed ? <Check size={14} /> : active ? <LoaderCircle size={14} /> : failed ? <AlertCircle size={14} /> : <Circle size={11} />}
                             </span>
-                            <span>{step}</span>
+                            {index === 1 && run.status === 'success' && references.size > 0 ? (
+                              <details className="ai-compose-references" open>
+                                <summary>题库检索与初筛</summary>
+                                {[...references.keys()].map((title) => (
+                                  <button key={title} type="button" title={title} onClick={() => setPreviewTitle(title)}>
+                                    <Link2 size={13} /><span>{title}</span>
+                                  </button>
+                                ))}
+                              </details>
+                            ) : <span>{step}</span>}
                           </li>
                         )
                       })}
@@ -125,13 +195,20 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
                   </div>
                 </section>
 
-                {run.status === 'success' && props.questions.length > 0 ? (
-                  <article className="ai-compose-paper" aria-label="生成结果">
+                {run.status === 'success' && sourceQuestions.length > 0 ? (
+                  <article id={run.id} className="ai-compose-paper" aria-label="生成结果">
                     <header className="ai-compose-paper-header">
                       <div>
                         <h3>{paperTitleFromPrompt(run.prompt)}</h3>
-                        <p>共 {props.questions.length} 道题 · 生成内容同线上 AI 组题</p>
                       </div>
+                      <div className="ai-compose-paper-actions">
+                      <button
+                        type="button"
+                        className="ai-compose-paper-download"
+                        onClick={() => downloadGeneratedFile(`${paperTitleFromPrompt(run.prompt)}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')}
+                      >
+                        <Download size={15} />下载
+                      </button>
                       <button
                         type="button"
                         className="is-primary"
@@ -141,16 +218,25 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
                         <SquarePlus size={15} />
                         {unaddedQuestions.length === 0 ? '已添加整卷' : `添加整卷（${unaddedQuestions.length}）`}
                       </button>
+                      </div>
                     </header>
 
                     <div className="ai-compose-question-list">
-                      {props.questions.map((question, index) => {
+                      {paperQuestions.map((question, index) => {
+                        const sectionIndex = sections.findIndex((section) => section.questions[0] === question)
+                        const section = sections[sectionIndex]
                         const added = props.addedQuestionIds.has(question.id)
                         return (
-                          <article key={question.id} className={`ai-compose-question${added ? ' is-added' : ''}`}>
+                          <Fragment key={question.id}>
+                          {section ? (
+                            <h4 className="ai-compose-section-title">
+                              {['一', '二', '三'][sectionIndex]}、{section.label}（共 {section.questions.length} 题，合计 {section.questions.reduce((total, item) => total + item.score, 0)} 分）
+                            </h4>
+                          ) : null}
+                          <article className={`ai-compose-question${added ? ' is-added' : ''}`}>
                             <div className="ai-compose-question-body">
                               <small>{question.sourceDetail ?? question.sourceLabel}</small>
-                              <p><b>{index + 1}.</b> {question.stem}</p>
+                              <p>{index + 1}.（{question.score}分）{question.stem}</p>
                               {question.options ? <ul>{question.options.map((option) => <li key={option}>{option}</li>)}</ul> : null}
                             </div>
                             <footer className="ai-compose-question-footer">
@@ -166,22 +252,20 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
                               </button>
                             </footer>
                           </article>
+                          </Fragment>
                         )
                       })}
                     </div>
 
                     <footer className="ai-compose-files" aria-label="生成文件">
                       {[
-                        { name: `${paperTitleFromPrompt(run.prompt)}.docx`, mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
-                        { name: '答案解析.docx', mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
-                        { name: '命题说明书.pdf', mime: 'application/pdf' },
-                      ].map((file) => (
-                        <div className="ai-compose-file" key={file.name}>
+                        `${paperTitleFromPrompt(run.prompt)}.docx`,
+                        '答案解析.docx',
+                        '命题说明书.pdf',
+                      ].map((filename) => (
+                        <div className="ai-compose-file" key={filename}>
                           <FileText size={16} />
-                          <span>{file.name}</span>
-                          <button type="button" onClick={() => downloadGeneratedFile(file.name, file.mime)}>
-                            <Download size={14} />下载
-                          </button>
+                          <span>{filename}</span>
                         </div>
                       ))}
                     </footer>
@@ -198,6 +282,7 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
           </div>
 
           <footer className="ai-assistant-followup">
+            {!newConversation && run?.status === 'success' ? <small className="ai-compose-followup-hint">可继续输入修改要求，例如「换第 2 题」或「改成 8 道题」。</small> : null}
             <AiComposer
               compact
               kind="compose"
@@ -206,11 +291,29 @@ export function AiAssistantWorkspace(props: AiAssistantWorkspaceProps) {
               status={props.status}
               disabled={props.contentBusy}
               onChange={props.onPromptChange}
-              onSubmit={props.onSubmit}
+              onSubmit={submitFollowUp}
             />
           </footer>
         </div>
       </div>
+      <dialog ref={previewRef} className="ai-reference-word" aria-labelledby="ai-reference-filename" onClose={() => setPreviewTitle(undefined)}>
+        <header>
+          <span className="ai-reference-word-icon" aria-hidden="true">W</span>
+          <strong id="ai-reference-filename">{previewTitle}.docx</strong>
+          <button type="button" aria-label="关闭预览" onClick={() => previewRef.current?.close()}><X size={18} /></button>
+        </header>
+        <div className="ai-reference-paper" tabIndex={0} aria-label="只读卷面预览">
+          <h2>{previewTitle}</h2>
+          <ol>
+            {(previewTitle ? references.get(previewTitle) ?? [] : []).map((question) => (
+              <li key={question.id}>
+                {question.stem}
+                {question.options?.length ? <ul>{question.options.map((option, index) => <li key={index}>{option}</li>)}</ul> : null}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </dialog>
     </aside>
   )
 }
