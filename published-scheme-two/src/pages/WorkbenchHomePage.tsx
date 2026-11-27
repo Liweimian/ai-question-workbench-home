@@ -1271,6 +1271,8 @@ export function WorkbenchHomePage() {
                     createStatus={workbench.createStatus}
                     createPreview={workbench.createPreview}
                     libraryDetail={activeLibraryDetail?.libraryMode === workbench.addMode ? activeLibraryDetail.record : null}
+                    draftQuestions={workbench.document.questions}
+                    onRemoveSourceQuestions={workbench.removeSourceQuestions}
                     onModeChange={workbench.setAddMode}
                     onResourceTypeChange={(type) => void workbench.loadSources(type)}
                     onAddSource={(type, sourceId, count, selectedQuestions) => workbench.addSource(type, sourceId, count, selectedQuestions)}

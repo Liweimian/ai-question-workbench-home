@@ -8964,7 +8964,7 @@
   font-size: 12px;
 }
 
-.legacy-question-global-actions > .legacy-use-whole-volume > button {
+.legacy-question-global-actions > button.is-primary {
   color: var(--common_fg_color);
   background: var(--fx-primary);
 }

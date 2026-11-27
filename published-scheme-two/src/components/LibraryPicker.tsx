@@ -13,7 +13,6 @@ import {
   FileText,
   ImagePlus,
   ListTree,
-  SquarePen,
   ListChecks,
   MoreHorizontal,
   Pin,
@@ -59,6 +58,8 @@ interface LibraryPickerProps {
   onWorkbookDirectoryChange?: (record: SourceRecord, matchedPath: string) => void
   onResourceTypeChange: (type: ResourceType) => void
   onAddSource: (type: ResourceType, sourceId: string, count: number, selectedQuestions?: Question[]) => Promise<boolean>
+  draftQuestions?: Question[]
+  onRemoveSourceQuestions?: (ids: string[]) => void
   currentDocumentHasContent?: boolean
   currentDocumentHasUnsavedChanges?: boolean
   onCompleteEditWholeVolume?: (
@@ -172,6 +173,7 @@ interface LegacyResourceDetailProps {
   onToggleQuestion: (question: Question) => Promise<void>
   onAddQuestionGroup: (questions: Question[]) => Promise<void>
   onUseAll: () => Promise<void>
+  onRemoveAll?: () => void
   onWorkbookDirectoryChange?: (matchedPath: string) => void
   currentDocumentHasContent?: boolean
   currentDocumentHasUnsavedChanges?: boolean
@@ -266,70 +268,20 @@ function LibraryQuestionAiRewrite(props: { question: Question; onAdd: (question:
   )
 }
 
-function LegacyUseWholeVolumeMenu(props: {
-  embedded?: boolean
+function LegacyVolumeActions(props: {
+  onRemoveAll?: () => void
   contentBusy: boolean
-  showEdit: boolean
   onAddToDraft: () => void
-  onEdit: () => void
   onFavorite: () => void
   favorited: boolean
-  showFavorite?: boolean
-  showUnpublish?: boolean
+  showFavorite: boolean
+  showUnpublish: boolean
 }) {
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return undefined
-    const onPointerDown = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onPointerDown)
-    return () => document.removeEventListener('mousedown', onPointerDown)
-  }, [open])
-
-  return (
-    <div className="legacy-use-whole-volume" ref={rootRef}>
-      <button
-        type="button"
-        className="is-primary"
-        disabled={props.contentBusy}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        onClick={() => setOpen((current) => !current)}
-      >
-        <FileText size={15} />
-        {props.embedded ? '添加整卷' : '使用整卷'}
-        <ChevronDown size={13} />
-      </button>
-      {open ? (
-        <div className="legacy-use-whole-menu" role="menu" aria-label="使用整卷">
-          <button type="button" role="menuitem" disabled={props.contentBusy} onClick={() => { props.onAddToDraft(); setOpen(false) }}>
-            <FileText size={16} />
-            合并编辑
-          </button>
-          {props.showEdit ? (
-            <button type="button" role="menuitem" onClick={() => { props.onEdit(); setOpen(false) }}>
-              <SquarePen size={16} />
-              独立编辑
-            </button>
-          ) : null}
-          {props.showFavorite !== false || props.showUnpublish ? <div className="legacy-use-whole-menu-divider" role="separator" /> : null}
-          {props.showFavorite !== false ? <button type="button" role="menuitem" onClick={() => { props.onFavorite(); setOpen(false) }}>
-            <Star size={16} />
-            {props.favorited ? '取消收藏' : '收藏'}
-          </button> : null}
-          {props.showUnpublish ? (
-            <button type="button" role="menuitem" onClick={() => { MetisMessage.success('已下架'); setOpen(false) }}>
-              <ArchiveX size={16} />
-              下架
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
-  )
+  return <>
+    {props.showFavorite ? <button type="button" onClick={props.onFavorite}><Star size={15} />{props.favorited ? '取消收藏' : '收藏'}</button> : null}
+    {props.showUnpublish ? <button type="button" onClick={() => MetisMessage.success('已下架')}><ArchiveX size={15} />下架</button> : null}
+    <button type="button" className={props.onRemoveAll ? undefined : 'is-primary'} disabled={props.contentBusy} onClick={props.onRemoveAll ?? props.onAddToDraft}><FileText size={15} />{props.onRemoveAll ? '移出全部' : '添加全部'}</button>
+  </>
 }
 
 const workbookDirectory = [
@@ -368,8 +320,6 @@ export function LegacyResourceDetail(props: LegacyResourceDetailProps) {
   const directoryRef = useRef<HTMLElement>(null)
   const [paperView, setPaperView] = useState<'original' | 'question'>('question')
   const [volumeFavorited, setVolumeFavorited] = useState(false)
-  const [newEditConfirmOpen, setNewEditConfirmOpen] = useState(false)
-  const [newEditPending, setNewEditPending] = useState(false)
   const sectionOrder = ['选择题', '填空题', '解答题']
   const sectionNames = ['一、单项选择题', '二、填空题', '三、解答题']
   const groupedQuestions = sectionOrder.map((type, index) => ({
@@ -387,29 +337,6 @@ export function LegacyResourceDetail(props: LegacyResourceDetailProps) {
     })
     return () => window.cancelAnimationFrame(frame)
   }, [matchedChapterTitle, matchedDirectoryNode])
-
-  const completeEditWholeVolume = async (mode: 'plain' | 'save-first' | 'discard-first') => {
-    if (!props.onCompleteEditWholeVolume || newEditPending) return
-    setNewEditPending(true)
-    const result = await props.onCompleteEditWholeVolume(
-      props.record.sourceType,
-      props.record.id,
-      props.questions.length,
-      props.questions,
-      mode,
-    )
-    setNewEditPending(false)
-    if (result === 'success') setNewEditConfirmOpen(false)
-  }
-
-  const handleEditWholeVolume = () => {
-    if (!props.onCompleteEditWholeVolume || props.contentBusy) return
-    if (props.currentDocumentHasContent && props.currentDocumentHasUnsavedChanges) {
-      setNewEditConfirmOpen(true)
-      return
-    }
-    void completeEditWholeVolume('plain')
-  }
 
   return (
     <section className={`legacy-detail-workspace${props.embedded ? ' is-embedded' : ''}`} aria-label={props.record.title}>
@@ -478,15 +405,13 @@ export function LegacyResourceDetail(props: LegacyResourceDetailProps) {
             ) : <>
               <div className="legacy-question-global-actions">
                 <button type="button" onClick={props.onToggleAnswers}><Eye size={15} />{props.showAnswers ? '隐藏答案' : '显示答案'}</button>
-                <LegacyUseWholeVolumeMenu
-                  embedded={props.embedded}
+                <LegacyVolumeActions
+                  onRemoveAll={props.onRemoveAll}
                   contentBusy={props.contentBusy}
-                  showEdit={Boolean(props.embedded && props.onCompleteEditWholeVolume)}
                   favorited={volumeFavorited}
                   showFavorite={!isWorkbook}
                   showUnpublish={Boolean(props.schoolLibrary && props.record.sourceType === 'paper')}
                   onAddToDraft={() => void props.onUseAll()}
-                  onEdit={() => void handleEditWholeVolume()}
                   onFavorite={() => setVolumeFavorited((current) => !current)}
                 />
               </div>
@@ -536,19 +461,6 @@ export function LegacyResourceDetail(props: LegacyResourceDetailProps) {
           </div>
         </main>
       </div>
-      {newEditConfirmOpen ? (
-        <div className="workspace-confirm-overlay" role="presentation" onClick={() => { if (!newEditPending) setNewEditConfirmOpen(false) }}>
-          <div className="workspace-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="resource-new-edit-title" onClick={(event) => event.stopPropagation()}>
-            <strong id="resource-new-edit-title">独立编辑</strong>
-            <span>当前编辑有未保存的修改。保存后新建，可在「我的资源」中继续编辑；不保存则放弃本次修改，直接以当前整卷新建。</span>
-            <div>
-              <button type="button" disabled={newEditPending} onClick={() => setNewEditConfirmOpen(false)}>取消</button>
-              <button type="button" disabled={newEditPending} onClick={() => { void completeEditWholeVolume('discard-first') }}>不保存，直接新建</button>
-              <button type="button" className="is-primary" disabled={newEditPending} onClick={() => { void completeEditWholeVolume('save-first') }}>{newEditPending ? '保存中…' : '保存并新建'}</button>
-            </div>
-          </div>
-        </div>
-      ) : null}
       {props.addStatus === 'loading' ? <div className="legacy-detail-loading">正在加入当前组题…</div> : null}
     </section>
   )
@@ -834,7 +746,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
   }
 
   const addQuestionImmediately = async (question: Question) => {
-    if (selectedQuestionIds.has(question.id) || pendingQuestionIds.size > 0 || props.contentBusy) return
+    if ((detailRecord ? detailSelectedIds : selectedQuestionIds).has(question.id) || pendingQuestionIds.size > 0 || props.contentBusy) return
     setPendingQuestionIds(new Set([question.id]))
     const added = await props.onAddSource(
       detailRecord?.sourceType ?? props.resourceType,
@@ -864,6 +776,15 @@ export function LibraryPicker(props: LibraryPickerProps) {
     ? sourceOptions.filter((option) => option.type === 'paper' || option.type === 'workbook')
     : sourceOptions
 
+  const detailMatches = new Map(previewQuestions.map((question) => {
+    const prefix = `${question.id}-${detailRecord?.sourceType}-${detailRecord?.id}-`
+    const matches = props.draftQuestions?.filter(({ id }) => id.startsWith(prefix) && /^\d+-\d+$/.test(id.slice(prefix.length))) ?? []
+    return [question.id, matches.map(({ id }) => id)] as const
+  }))
+  const detailSelectedIds = props.draftQuestions
+    ? new Set([...detailMatches].filter(([, ids]) => ids.length > 0).map(([id]) => id))
+    : selectedQuestionIds
+  const canRemoveAll = Boolean(props.onRemoveSourceQuestions && previewQuestions.length && previewQuestions.every(({ id }) => detailSelectedIds.has(id)))
   const detailView = detailRecord ? (
     <>
       {pickerDetailNav}
@@ -874,7 +795,8 @@ export function LibraryPicker(props: LibraryPickerProps) {
         hideMatchBanner={props.hideMatchBanner}
         embedded={variant === 'dialog'}
         questions={previewQuestions}
-        selectedQuestionIds={selectedQuestionIds}
+        selectedQuestionIds={detailSelectedIds}
+        onRemoveAll={canRemoveAll ? () => props.onRemoveSourceQuestions?.([...new Set([...detailMatches.values()].flat())]) : undefined}
         pendingQuestionIds={pendingQuestionIds}
         showAnswers={showAnswers}
         contentBusy={props.contentBusy}
@@ -904,7 +826,7 @@ export function LibraryPicker(props: LibraryPickerProps) {
         }}
         onUseAll={async () => {
           if (variant === 'dialog') {
-            const unaddedQuestions = previewQuestions.filter((question) => !selectedQuestionIds.has(question.id))
+            const unaddedQuestions = previewQuestions.filter((question) => !detailSelectedIds.has(question.id))
             if (unaddedQuestions.length === 0 || props.contentBusy) return
             const pendingIds = unaddedQuestions.map((question) => question.id)
             setPendingQuestionIds(new Set(pendingIds))

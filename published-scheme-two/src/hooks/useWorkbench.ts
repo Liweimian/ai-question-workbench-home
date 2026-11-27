@@ -68,6 +68,7 @@ type EditorAction =
   | { type: 'move'; selectedQuestionId: string; direction: -1 | 1 }
   | { type: 'reorder'; questionIds: string[] }
   | { type: 'delete'; selectedQuestionId: string }
+  | { type: 'delete-questions'; ids: Set<string> }
   | { type: 'undo' }
 
 const cloneQuestion = (question: Question): Question => ({
@@ -325,11 +326,12 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     }
   }
 
-  if (action.type === 'delete') {
+  if (action.type === 'delete' || action.type === 'delete-questions') {
+    const ids = action.type === 'delete' ? new Set([action.selectedQuestionId]) : action.ids
     return {
       document: {
         ...state.document,
-        questions: state.document.questions.filter((question) => question.id !== action.selectedQuestionId),
+        questions: state.document.questions.filter((question) => !ids.has(question.id)),
         updatedAt: '刚刚',
       },
       undoDocument: cloneDocument(state.document),
@@ -1321,6 +1323,17 @@ export function useWorkbench() {
     moveQuestion,
     reorderQuestions,
     deleteQuestion,
+    removeSourceQuestions: (ids: string[]) => {
+      if (ids.length === 0 || contentOperation !== null) return
+      invalidateRewrite()
+      const removedIds = new Set(ids)
+      dispatch({ type: 'delete-questions', ids: removedIds })
+      if (selectedQuestionId && removedIds.has(selectedQuestionId)) {
+        setSelectedQuestionId(null)
+        setInspectorView('info')
+      }
+      MetisMessage.success(`已移出 ${ids.length} 道题，可撤销`)
+    },
     saveDocument,
     assignDocument,
     undo,

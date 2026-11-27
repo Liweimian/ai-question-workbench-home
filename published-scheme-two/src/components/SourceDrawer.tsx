@@ -52,6 +52,8 @@ interface SourceDrawerProps {
   onModeChange: (mode: AddQuestionMode) => void
   onResourceTypeChange: (type: ResourceType) => void
   onAddSource: (type: ResourceType, sourceId?: string, count?: number, selectedQuestions?: Question[]) => Promise<boolean>
+  draftQuestions?: Question[]
+  onRemoveSourceQuestions?: (ids: string[]) => void
   currentDocumentHasContent?: boolean
   currentDocumentHasUnsavedChanges?: boolean
   onCompleteEditWholeVolume?: (
@@ -250,6 +252,8 @@ export function SourceDrawer(props: SourceDrawerProps) {
 
           {props.mode === 'resource' || props.mode === 'district' || props.mode === 'school' ? (
             <LibraryPicker
+              draftQuestions={props.draftQuestions}
+              onRemoveSourceQuestions={props.onRemoveSourceQuestions}
               libraryKind={props.mode === 'resource' ? 'fly' : 'school'}
               memoryKey={props.mode}
               hideResourceTabs={docked && props.mode === 'resource'}
